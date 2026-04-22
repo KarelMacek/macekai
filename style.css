@@ -217,6 +217,20 @@ nav {
   margin-top: 44px;
 }
 
+/* === 2-col grid === */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px 40px;
+  margin-top: 44px;
+}
+
+@media (max-width: 680px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* === Situation cards === */
 .card {
   border-top: 2px solid var(--text);

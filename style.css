@@ -244,10 +244,11 @@ nav {
 }
 
 .offer-meta {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
   margin-bottom: 22px;
+  letter-spacing: -0.01em;
 }
 
 .check-list {

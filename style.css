@@ -320,6 +320,63 @@ nav {
   color: #444;
 }
 
+/* === Hero situations line === */
+.hero-situations {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+/* === Situations snap block === */
+.situations-snap {
+  padding: 48px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.snap-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.snap-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 48px;
+}
+
+.snap-list li {
+  font-size: 0.95rem;
+  color: var(--text);
+  padding-left: 16px;
+  position: relative;
+}
+
+.snap-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--muted);
+}
+
+/* === What happens label === */
+.what-happens-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0;
+  margin-top: 28px;
+}
+
 /* === Testimonials === */
 .testimonials {
   row-gap: 40px;
@@ -416,6 +473,10 @@ footer {
   .grid-3 {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+
+  .snap-list {
+    grid-template-columns: 1fr;
   }
 
   .section {

@@ -166,6 +166,14 @@ nav {
   margin-bottom: 22px;
 }
 
+.hero-bridge {
+  font-size: 0.97rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 12px;
+  line-height: 1.65;
+}
+
 .hero-sub {
   font-size: 1.1rem;
   color: #333;

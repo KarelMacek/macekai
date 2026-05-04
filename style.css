@@ -7,10 +7,11 @@
 
 :root {
   --bg:        #ffffff;
-  --bg-alt:    #f5f4f2;
-  --text:      #0f0f0f;
-  --muted:     #6b7280;
-  --border:    #e4e4e4;
+  --bg-alt:    #F7F5F0;
+  --text:      #1A1A2E;
+  --muted:     #A7A7A7;
+  --border:    #BBBBBB;
+  --accent:    #B8972A;
   --max-w:     1020px;
   --narrow-w:  680px;
   --font:      -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, 'Inter', sans-serif;
@@ -241,7 +242,7 @@ nav {
 
 /* === Situation cards === */
 .card {
-  border-top: 2px solid var(--text);
+  border-top: 2px solid var(--accent);
   padding-top: 16px;
 }
 
@@ -296,7 +297,7 @@ nav {
 
 /* === How it works === */
 .step {
-  border-top: 2px solid var(--text);
+  border-top: 2px solid var(--accent);
   padding-top: 16px;
 }
 
@@ -395,7 +396,7 @@ nav {
 }
 
 .testimonial {
-  border-top: 2px solid var(--text);
+  border-top: 2px solid var(--accent);
   padding-top: 20px;
   display: flex;
   flex-direction: column;
@@ -421,6 +422,51 @@ nav {
 .t-author span {
   font-weight: 400;
   color: var(--muted);
+}
+
+.t-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.t-toggle:hover {
+  opacity: 0.7;
+}
+
+.t-full {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.t-full blockquote {
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: #444;
+  font-style: italic;
+  quotes: none;
+}
+
+.t-full blockquote p {
+  margin-bottom: 12px;
+}
+
+.t-full blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.t-highlight {
+  background: rgba(184, 151, 42, 0.15);
+  padding: 1px 3px;
 }
 
 /* === Final CTA === */

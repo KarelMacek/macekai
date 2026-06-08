@@ -535,6 +535,39 @@
   </footer>
 
   <script>
+    // 1: FAQ smooth animation (grid-template-rows trick)
+    document.querySelectorAll('.faq-item').forEach(details => {
+      const content = details.querySelector('.faq-answer');
+      if (!content) return;
+      // Wrap children in inner div for the 0fr→1fr animation
+      const inner = document.createElement('div');
+      inner.className = 'faq-answer-inner';
+      while (content.firstChild) inner.appendChild(content.firstChild);
+      content.appendChild(inner);
+
+      details.querySelector('summary').addEventListener('click', e => {
+        e.preventDefault();
+        if (details.open) {
+          content.style.gridTemplateRows = '1fr';
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            content.style.gridTemplateRows = '0fr';
+          }));
+          content.addEventListener('transitionend', () => {
+            details.open = false;
+            content.style.gridTemplateRows = '';
+          }, { once: true });
+        } else {
+          details.open = true;
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            content.style.gridTemplateRows = '1fr';
+          }));
+          content.addEventListener('transitionend', () => {
+            content.style.gridTemplateRows = '';
+          }, { once: true });
+        }
+      });
+    });
+
     // Testimonial expand/collapse
     document.querySelectorAll('.t-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -566,7 +599,66 @@
       carousel.querySelector('.carousel-prev').addEventListener('click', () => showSlide(current - 1));
       carousel.querySelector('.carousel-next').addEventListener('click', () => showSlide(current + 1));
       dots.forEach((dot, i) => dot.addEventListener('click', () => showSlide(i)));
+
+      // 2: Carousel height stabilisation — measure tallest slide, lock min-height
+      function stabiliseHeight() {
+        const track = carousel.querySelector('.carousel-track');
+        let maxH = 0;
+        items.forEach(item => {
+          const wasActive = item.classList.contains('active');
+          item.style.display = 'flex';
+          maxH = Math.max(maxH, item.offsetHeight);
+          if (!wasActive) item.style.display = '';
+        });
+        track.style.minHeight = maxH + 'px';
+      }
+      stabiliseHeight();
+      window.addEventListener('resize', stabiliseHeight);
+
+      // 3: Touch swipe support
+      let touchStartX = 0;
+      carousel.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+      }, { passive: true });
+      carousel.addEventListener('touchend', e => {
+        const delta = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(delta) > 50) showSlide(current + (delta < 0 ? 1 : -1));
+      }, { passive: true });
     }
+
+    // 5: Section fade-in on scroll
+    (function () {
+      const sections = document.querySelectorAll('.section');
+      const vh = window.innerHeight;
+      // Mark above-fold sections visible before activating the fade system
+      sections.forEach(s => {
+        if (s.getBoundingClientRect().top < vh) s.classList.add('visible');
+      });
+      document.documentElement.classList.add('js-loaded');
+
+      const fadeObs = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            obs.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+
+      sections.forEach(s => {
+        if (!s.classList.contains('visible')) fadeObs.observe(s);
+      });
+    })();
+
+    // 6: Nav CTA becomes accent-gold once hero CTA scrolls out of view
+    (function () {
+      const heroBtn = document.querySelector('.hero .btn');
+      const navBtn  = document.querySelector('.nav-inner .btn-sm');
+      if (!heroBtn || !navBtn) return;
+      new IntersectionObserver(([entry]) => {
+        navBtn.classList.toggle('nav-btn-prominent', !entry.isIntersecting);
+      }, { threshold: 0 }).observe(heroBtn);
+    })();
   </script>
 </body>
 </html>

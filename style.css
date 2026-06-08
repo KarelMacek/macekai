@@ -703,7 +703,7 @@ footer {
 }
 
 .carousel-track .testimonial.active {
-  display: block;
+  display: flex;
 }
 
 .carousel-nav {
@@ -820,6 +820,18 @@ footer {
 }
 
 .faq-answer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s ease;
+}
+
+details[open] .faq-answer {
+  grid-template-rows: 1fr;
+}
+
+.faq-answer-inner {
+  overflow: hidden;
+  min-height: 0;
   padding-bottom: 20px;
 }
 
@@ -831,4 +843,45 @@ footer {
 
 .faq-answer p:last-child {
   margin-bottom: 0;
+}
+
+/* === UX improvements === */
+
+/* 4: Line-length guard on long-form prose */
+.problem p,
+.about p {
+  max-width: 66ch;
+}
+
+/* 5: Section fade-in (respects prefers-reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .js-loaded .section {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+  }
+  .js-loaded .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 6: Nav CTA prominence after hero scrolls away */
+.nav-inner .btn-sm {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.nav-btn-prominent {
+  background-color: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+}
+
+/* 7: Focus visible — gold accent ring, no browser default */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+:focus:not(:focus-visible) {
+  outline: none;
 }

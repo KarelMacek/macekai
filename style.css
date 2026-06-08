@@ -90,6 +90,13 @@ p:last-child {
   font-style: italic;
 }
 
+.hero-seo {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 12px;
+  line-height: 1.5;
+}
+
 /* === Navigation === */
 nav {
   position: sticky;

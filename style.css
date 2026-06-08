@@ -628,6 +628,70 @@ footer {
   }
 }
 
+/* === Section intro text === */
+.section-intro {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 32px;
+  max-width: 600px;
+}
+
+/* === How it works — vertical steps list === */
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.steps-list .step {
+  border-top: 1px solid var(--border);
+  padding: 20px 0;
+}
+
+.steps-list .step:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.steps-list .step h3 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.steps-list .step p {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0;
+}
+
+/* === Vision / Mission === */
+.vision-mission {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: var(--bg-alt);
+  border-left: 3px solid var(--accent);
+}
+
+.vm-item .label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.vm-item p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .vision-mission {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
 /* === FAQ accordion === */
 .faq-item {
   border-top: 1px solid var(--border);

@@ -692,6 +692,94 @@ footer {
   }
 }
 
+/* === Testimonial carousel === */
+.testimonial-carousel {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.carousel-track .testimonial {
+  display: none;
+}
+
+.carousel-track .testimonial.active {
+  display: block;
+}
+
+.carousel-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.carousel-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.carousel-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.carousel-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s;
+}
+
+.carousel-dot.active {
+  background: var(--accent);
+}
+
+.t-linkedin {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.t-linkedin:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* === Repeat CTA === */
+.cta-repeat {
+  padding-top: 40px;
+  padding-bottom: 40px;
+}
+
+.values-grid {
+  margin-top: 0;
+}
+
 /* === FAQ accordion === */
 .faq-item {
   border-top: 1px solid var(--border);

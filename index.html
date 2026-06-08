@@ -156,7 +156,7 @@
     <div class="container hero-inner">
       <div class="hero-text">
         <h1>Build a next chapter where meaningful work, wealth, family, health, and calm belong together.</h1>
-        <p class="hero-sub">Coaching for capable AI/data/tech professionals who are already strong performers, but want their ability to create a life with more value, wealth, family strength, health, and inner calm.</p>
+        <p class="hero-sub">For capable AI/data/tech professionals who already perform — and want the rest of life to match.</p>
         <a href="https://calendly.com/karel-macek/30min" target="_blank" rel="noopener" class="btn">Book an orientation call</a>
         <p class="trust-line">13 years coaching &middot; 17 years in AI &middot; ACC coach &middot; PhD in Mathematics &middot; MSc in AI</p>
       </div>
@@ -585,37 +585,36 @@
     const carousel = document.querySelector('.testimonial-carousel');
     if (carousel) {
       const items = Array.from(carousel.querySelectorAll('.testimonial'));
-      const dots = Array.from(carousel.querySelectorAll('.carousel-dot'));
       let current = 0;
 
+      // Move arrows out of .carousel-nav so they can be absolutely positioned
+      const navEl  = carousel.querySelector('.carousel-nav');
+      const prevBtn = carousel.querySelector('.carousel-prev');
+      const nextBtn = carousel.querySelector('.carousel-next');
+      carousel.insertBefore(prevBtn, carousel.querySelector('.carousel-track'));
+      carousel.appendChild(nextBtn);
+      navEl.style.display = 'none';
+
+      function visibleCount() {
+        return window.innerWidth < 640 ? 1 : 3;
+      }
+
       function showSlide(idx) {
-        items[current].classList.remove('active');
-        dots[current].classList.remove('active');
+        items.forEach(i => i.classList.remove('active'));
         current = ((idx % items.length) + items.length) % items.length;
-        items[current].classList.add('active');
-        dots[current].classList.add('active');
+        const count = visibleCount();
+        for (let i = 0; i < count; i++) {
+          items[(current + i) % items.length].classList.add('active');
+        }
       }
 
-      carousel.querySelector('.carousel-prev').addEventListener('click', () => showSlide(current - 1));
-      carousel.querySelector('.carousel-next').addEventListener('click', () => showSlide(current + 1));
-      dots.forEach((dot, i) => dot.addEventListener('click', () => showSlide(i)));
+      showSlide(0);
 
-      // 2: Carousel height stabilisation — measure tallest slide, lock min-height
-      function stabiliseHeight() {
-        const track = carousel.querySelector('.carousel-track');
-        let maxH = 0;
-        items.forEach(item => {
-          const wasActive = item.classList.contains('active');
-          item.style.display = 'flex';
-          maxH = Math.max(maxH, item.offsetHeight);
-          if (!wasActive) item.style.display = '';
-        });
-        track.style.minHeight = maxH + 'px';
-      }
-      stabiliseHeight();
-      window.addEventListener('resize', stabiliseHeight);
+      prevBtn.addEventListener('click', () => showSlide(current - 1));
+      nextBtn.addEventListener('click', () => showSlide(current + 1));
+      window.addEventListener('resize', () => showSlide(current));
 
-      // 3: Touch swipe support
+      // Touch swipe support
       let touchStartX = 0;
       carousel.addEventListener('touchstart', e => {
         touchStartX = e.touches[0].clientX;

@@ -694,28 +694,39 @@ footer {
 
 /* === Testimonial carousel === */
 .testimonial-carousel {
-  max-width: 640px;
+  max-width: 100%;
   margin: 0 auto;
+  position: relative;
+  padding: 0 52px;
+}
+
+.carousel-track {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
 }
 
 .carousel-track .testimonial {
   display: none;
+  flex: 0 0 calc(33.333% - 16px);
+  min-width: 0;
 }
 
 .carousel-track .testimonial.active {
   display: flex;
+  flex-direction: column;
 }
 
 .carousel-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 28px;
+  display: none;
 }
 
 .carousel-btn {
-  background: none;
+  position: absolute;
+  top: 40%;
+  transform: translateY(-50%);
+  z-index: 1;
+  background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
   width: 36px;
@@ -735,24 +746,14 @@ footer {
   color: var(--accent);
 }
 
-.carousel-dots {
-  display: flex;
-  gap: 8px;
-}
+.carousel-prev { left: 0; }
+.carousel-next { right: 0; }
 
-.carousel-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--border);
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.15s;
-}
-
-.carousel-dot.active {
-  background: var(--accent);
+@media (max-width: 640px) {
+  .testimonial-carousel { padding: 0 40px; }
+  .carousel-track .testimonial {
+    flex: 0 0 100%;
+  }
 }
 
 .t-linkedin {

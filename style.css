@@ -201,6 +201,47 @@ nav {
   color: var(--text);
 }
 
+.cred-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.hero-proof {
+  margin-top: 28px;
+  padding-left: 14px;
+  border-left: 2px solid var(--accent);
+}
+
+.hero-proof p {
+  font-size: 0.88rem;
+  font-style: italic;
+  color: #444;
+  margin-bottom: 6px;
+  line-height: 1.65;
+}
+
+.hero-proof cite {
+  font-size: 0.75rem;
+  font-style: normal;
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .hero-image {
   flex: 0 0 auto;
   display: flex;
@@ -260,6 +301,54 @@ nav {
 .card p {
   font-size: 0.9rem;
   color: #444;
+}
+
+/* === Offer cards (side-by-side) === */
+.offers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--border);
+}
+
+.offer-card {
+  background: var(--bg);
+  padding: 44px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.offer-card p:last-of-type {
+  flex: 1;
+}
+
+.offer-card .btn,
+.offer-card .btn-outline {
+  align-self: flex-start;
+  margin-top: 28px;
+}
+
+.offer-card--primary {
+  border-top: 3px solid var(--accent);
+}
+
+.offer-card--secondary {
+  background: var(--bg-alt);
+  border-top: 3px solid var(--border);
+}
+
+@media (max-width: 680px) {
+  .offers-grid {
+    grid-template-columns: 1fr;
+  }
+  .offer-card {
+    padding: 32px 24px;
+  }
+  .offer-card .btn,
+  .offer-card .btn-outline {
+    align-self: stretch;
+    text-align: center;
+  }
 }
 
 /* === Offer sections === */
@@ -424,6 +513,7 @@ nav {
   color: var(--text);
   margin-bottom: 0;
   line-height: 1.5;
+  margin-top: auto;
 }
 
 .t-author span {
@@ -507,6 +597,16 @@ footer {
   font-size: 0.82rem;
   margin-bottom: 0;
   color: var(--muted);
+}
+
+.footer-inner a {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.footer-inner a:hover {
+  color: var(--text);
 }
 
 /* === Responsive: tablet === */
@@ -718,7 +818,27 @@ footer {
 }
 
 .carousel-nav {
-  display: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+}
+
+.carousel-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.carousel-dot.active {
+  background: var(--accent);
 }
 
 .carousel-btn {
@@ -748,6 +868,13 @@ footer {
 
 .carousel-prev { left: 0; }
 .carousel-next { right: 0; }
+
+@media (min-width: 641px) {
+  /* min-height reserves space for up to 2 lines of role text so all names align */
+  .carousel-track .testimonial .t-author {
+    min-height: 4rem;
+  }
+}
 
 @media (max-width: 640px) {
   .testimonial-carousel { padding: 0 40px; }
@@ -865,6 +992,11 @@ details[open] .faq-answer {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Nav shadow on scroll */
+nav.scrolled {
+  box-shadow: 0 1px 16px rgba(0, 0, 0, 0.07);
 }
 
 /* 6: Nav CTA prominence after hero scrolls away */

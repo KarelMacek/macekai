@@ -157,13 +157,13 @@ nav {
 
 /* === Hero === */
 .hero {
-  padding: 100px 0 88px;
+  padding: 144px 0 112px;
 }
 
 .hero-inner {
   display: flex;
   align-items: center;
-  gap: 72px;
+  gap: 80px;
 }
 
 .hero-text {
@@ -171,22 +171,25 @@ nav {
 }
 
 .hero-text h1 {
-  margin-bottom: 22px;
+  font-size: clamp(2.1rem, 5vw, 3.4rem);
+  margin-bottom: 26px;
 }
 
 .hero-bridge {
-  font-size: 0.97rem;
-  color: var(--muted);
-  font-style: italic;
-  margin-bottom: 12px;
-  line-height: 1.65;
+  font-size: 1.2rem;
+  color: var(--text);
+  font-weight: 600;
+  margin-bottom: 20px;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
 }
 
 .hero-sub {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: #333;
-  margin-bottom: 32px;
-  max-width: 460px;
+  margin-bottom: 36px;
+  max-width: 520px;
+  line-height: 1.7;
 }
 
 .trust-line {
@@ -250,8 +253,8 @@ nav {
 }
 
 .hero-image img {
-  width: 240px;
-  height: 300px;
+  width: 300px;
+  height: 375px;
   object-fit: cover;
   object-position: center top;
   display: block;
@@ -627,23 +630,27 @@ footer {
 
   /* Hero */
   .hero {
-    padding: 48px 0 52px;
+    padding: 60px 0 64px;
   }
 
   .hero-inner {
     flex-direction: column-reverse;
-    gap: 28px;
+    gap: 32px;
   }
 
   .hero-image img {
-    width: 160px;
-    height: 200px;
+    width: 190px;
+    height: 238px;
+  }
+
+  .hero-bridge {
+    font-size: 1.05rem;
   }
 
   .hero-sub {
     max-width: 100%;
-    font-size: 1rem;
-    margin-bottom: 20px;
+    font-size: 1.05rem;
+    margin-bottom: 24px;
   }
 
   .hero-situations {

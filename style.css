@@ -905,6 +905,15 @@ footer {
   border-bottom-color: var(--accent);
 }
 
+/* === Final CTA echo line === */
+.cta-echo {
+  margin-top: 24px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
 /* === Repeat CTA === */
 .cta-repeat {
   padding-top: 40px;

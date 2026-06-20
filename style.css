@@ -184,6 +184,14 @@ nav {
   letter-spacing: -0.01em;
 }
 
+.hero-identity {
+  font-size: 1rem;
+  color: var(--text-muted, #666);
+  margin-bottom: 20px;
+  max-width: 520px;
+  line-height: 1.6;
+}
+
 .hero-sub {
   font-size: 1.15rem;
   color: #333;

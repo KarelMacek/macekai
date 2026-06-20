@@ -754,8 +754,7 @@
               fired[eventName] = true;
               obs.unobserve(entry.target);
               trackEvent(eventName, {
-                section: eventName.replace(/_section_view$/, ''),
-                page_path: window.location.pathname
+                section: eventName.replace(/_section_view$/, '')
               });
             }
           });

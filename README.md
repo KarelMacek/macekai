@@ -92,12 +92,12 @@ Threshold: 50% of the section visible. For sections taller than the viewport the
 |---|---|---|
 | `hero_section_view` | Hero | `.hero` |
 | `problem_section_view` | "High ability has a hidden cost" | `.problem` |
-| `offer_section_view` | 3-Session Clarity Sprint card | `.offer-main` |
-| `pricing_section_view` | 12-Session Next Chapter card | `.offer-secondary` |
 | `how_it_works_section_view` | How it works | `.how` |
-| `after_pricing_section_view` | First section after pricing (same element as above) | `.how` |
 | `credibility_section_view` | Why this works | `.credibility` |
 | `testimonials_section_view` | What people say | `.proof` |
+| `offer_section_view` | 3-Session Clarity Sprint card | `.offer-main` |
+| `pricing_section_view` | 12-Session Next Chapter card | `.offer-secondary` |
+| `after_pricing_section_view` | First section after pricing | `.final-cta` |
 | `final_cta_section_view` | "Not sure if this is for you?" CTA block | `.final-cta` |
 | `faq_section_view` | FAQ | `.faq` |
 
@@ -194,6 +194,27 @@ Scroll funnel test checklist:
 - [ ] `credibility_section_view`, `testimonials_section_view`, `final_cta_section_view`, `faq_section_view` fire in order
 - [ ] No section event fires more than once per page load (reload to reset)
 - [ ] Clicking any Calendly button fires `calendly_click` + `cta_click` with the correct `cta_location`
+
+---
+
+### GA4 custom dimensions — TODO (not configured yet)
+
+Custom event parameters are collected by GA4 but are invisible in standard reports until registered as custom dimensions. Do this once in GA4 Admin when you're ready to build reports.
+
+**Path:** GA4 → Správce (Admin) → Zobrazení dat → Vlastní definice → Vlastní dimenze → Vytvořit vlastní dimenzi
+
+Register these four dimensions, all scoped to **Událost (Event)**:
+
+| Název dimenze (display name) | Parametr události (event parameter) | Used in |
+|---|---|---|
+| Section | `section` | all `*_section_view` events |
+| CTA Location | `cta_location` | `cta_click`, `calendly_click` |
+| CTA Text | `cta_text` | `cta_click`, `calendly_click` |
+| CTA href | `cta_href` | `cta_click`, `calendly_click` |
+
+Once registered, these parameters become filterable and groupable in Explore reports and the Events report. GA4 backfills data from the point of registration — historical data collected before registration is not recoverable in reports (but the raw events are still in BigQuery if linked).
+
+> DebugView shows the parameters immediately without registration. Registration is only needed for standard reporting.
 
 ---
 

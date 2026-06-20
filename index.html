@@ -695,7 +695,11 @@
         console.log('[analytics]', name, params || {});
       }
       try {
-        if (typeof gtag === 'function') gtag('event', name, params || {});
+        if (typeof gtag === 'function') {
+          var payload = params || {};
+          if (isAnalyticsDebug) payload = Object.assign({ debug_mode: true }, payload);
+          gtag('event', name, payload);
+        }
       } catch (e) {}
     }
 

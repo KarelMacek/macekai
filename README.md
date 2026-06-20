@@ -107,7 +107,7 @@ Parameters sent with every section event:
 |---|---|
 | `section` | `hero`, `problem`, `how_it_works`, `after_pricing`, … |
 
-> `after_pricing_section_view` and `how_it_works_section_view` fire from the same element (`.how`). `after_pricing_section_view` answers the specific question: did the visitor continue scrolling past the pricing cards?
+> `after_pricing_section_view` fires on `.final-cta` — the first section after the pricing cards in the current page order. `final_cta_section_view` fires on the same element but serves a different analytical purpose: the former measures pricing funnel drop-off, the latter measures CTA section visibility.
 
 ---
 

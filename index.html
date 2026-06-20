@@ -417,8 +417,8 @@
     <div class="container text-center">
       <h2>Not sure if this is for you?<br>That is exactly what the call is for.</h2>
       <p>Book a free 30-minute call.<br>We look at your situation honestly together.<br>No pressure. No pitch. Just a real conversation.</p>
-      <a href="https://calendly.com/karel-macek/30min" class="btn" target="_blank" rel="noopener" data-track="calendly" data-track-location="cta" data-cta="true">Book a free orientation call</a>
-      <p class="trust-line">Or write at <a href="mailto:karel@macek.ai" data-track="email" data-track-location="cta">karel@macek.ai</a></p>
+      <a href="https://calendly.com/karel-macek/30min" class="btn" target="_blank" rel="noopener" data-track="calendly" data-track-location="final" data-cta="true">Book a free orientation call</a>
+      <p class="trust-line">Or write at <a href="mailto:karel@macek.ai" data-track="email" data-track-location="final">karel@macek.ai</a></p>
       <p class="cta-echo">Your next chapter starts with one honest conversation.</p>
     </div>
   </section>
@@ -472,8 +472,8 @@
   <!-- 12. CTA repeat -->
   <section class="section alt cta-repeat">
     <div class="container text-center">
-      <a href="https://calendly.com/karel-macek/30min" class="btn" target="_blank" rel="noopener" data-track="calendly" data-track-location="cta_repeat" data-cta="true">Book a free orientation call</a>
-      <p class="trust-line">Or write to me at <a href="mailto:karel@macek.ai" data-track="email" data-track-location="cta_repeat">karel@macek.ai</a></p>
+      <a href="https://calendly.com/karel-macek/30min" class="btn" target="_blank" rel="noopener" data-track="calendly" data-track-location="after_faq" data-cta="true">Book a free orientation call</a>
+      <p class="trust-line">Or write to me at <a href="mailto:karel@macek.ai" data-track="email" data-track-location="after_faq">karel@macek.ai</a></p>
     </div>
   </section>
 
@@ -521,8 +521,8 @@
   <!-- 14. CTA repeat -->
   <section class="section alt cta-repeat">
     <div class="container text-center">
-      <a href="https://calendly.com/karel-macek/30min" class="btn" target="_blank" rel="noopener" data-track="calendly" data-track-location="cta_repeat" data-cta="true">Book a free orientation call</a>
-      <p class="trust-line">Or write to me at <a href="mailto:karel@macek.ai" data-track="email" data-track-location="cta_repeat">karel@macek.ai</a></p>
+      <a href="https://calendly.com/karel-macek/30min" class="btn" target="_blank" rel="noopener" data-track="calendly" data-track-location="footer" data-cta="true">Book a free orientation call</a>
+      <p class="trust-line">Or write to me at <a href="mailto:karel@macek.ai" data-track="email" data-track-location="footer">karel@macek.ai</a></p>
     </div>
   </section>
 
@@ -683,19 +683,30 @@
     //   LinkedIn warm DM:              https://macek.ai/?utm_source=linkedin&utm_medium=dm&utm_campaign=warm_outreach
     //   LinkedIn thought leadership:   https://macek.ai/?utm_source=linkedin&utm_medium=comment&utm_campaign=thought_leadership
 
+    // Debug: logs to console on localhost or when ?analytics_debug=1 is in the URL.
+    var isAnalyticsDebug = (
+      location.hostname === 'localhost' ||
+      location.hostname === '127.0.0.1' ||
+      location.search.indexOf('analytics_debug=1') !== -1
+    );
+
     function trackEvent(name, params) {
+      if (isAnalyticsDebug) {
+        console.log('[analytics]', name, params || {});
+      }
       try {
         if (typeof gtag === 'function') gtag('event', name, params || {});
       } catch (e) {}
     }
 
-    // Calendly click → fires calendly_click; also fires cta_click when data-cta is set
+    // CTA & Calendly click tracking.
+    // One Calendly CTA click fires both calendly_click and cta_click — once each, never more.
     document.querySelectorAll('[data-track="calendly"]').forEach(function (el) {
       el.addEventListener('click', function () {
         var params = {
-          location: el.dataset.trackLocation || 'unknown',
-          link_url: el.href || '',
-          link_text: el.textContent.trim()
+          cta_location: el.dataset.trackLocation || 'unknown',
+          cta_text: el.textContent.trim(),
+          cta_href: el.href || ''
         };
         trackEvent('calendly_click', params);
         if (el.dataset.cta) trackEvent('cta_click', params);
@@ -724,25 +735,44 @@
       });
     });
 
-    // Section visibility tracking (offer + pricing), fires once per page load
+    // Section visibility tracking — each event fires at most once per page load.
+    // Threshold target: 50% of the section visible. For sections taller than the
+    // viewport the threshold is auto-scaled so the event still fires reliably.
     (function () {
       if (!window.IntersectionObserver) return;
       var fired = {};
-      [
-        { selector: '.offer-main',      event: 'offer_section_view',   section: 'offer' },
-        { selector: '.offer-secondary', event: 'pricing_section_view', section: 'pricing' }
-      ].forEach(function (def) {
-        var el = document.querySelector(def.selector);
+
+      function observeOnce(selector, eventName, preferredThreshold) {
+        var el = document.querySelector(selector);
         if (!el) return;
-        new IntersectionObserver(function (entries) {
+        var ideal = preferredThreshold !== undefined ? preferredThreshold : 0.5;
+        var maxAchievable = window.innerHeight / Math.max(el.offsetHeight, 1);
+        var threshold = maxAchievable < ideal ? Math.max(maxAchievable * 0.8, 0.1) : ideal;
+        new IntersectionObserver(function (entries, obs) {
           entries.forEach(function (entry) {
-            if (entry.isIntersecting && !fired[def.event]) {
-              fired[def.event] = true;
-              trackEvent(def.event, { section: def.section, page_path: window.location.pathname });
+            if (entry.isIntersecting && !fired[eventName]) {
+              fired[eventName] = true;
+              obs.unobserve(entry.target);
+              trackEvent(eventName, {
+                section: eventName.replace(/_section_view$/, ''),
+                page_path: window.location.pathname
+              });
             }
           });
-        }, { threshold: 0.5 }).observe(el);
-      });
+        }, { threshold: threshold }).observe(el);
+      }
+
+      // Full-page funnel — top to bottom
+      observeOnce('.hero',            'hero_section_view');
+      observeOnce('.problem',         'problem_section_view');
+      observeOnce('.offer-main',      'offer_section_view');         // preserved
+      observeOnce('.offer-secondary', 'pricing_section_view');       // preserved
+      observeOnce('.how',             'how_it_works_section_view');
+      observeOnce('.how',             'after_pricing_section_view'); // first section after pricing
+      observeOnce('.credibility',     'credibility_section_view');
+      observeOnce('.proof',           'testimonials_section_view');
+      observeOnce('.final-cta',       'final_cta_section_view');
+      observeOnce('.faq',             'faq_section_view');
     })();
 
     // Nav shadow on scroll

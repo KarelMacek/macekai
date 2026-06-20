@@ -91,6 +91,7 @@ Threshold: 50% of the section visible. For sections taller than the viewport the
 | Event | Section | CSS selector |
 |---|---|---|
 | `hero_section_view` | Hero | `.hero` |
+| `cognitive_risk_section_view` | Cognitive risk / shocking statement | `.cognitive-risk` |
 | `problem_section_view` | "High ability has a hidden cost" | `.problem` |
 | `how_it_works_section_view` | How it works | `.how` |
 | `credibility_section_view` | Why this works | `.credibility` |

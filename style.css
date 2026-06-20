@@ -993,8 +993,21 @@ details[open] .faq-answer {
 
 /* 4: Line-length guard on long-form prose */
 .problem p,
+.cognitive-risk p,
 .about p {
   max-width: 66ch;
+}
+
+.study-cite {
+  font-size: 0.8rem;
+  color: var(--text-muted, #888);
+  margin-bottom: 1.25rem;
+}
+
+.risk-emphasis {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text, #111);
 }
 
 /* 5: Section fade-in (respects prefers-reduced-motion) */

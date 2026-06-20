@@ -174,7 +174,7 @@ Analytics events are logged to the browser console when:
 
 Console format:
 ```
-[analytics] hero_section_view { section: ‘hero’, page_path: ‘/’ }
+[analytics] hero_section_view { section: ‘hero’ }
 [analytics] calendly_click { cta_location: ‘hero’, cta_text: ‘Book a free orientation call’, cta_href: ‘https://…’ }
 ```
 

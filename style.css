@@ -1023,6 +1023,8 @@ details[open] .faq-answer {
   font-style: italic;
   max-width: 440px;
   line-height: 1.6;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .recovery-line {

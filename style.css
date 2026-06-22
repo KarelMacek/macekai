@@ -1015,6 +1015,33 @@ details[open] .faq-answer {
   margin-bottom: 0;
 }
 
+/* === Warmth / human signals === */
+.human-note {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+  max-width: 420px;
+  line-height: 1.6;
+}
+
+.recovery-line {
+  margin-top: 24px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text);
+  border-left: 2px solid var(--accent);
+  padding-left: 14px;
+  max-width: 56ch;
+}
+
+.cta-softener {
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
 /* === Pain section === */
 .pain-close {
   font-weight: 600;

@@ -1016,12 +1016,12 @@ details[open] .faq-answer {
 }
 
 /* === Warmth / human signals === */
-.human-note {
+.call-promise {
   margin-top: 14px;
   font-size: 0.85rem;
   color: var(--muted);
   font-style: italic;
-  max-width: 420px;
+  max-width: 440px;
   line-height: 1.6;
 }
 

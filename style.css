@@ -1042,6 +1042,36 @@ details[open] .faq-answer {
   font-style: italic;
 }
 
+/* === Typical questions list === */
+.question-list {
+  list-style: none;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.question-list li {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+  color: var(--text);
+  padding-left: 20px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.question-list li:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.question-list li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+}
+
 /* === Pain section === */
 .pain-close {
   font-weight: 600;

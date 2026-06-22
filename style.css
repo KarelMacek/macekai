@@ -930,6 +930,16 @@ footer {
   letter-spacing: 0.01em;
 }
 
+.capacity-note {
+  margin-top: 28px;
+  font-size: 0.82rem;
+  color: var(--muted);
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
 /* === Repeat CTA === */
 .cta-repeat {
   padding-top: 40px;
@@ -1003,6 +1013,21 @@ details[open] .faq-answer {
 
 .faq-answer p:last-child {
   margin-bottom: 0;
+}
+
+/* === Pain section === */
+.pain-close {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+/* === Guarantee section === */
+.guarantee-close {
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: var(--text);
+  margin-top: 8px;
 }
 
 /* === UX improvements === */

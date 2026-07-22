@@ -5,8 +5,11 @@
  * Bilingual: CS / EN via LangContext
  */
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useLang } from "@/contexts/LangContext";
 import { t, tx, type Lang } from "@/lib/content";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Fade-up hook ──────────────────────────────────────────────────────────────
 function useFadeUp(delay = 0) {
@@ -27,6 +30,28 @@ function useFadeUp(delay = 0) {
     return () => obs.disconnect();
   }, [delay]);
   return ref;
+}
+
+// ── Scroll depth tracking ────────────────────────────────────────────────────
+const SCROLL_MILESTONES = [25, 50, 75, 90, 100];
+function useScrollDepthTracking(lang: Lang) {
+  const fired = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    fired.current = new Set();
+    function onScroll() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 100;
+      for (const milestone of SCROLL_MILESTONES) {
+        if (pct >= milestone && !fired.current.has(milestone)) {
+          fired.current.add(milestone);
+          trackEvent(lang, "scroll_depth", { depth: milestone });
+        }
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [lang]);
 }
 
 // ── Technical SVG icons ───────────────────────────────────────────────────────
@@ -249,7 +274,6 @@ function Hero() {
         <div className="max-w-2xl">
           <div className="flex items-center gap-3 mb-6">
             <span className="section-label">{tx(t.hero.label, lang)}</span>
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.65rem", color: "oklch(0.42 0.02 68)" }}>PAT. №17</span>
           </div>
           <h1 style={{ fontFamily: "'Playfair Display', serif", lineHeight: 1.08 }} className="text-5xl md:text-7xl font-bold text-[oklch(0.93_0.02_80)] mb-6">
             {tx(t.hero.h1a, lang)}
@@ -263,26 +287,37 @@ function Hero() {
             {tx(t.hero.p2, lang)}
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="#kontakt" className="inline-flex items-center justify-center px-8 py-4 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+            <a href="#kontakt" onClick={() => trackEvent(lang, "cta_click", { location: "hero", label: "primary" })}
+              className="inline-flex items-center justify-center px-8 py-4 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: "oklch(0.78 0.12 85)", color: "oklch(0.12 0.015 60)", fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
               {tx(t.hero.ctaPrimary, lang)}
             </a>
-            <a href="#ukazka" className="inline-flex items-center justify-center px-8 py-4 text-sm border border-white/15 text-[oklch(0.62_0.02_72)] hover:border-[oklch(0.78_0.12_85/0.4)] hover:text-gold transition-all duration-200"
+            <a href="#ukazka" onClick={() => trackEvent(lang, "cta_click", { location: "hero", label: "secondary" })}
+              className="inline-flex items-center justify-center px-8 py-4 text-sm border border-white/15 text-[oklch(0.62_0.02_72)] hover:border-[oklch(0.78_0.12_85/0.4)] hover:text-gold transition-all duration-200"
               style={{ fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
               {tx(t.hero.ctaSecondary, lang)}
             </a>
           </div>
           <div className="mt-16 flex gap-0 flex-wrap border border-white/8" style={{ borderRadius: "2px", display: "inline-flex" }}>
             {[
-              { num: "17", label: tx(t.hero.stat1, lang) },
-              { num: "3–12", label: tx(t.hero.stat2, lang) },
-              { num: "AI & data", label: tx(t.hero.stat3, lang) },
-            ].map((s, i) => (
-              <div key={s.label} className={`px-6 py-4 ${i < 2 ? "border-r border-white/8" : ""}`}>
-                <p className="text-2xl font-bold text-gold" style={{ fontFamily: "'Playfair Display', serif" }}>{s.num}</p>
-                <p className="text-xs text-[oklch(0.42_0.02_68)] mt-0.5 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{s.label}</p>
-              </div>
-            ))}
+              { num: "17", label: tx(t.hero.stat1, lang), hint: undefined as string | undefined },
+              { num: "13", label: tx(t.hero.stat2, lang), hint: undefined as string | undefined },
+              { num: "17", label: tx(t.hero.stat3, lang), hint: tx(t.hero.stat3Hint, lang) },
+            ].map((s, i) => {
+              const cell = (
+                <div className={`px-6 py-4 ${i < 2 ? "border-r border-white/8" : ""} ${s.hint ? "cursor-help" : ""}`}>
+                  <p className="text-2xl font-bold text-gold" style={{ fontFamily: "'Playfair Display', serif" }}>{s.num}</p>
+                  <p className="text-xs text-[oklch(0.42_0.02_68)] mt-0.5 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{s.label}</p>
+                </div>
+              );
+              if (!s.hint) return <div key={s.label}>{cell}</div>;
+              return (
+                <Tooltip key={s.label} onOpenChange={(open) => { if (open) trackEvent(lang, "stat_hint_hover", { stat: s.label }); }}>
+                  <TooltipTrigger asChild>{cell}</TooltipTrigger>
+                  <TooltipContent className="max-w-xs text-sm leading-relaxed">{s.hint}</TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -320,7 +355,7 @@ function About() {
               <BlueprintCorner className="absolute -top-1 -right-1 w-5 h-5 opacity-60 rotate-90" />
               <BlueprintCorner className="absolute -bottom-1 -left-1 w-5 h-5 opacity-60 -rotate-90" />
               <BlueprintCorner className="absolute -bottom-1 -right-1 w-5 h-5 opacity-60 rotate-180" />
-              <img src="/images/coaching-session.jpg" alt="Coaching session" className="w-full object-cover aspect-[4/3]" style={{ borderRadius: "1px" }} />
+              <img src="/images/karel-macek.jpg" alt="Karel Macek" className="w-full object-cover aspect-[3/4]" style={{ borderRadius: "1px" }} />
               <p className="text-center mt-2 text-[oklch(0.38_0.02_68)]" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.15em" }}>
                 {tx(t.about.figCaption, lang)}
               </p>
@@ -477,6 +512,105 @@ function ProblemCard({ problem, delay }: { problem: { icon: string; label: strin
   );
 }
 
+// ── Testimonials ──────────────────────────────────────────────────────────────
+function Testimonials() {
+  const { lang } = useLang();
+  const ref = useFadeUp();
+  const T = t.testimonials;
+  const main = T.main[lang];
+  const cases = T.cases[lang];
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => { setExpanded(false); }, [lang]);
+  const linkedinUrl = "https://www.linkedin.com/in/karelmacek/details/recommendations/";
+
+  return (
+    <section id="reference" className="py-24" style={{ background: "oklch(0.14 0.015 60)" }}>
+      <div className="container">
+        <div ref={ref} className="fade-up mb-16">
+          <SectionLabel>{tx(T.eyebrow, lang)}</SectionLabel>
+          <GoldLine className="mb-8" />
+          <h2 className="text-4xl md:text-5xl font-bold text-[oklch(0.93_0.02_80)]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            {tx(T.h2, lang)}
+          </h2>
+        </div>
+        <div className="grid lg:grid-cols-5 gap-6 items-start">
+          <PatentCard className="lg:col-span-3 p-8">
+            <p className="text-[oklch(0.52_0.02_68)] mb-4" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>
+              {tx(T.caseLabel, lang)} 01
+            </p>
+            <p className="text-lg leading-relaxed text-[oklch(0.86_0.02_78)] text-pretty max-w-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+              <span className="text-gold italic">&ldquo;</span>{main.quote}<span className="text-gold italic">&rdquo;</span>
+            </p>
+            {expanded && (
+              <p className="mt-4 text-sm text-[oklch(0.52_0.02_70)] leading-relaxed whitespace-pre-line">
+                {main.before}
+                {"\n\n"}
+                {main.after}
+              </p>
+            )}
+            <p className="mt-6 text-xs text-[oklch(0.50_0.02_70)]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+              <span className="text-[oklch(0.42_0.02_68)]" style={{ fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.15em" }}>{tx(T.resultsLabel, lang)}</span>
+              {"  "}{main.results.join(" · ")}
+            </p>
+            <div className="mt-10 flex items-end justify-between flex-wrap gap-4">
+              <div>
+                <p className="font-semibold text-gold" style={{ fontFamily: "'DM Sans', sans-serif" }}>{main.name}</p>
+                <p className="text-xs text-[oklch(0.56_0.02_68)]">{main.role}</p>
+              </div>
+              <button type="button"
+                onClick={() => {
+                  const next = !expanded;
+                  setExpanded(next);
+                  if (next) trackEvent(lang, "testimonial_expand", { name: main.name });
+                }}
+                className="text-xs text-gold hover:opacity-80 transition-opacity duration-200"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                {expanded ? tx(T.collapseLabel, lang) : tx(T.expandLabel, lang)}
+              </button>
+            </div>
+            <div className="mt-4 pt-4 text-xs" style={{ borderTop: "1px solid oklch(1 0 0 / 6%)" }}>
+              <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEvent(lang, "testimonial_linkedin_click", { name: main.name })}
+                className="text-[oklch(0.70_0.02_72)] hover:text-gold transition-colors duration-200">
+                {tx(T.linkedinCta, lang)}
+              </a>
+            </div>
+          </PatentCard>
+
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            {cases.map((c, i) => (
+              <PatentCard key={c.name}>
+                <p className="text-[oklch(0.52_0.02_68)] mb-2" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>
+                  {tx(T.caseLabel, lang)} 0{i + 2}
+                </p>
+                <p className="text-sm leading-relaxed text-[oklch(0.78_0.02_78)] text-pretty" style={{ fontFamily: "'Playfair Display', serif" }}>
+                  <span className="text-gold italic">&ldquo;</span>{c.quote}<span className="text-gold italic">&rdquo;</span>
+                </p>
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-gold" style={{ fontFamily: "'DM Sans', sans-serif" }}>{c.name}</p>
+                  <p className="text-xs text-[oklch(0.56_0.02_68)]">{c.role}</p>
+                </div>
+                <div className="mt-3 pt-3 text-xs" style={{ borderTop: "1px solid oklch(1 0 0 / 6%)" }}>
+                  <a href={linkedinUrl} target="_blank" rel="noopener noreferrer"
+                    onClick={() => trackEvent(lang, "testimonial_linkedin_click", { name: c.name })}
+                    className="text-[oklch(0.70_0.02_72)] hover:text-gold transition-colors duration-200">
+                    {tx(T.linkedinCta, lang)}
+                  </a>
+                </div>
+              </PatentCard>
+            ))}
+          </div>
+        </div>
+        {lang === "cs" && (
+          <p className="mt-8 text-xs text-[oklch(0.50_0.02_68)] max-w-2xl" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+            {tx(T.translationNote, lang)}
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ── Demo ──────────────────────────────────────────────────────────────────────
 function SusitaDemo() {
   const { lang } = useLang();
@@ -496,7 +630,7 @@ function SusitaDemo() {
           <h2 className="text-4xl md:text-5xl font-bold text-[oklch(0.93_0.02_80)] max-w-2xl" style={{ fontFamily: "'Playfair Display', serif" }}>
             {tx(t.demo.h2a, lang)} <span className="italic text-gold">{tx(t.demo.h2b, lang)}</span>
           </h2>
-          <p className="mt-4 text-[oklch(0.50_0.02_68)] max-w-xl" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>{tx(t.demo.sub, lang)}</p>
+          <p className="mt-4 text-[oklch(0.50_0.02_68)] max-w-xl text-pretty" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>{tx(t.demo.sub, lang)}</p>
         </div>
         <div className="max-w-2xl mx-auto relative"
           style={{ border: "1px solid oklch(0.78 0.12 85 / 0.15)", borderRadius: "2px", padding: "2rem" }}
@@ -514,7 +648,11 @@ function SusitaDemo() {
           </div>
           {visible < chat.length && (
             <div className="text-center mt-8">
-              <button onClick={() => setVisible((v) => Math.min(v + 3, chat.length))}
+              <button onClick={() => setVisible((v) => {
+                  const next = Math.min(v + 3, chat.length);
+                  trackEvent(lang, "demo_expand", { visible_count: next, complete: next >= chat.length });
+                  return next;
+                })}
                 className="text-sm px-6 py-2.5 border border-[oklch(0.78_0.12_85/0.25)] text-gold hover:bg-[oklch(0.78_0.12_85/0.08)] transition-all duration-200"
                 style={{ fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
                 {tx(t.demo.showMore, lang)}
@@ -559,6 +697,7 @@ function ChatBubble({ msg, delay }: { msg: { role: string; name: string; text: s
 function Contact() {
   const { lang } = useLang();
   const ref = useFadeUp();
+  const packages = t.method.packages[lang];
   return (
     <section id="kontakt" className="py-24 relative overflow-hidden grain-overlay" style={{ background: "oklch(0.12 0.015 60)" }}>
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `url('/images/abstract-texture.jpg')`, backgroundSize: "cover" }} />
@@ -572,31 +711,52 @@ function Contact() {
           <h2 className="text-4xl md:text-5xl font-bold text-[oklch(0.93_0.02_80)] mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
             {tx(t.contact.h2a, lang)} <span className="italic text-gold">{tx(t.contact.h2b, lang)}</span>
           </h2>
-          <p className="text-[oklch(0.52_0.02_70)] mb-10 leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+          <p className="text-[oklch(0.52_0.02_70)] mb-10 leading-relaxed whitespace-pre-line" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
             {tx(t.contact.sub, lang)}
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:karel@karelmacek.cz"
+          <div className="flex flex-col items-center gap-4">
+            <a href="https://calendly.com/karel-macek/30min" target="_blank" rel="noopener noreferrer"
+              onClick={() => trackEvent(lang, "calendly_click", { location: "contact" })}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: "oklch(0.78 0.12 85)", color: "oklch(0.12 0.015 60)", fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
-              {tx(t.contact.email, lang)}
+              {tx(t.contact.call, lang)}
             </a>
-            <a href="https://linkedin.com/in/karelmacek" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm border border-white/15 text-[oklch(0.62_0.02_72)] hover:border-[oklch(0.78_0.12_85/0.4)] hover:text-gold transition-all duration-200"
-              style={{ fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
-              {tx(t.contact.linkedin, lang)}
-            </a>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm">
+              <button type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText("karel@macek.ai");
+                  toast.success(tx(t.contact.emailCopied, lang));
+                  trackEvent(lang, "email_copy", { location: "contact" });
+                }}
+                title={tx(t.contact.emailHint, lang)}
+                className="text-[oklch(0.52_0.02_70)] hover:text-gold transition-all duration-200"
+                style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+                {tx(t.contact.email, lang)}
+              </button>
+              <a href="https://linkedin.com/in/karelmacek" target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEvent(lang, "linkedin_click", { location: "contact" })}
+                className="text-[oklch(0.52_0.02_70)] hover:text-gold transition-all duration-200"
+                style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+                {tx(t.contact.linkedin, lang)}
+              </a>
+            </div>
           </div>
-          <div className="mt-12 max-w-sm mx-auto">
-            <PatentCard>
-              <p className="text-[oklch(0.38_0.02_68)] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>
-                {tx(t.contact.priceLabel, lang)}
-              </p>
-              <p className="text-gold text-3xl font-bold my-2" style={{ fontFamily: "'Playfair Display', serif" }}>6 000 SGD</p>
-              <p className="text-[oklch(0.46_0.02_68)] text-sm" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
-                {tx(t.contact.priceSub, lang)}
-              </p>
-            </PatentCard>
+          <div className="mt-12 max-w-3xl mx-auto">
+            <p className="text-[oklch(0.38_0.02_68)] mb-4" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>
+              {tx(t.contact.priceLabel, lang)}
+            </p>
+            <div className="grid sm:grid-cols-2 gap-6">
+              {packages.map((pkg) => (
+                <PatentCard key={pkg.label}>
+                  <p className="text-[oklch(0.42_0.02_68)] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>{pkg.tag}</p>
+                  <p className="text-[oklch(0.52_0.02_70)] text-sm mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>{pkg.label}</p>
+                  <p className="text-gold text-3xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>{pkg.price}</p>
+                </PatentCard>
+              ))}
+            </div>
+            <p className="mt-6 text-[oklch(0.46_0.02_68)] text-sm whitespace-pre-line" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+              {tx(t.contact.priceNote, lang)}
+            </p>
           </div>
         </div>
       </div>
@@ -629,6 +789,8 @@ function Footer() {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Home() {
+  const { lang } = useLang();
+  useScrollDepthTracking(lang);
   return (
     <div className="min-h-screen" style={{ background: "oklch(0.12 0.015 60)" }}>
       <Nav />
@@ -637,6 +799,7 @@ export default function Home() {
       <Method />
       <WhyMe />
       <ClientProblems />
+      <Testimonials />
       <SusitaDemo />
       <Contact />
       <Footer />

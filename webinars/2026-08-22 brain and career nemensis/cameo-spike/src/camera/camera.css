@@ -1,0 +1,260 @@
+.camera-shell {
+  position: fixed;
+  z-index: 1001;
+  overflow: hidden;
+  background: #090b10;
+  transition:
+    left 220ms ease,
+    right 220ms ease,
+    top 220ms ease,
+    bottom 220ms ease,
+    inset 220ms ease,
+    width 220ms ease,
+    height 220ms ease,
+    border-radius 220ms ease,
+    opacity 220ms ease,
+    box-shadow 220ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-shell {
+    transition: none;
+  }
+}
+
+/* Cameo: default, small rounded rect, bottom-left */
+.camera-shell[data-mode='cameo'] {
+  top: auto;
+  right: auto;
+  left: clamp(18px, 2.2vw, 42px);
+  bottom: clamp(18px, 2.2vh, 36px);
+  width: clamp(220px, 20vw, 440px);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: clamp(16px, 1.5vw, 28px);
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    0 4px 16px rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Hidden: stream stays alive, shell just becomes invisible + inert */
+.camera-shell[data-mode='hidden'] {
+  top: auto;
+  right: auto;
+  left: clamp(18px, 2.2vw, 42px);
+  bottom: clamp(18px, 2.2vh, 36px);
+  width: clamp(220px, 20vw, 440px);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: clamp(16px, 1.5vw, 28px);
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  box-shadow: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Focus: camera becomes the main content, large, centered-ish with margin */
+.camera-shell[data-mode='focus'] {
+  inset: 4vh 4vw;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  border-radius: clamp(20px, 2vw, 36px);
+  border: 3px solid rgba(255, 255, 255, 0.82);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    0 4px 16px rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.camera-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-focus-dimmer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(4, 8, 18, 0.58);
+  transition: opacity 220ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-focus-dimmer {
+    transition: none;
+  }
+}
+
+/* Mock camera surface */
+.mock-camera {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3a2f6b 0%, #7a3f8f 45%, #d9683f 100%);
+  font-family: system-ui, sans-serif;
+  color: #fff;
+}
+
+.mock-camera__silhouette {
+  width: 34%;
+  max-width: 120px;
+  opacity: 0.92;
+}
+
+.mock-camera__side-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: clamp(10px, 1.6vw, 15px);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  opacity: 0.85;
+}
+
+.mock-camera__side-label--left {
+  left: 10px;
+}
+
+.mock-camera__side-label--right {
+  right: 10px;
+}
+
+.mock-camera__tag {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: clamp(9px, 1.3vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+/* Permission prompt + error placeholder, shown inside the shell */
+.camera-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  text-align: center;
+  background: #14161d;
+  color: #e7e7ee;
+  font-family: system-ui, sans-serif;
+}
+
+.camera-placeholder__text {
+  margin: 0;
+  font-size: clamp(11px, 1.4vw, 14px);
+  line-height: 1.35;
+}
+
+.camera-placeholder--error .camera-placeholder__text {
+  color: #ffb4a8;
+}
+
+.camera-placeholder__button {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: clamp(11px, 1.3vw, 13px);
+  font-weight: 600;
+  background: #f2c46d;
+  color: #201703;
+  cursor: pointer;
+}
+
+.camera-placeholder__button:hover {
+  background: #f6d38c;
+}
+
+.camera-placeholder__button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Dev-only control panel (?controls=1), visually separate from presentation content */
+.dev-controls {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: rgba(20, 22, 29, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-family: system-ui, sans-serif;
+}
+
+.dev-controls button {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #2a2d38;
+  color: #e7e7ee;
+  cursor: pointer;
+}
+
+.dev-controls button:hover {
+  background: #3a3e4d;
+}
+
+/* Presenter tab: private self-view preview (bottom-right, clear of Spectacle's
+   own presenter-mode header/notes/timer chrome), independent of the synced
+   cameo/hidden/focus mode -- just a local monitoring convenience. */
+.camera-shell--self-view {
+  bottom: clamp(18px, 2.2vh, 36px);
+  right: clamp(18px, 2.2vw, 42px);
+  top: auto;
+  left: auto;
+  width: clamp(220px, 20vw, 360px);
+  aspect-ratio: 16 / 9;
+  height: auto;
+  border-radius: clamp(16px, 1.5vw, 28px);
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.42),
+    0 4px 16px rgba(0, 0, 0, 0.3);
+  opacity: 1;
+  visibility: visible;
+}
+
+.presenter-status {
+  position: fixed;
+  left: clamp(18px, 2.2vw, 42px);
+  bottom: clamp(18px, 2.2vh, 36px);
+  z-index: 1001;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: rgba(20, 22, 29, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e7e7ee;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.presenter-status strong {
+  color: #f2c46d;
+}

@@ -1,0 +1,33 @@
+.presentation-layer {
+  width: 100vw;
+  height: 100vh;
+  background-color: #090502;
+  transition:
+    filter 220ms ease,
+    transform 220ms ease;
+}
+
+.presentation-layer ::selection {
+  background: #dbb155;
+  color: #090502;
+}
+
+/* Spectacle's <Quote> defaults to the header font (Playfair Display) in
+   italic, which turns into an illegible calligraphic swash at sentence
+   length. Force every blockquote back to the legible body face. */
+.presentation-layer blockquote {
+  font-family: 'DM Sans', sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+}
+
+.presentation-layer[data-focus-active='true'] {
+  filter: blur(18px);
+  transform: scale(1.035);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .presentation-layer {
+    transition: none;
+  }
+}

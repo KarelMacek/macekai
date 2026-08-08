@@ -213,11 +213,9 @@ function Nav() {
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[oklch(0.12_0.015_60/0.96)] backdrop-blur-xl border-b border-white/5" : "bg-transparent"}`}>
       <div className="container flex items-center justify-between h-16">
         <a href="#" className="flex items-center gap-3">
-          <svg viewBox="0 0 32 32" className="w-8 h-8" fill="none">
-            <rect width="32" height="32" rx="2" fill="oklch(0.78 0.12 85 / 0.12)" stroke="oklch(0.78 0.12 85 / 0.4)" strokeWidth="1"/>
-            <path d="M8 8 L8 24 M8 16 L18 8 M8 16 L20 24" stroke="oklch(0.78 0.12 85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M22 10 L26 10 M24 8 L24 12" stroke="oklch(0.78 0.12 85 / 0.6)" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
+          <div className="w-8 h-8 rounded-md flex items-center justify-center border border-[oklch(0.78_0.12_85/0.3)]" style={{ background: "oklch(0.14 0.02 60)" }}>
+            <img src="/images/logo-icon.png" alt="" className="w-5 h-5 object-contain" />
+          </div>
           <span style={{ fontFamily: "'Playfair Display', serif", fontWeight: 700 }} className="text-lg tracking-tight text-[oklch(0.93_0.02_80)]">
             Karel Macek
           </span>
@@ -771,10 +769,9 @@ function Footer() {
     <footer className="py-8 border-t border-white/5" style={{ background: "oklch(0.10 0.015 60)" }}>
       <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <svg viewBox="0 0 32 32" className="w-6 h-6 opacity-40" fill="none">
-            <rect width="32" height="32" rx="2" fill="oklch(0.78 0.12 85 / 0.1)" stroke="oklch(0.78 0.12 85 / 0.3)" strokeWidth="1"/>
-            <path d="M8 8 L8 24 M8 16 L18 8 M8 16 L20 24" stroke="oklch(0.78 0.12 85)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <div className="w-6 h-6 rounded-md flex items-center justify-center opacity-40" style={{ background: "oklch(0.14 0.02 60)" }}>
+            <img src="/images/logo-icon.png" alt="" className="w-4 h-4 object-contain" />
+          </div>
           <span className="text-sm text-[oklch(0.36_0.02_65)]" style={{ fontFamily: "'DM Sans', sans-serif" }}>
             {tx(t.footer.tagline, lang)}
           </span>

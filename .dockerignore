@@ -1,0 +1,39 @@
+# Build context is the whole monorepo root (see Dockerfile) — this keeps
+# everything irrelevant to the app-backend/app-frontend image out of it.
+# Adapted from asistentka's .dockerignore.
+
+.git
+.github
+
+# Other top-level products, not part of this image
+landing/
+marketing/
+webinars/
+infra/
+
+# Python — note: unlike .gitignore, .dockerignore patterns are NOT recursive
+# by default, so these all need an explicit **/ prefix to match at any depth
+# (a bare ".venv" only excludes a top-level .venv, not app-backend/.venv —
+# this bit us once already: a host-built venv silently overwrote the
+# container's own uv-built one, breaking `import django`).
+**/.venv
+**/venv
+**/__pycache__
+**/*.pyc
+**/*.pyo
+app-backend/staticfiles
+app-backend/sqlite
+**/*.sqlite3
+**/db.sqlite3
+
+# Node
+**/node_modules
+app-frontend/dist
+
+# Env/secrets
+.env
+.env.local
+
+# Misc
+.DS_Store
+*.log

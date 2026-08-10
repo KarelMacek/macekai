@@ -2,15 +2,14 @@
 # app-frontend (React) — Django serves the built React SPA as static files
 # via collectstatic, matching the asistentka pattern this was adapted from.
 #
-# NOT YET BUILDABLE: app-backend/ and app-frontend/ don't exist as code yet
-# (see CLAUDE.md — Phase 2, not built). This Dockerfile is a template for
-# when that skeleton lands; the COPY paths below assume app-backend/ is a
-# Django project laid out like asistentka's backend/ (manage.py at the repo
-# root, backend/{settings.py,urls.py,wsgi.py}) and app-backend/pyproject.toml
-# + uv for dependency management — verify/adjust both once that code exists.
+# app-backend/'s own contents (manage.py, backend/, pyproject.toml, uv.lock,
+# start.sh) get flattened directly into /app below — manage.py must sit next
+# to the backend/ package it imports (backend.settings), not nested under an
+# app-backend/ subdirectory.
 #
 # Build context is the repo root (this Dockerfile is NOT inside
-# app-backend/ or app-frontend/) since it needs to COPY from both.
+# app-backend/ or app-frontend/) since it needs to COPY from both — see
+# .dockerignore for what's excluded from that context.
 
 # Stage 1: build React frontend
 FROM node:22-alpine AS frontend-builder
@@ -35,16 +34,16 @@ ENV UV_COMPILE_BYTECODE=1 \
 COPY app-backend/pyproject.toml app-backend/uv.lock ./
 RUN uv sync --frozen
 
-# Copy application code
-COPY app-backend/manage.py ./
-COPY app-backend/ ./app-backend/
+# Flatten app-backend/'s contents directly into /app — manage.py and the
+# backend/ Django package must be siblings for `manage.py` to import
+# `backend.settings`, not nested under app-backend/ (see CLAUDE.md).
+COPY app-backend/ ./
 
 # Copy built frontend so collectstatic can find app-frontend/dist/assets
 COPY --from=frontend-builder /app/app-frontend/dist ./app-frontend/dist
 
 RUN python manage.py collectstatic --noinput
 
-COPY app-backend/start.sh ./
 RUN chmod +x start.sh
 
 EXPOSE 8000

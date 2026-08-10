@@ -58,6 +58,13 @@ jspm_packages/
 # TypeScript cache
 *.tsbuildinfo
 
+# Vite dependency cache
+.vite/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
 # Optional npm cache directory
 .npm
 
@@ -108,6 +115,16 @@ temp/
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
 
+# Terraform/Terragrunt working files — .terraform.lock.hcl per component IS
+# committed (locks provider versions, same as asistentka's convention)
+**/.terraform/
+**/.terragrunt-cache/
+infra/**/backend.tf
+infra/**/provider.tf
+*.tfstate
+*.tfstate.backup
+*.tfplan
+
 # Manus version file (auto-generated, not part of source)
-client/public/__manus__/version.json
+landing/public/__manus__/version.json
 .project-config.json

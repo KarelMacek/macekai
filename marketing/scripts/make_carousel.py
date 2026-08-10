@@ -13,7 +13,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 FONT_DIR = os.path.join(ROOT, "marketing/fonts")
 OUT_DIR = os.path.join(ROOT, "marketing/linkedin")
 PHOTO = os.path.join(ROOT, "marketing/karel_thumbs_up.png")
-LOGO = os.path.join(ROOT, "client/public/images/logo-icon.png")
+LOGO = os.path.join(ROOT, "landing/public/images/logo-icon.png")
 OUTPUT_PREFIX = "poster-03-pohovor-vety"
 
 W, H = 1080, 1350

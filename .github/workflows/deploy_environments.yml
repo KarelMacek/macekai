@@ -1,0 +1,87 @@
+name: Build and deploy app-backend/app-frontend to environment
+
+# One clean OIDC-based deploy pattern for all three environments, including
+# prod — deliberately not splitting prod onto a different legacy mechanism
+# the way asistentka's main_asistent.yml does (that split exists there only
+# because prod's Web App predates the OIDC pattern; macekai's app-backend
+# Web App doesn't exist anywhere yet, so there's no compatibility reason to
+# carry that inconsistency forward).
+#
+# NOT YET FUNCTIONAL: requires app-backend/app-frontend code + the Dockerfile
+# to actually build, and the infra bootstrap (state storage, shared ACR,
+# per-env resource_group/postgres/key_vault/web_app) to exist in Azure
+# first. See infra/README.md.
+
+on:
+  push:
+    branches:
+      - dev
+      - staging
+      - main
+    paths:
+      - "app-backend/**"
+      - "app-frontend/**"
+      - "Dockerfile"
+      - ".github/workflows/deploy_environments.yml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write # required for azure/login OIDC — no stored Azure secrets
+  contents: read
+
+jobs:
+  resolve-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.resolve.outputs.environment }}
+      image_tag: ${{ steps.resolve.outputs.image_tag }}
+    steps:
+      - id: resolve
+        run: |
+          case "${{ github.ref_name }}" in
+            dev)     echo "environment=dev"          >> "$GITHUB_OUTPUT"
+                     echo "image_tag=dev-latest"      >> "$GITHUB_OUTPUT" ;;
+            staging) echo "environment=staging"       >> "$GITHUB_OUTPUT"
+                     echo "image_tag=staging-latest"   >> "$GITHUB_OUTPUT" ;;
+            main)    echo "environment=prod"          >> "$GITHUB_OUTPUT"
+                     echo "image_tag=prod-latest"      >> "$GITHUB_OUTPUT" ;;
+            *) echo "No environment mapped for branch ${{ github.ref_name }}" >&2
+               exit 1 ;;
+          esac
+
+  deploy:
+    needs: resolve-environment
+    runs-on: ubuntu-latest
+    # Declaring the environment here is what makes the OIDC subject claim
+    # (repo:<owner>/macekai:environment:<name>) match the federated
+    # credential scoped to that environment — see infra/README.md. prod's
+    # GitHub Environment should have a required-reviewer protection rule.
+    environment: ${{ needs.resolve-environment.outputs.environment }}
+    env:
+      ENVIRONMENT: ${{ needs.resolve-environment.outputs.environment }}
+      IMAGE_TAG: ${{ needs.resolve-environment.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Log in to the shared ACR
+        run: az acr login --name acrmacekai
+
+      - name: Build and push Docker image
+        run: |
+          IMAGE="acrmacekai.azurecr.io/macekai"
+          docker build -t "${IMAGE}:${IMAGE_TAG}" -t "${IMAGE}:${IMAGE_TAG}-${{ github.sha }}" .
+          docker push "${IMAGE}:${IMAGE_TAG}"
+          docker push "${IMAGE}:${IMAGE_TAG}-${{ github.sha }}"
+
+      - name: Restart Web App to pull the new image
+        run: |
+          az webapp restart \
+            --name "app-macekai-${ENVIRONMENT}" \
+            --resource-group "macekai-${ENVIRONMENT}"

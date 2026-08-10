@@ -1,0 +1,41 @@
+# Purely local dev — not used for any deployed environment (dev/staging/prod
+# all run on Azure App Service via infra/, see infra/README.md). Adapted from
+# asistentka's docker-compose.yml, minus its `worker` service (no background
+# job planned for macekai yet — see CLAUDE.md).
+#
+# NOT YET FUNCTIONAL: depends on the Dockerfile, which depends on
+# app-backend/app-frontend code that doesn't exist yet (Phase 2, not built).
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: macekai
+      POSTGRES_USER: macekai
+      POSTGRES_PASSWORD: macekai
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: macekai
+      POSTGRES_USER: macekai
+      POSTGRES_PASSWORD: macekai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U macekai -d macekai"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:

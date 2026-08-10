@@ -2,7 +2,7 @@ import type { SpectacleThemeOverrides } from 'spectacle';
 
 // Matches the macek.ai site's "dark inventor" brand: warm charcoal
 // backgrounds, a single gold accent, Playfair Display headings, DM Sans
-// body copy, JetBrains Mono for small labels. See client/src/index.css for
+// body copy, JetBrains Mono for small labels. See landing/src/index.css for
 // the source-of-truth tokens (OKLCH) this was derived from.
 export const webinarTheme: SpectacleThemeOverrides = {
   size: {

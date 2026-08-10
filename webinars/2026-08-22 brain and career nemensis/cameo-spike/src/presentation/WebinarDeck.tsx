@@ -32,7 +32,7 @@ export type WebinarDeckProps = {
 const SECTION_COUNT = 5;
 
 /** Numbered divider badge ("BLOK n / 5") -- one per section from APPROVED_OUTLINE.md. */
-function SectionBadge({ index }: { index: number }) {
+function SectionBadge({ label }: { label: string }) {
   return (
     <>
       <Text
@@ -46,10 +46,80 @@ function SectionBadge({ index }: { index: number }) {
           textTransform: 'uppercase',
         }}
       >
-        Blok {index} / {SECTION_COUNT}
+        Blok {label} / {SECTION_COUNT}
       </Text>
       <Box backgroundColor="tertiary" style={{ width: 48, height: 2, marginBottom: 20 }} />
     </>
+  );
+}
+
+/** The site's 4-step "inventor's method" (Home.tsx t.method.steps) -- reused here as the base timeline. */
+const METHOD_STEPS: Array<{ num: string; title: string }> = [
+  { num: '01', title: 'Checklist podmínek' },
+  { num: '02', title: 'Realistický plán' },
+  { num: '03', title: 'Bezpečné experimentování' },
+  { num: '04', title: 'Průlom' },
+];
+
+/** Zamiř/Zvaž/Zaber as braces spanning pairs of neighboring method steps (0-indexed into METHOD_STEPS). */
+const OVERLAY_STEPS: Array<{ label: string; from: number; to: number; tier: 0 | 1 }> = [
+  { label: 'Zamiř jasně', from: 0, to: 1, tier: 0 },
+  { label: 'Zvaž věcně', from: 1, to: 2, tier: 1 },
+  { label: 'Zaber mocně', from: 2, to: 3, tier: 0 },
+];
+
+const METHOD_CARD_WIDTH = 22;
+const METHOD_CARD_PITCH = 26;
+
+function methodCardLeft(index: number) {
+  return index * METHOD_CARD_PITCH;
+}
+
+function braceGeometry(from: number, to: number) {
+  const left = methodCardLeft(from);
+  const width = methodCardLeft(to) + METHOD_CARD_WIDTH - left;
+  return { left, width };
+}
+
+/**
+ * Intro divider slide inserted ahead of each content slide in Block 1 and
+ * Block 2 -- placeholder for a real illustration (swap the emoji box for an
+ * <img> once artwork exists). Background alternates against the slide it
+ * introduces for visual contrast.
+ */
+function IntroSlide({
+  title,
+  icon,
+  backgroundColor,
+}: {
+  title: string;
+  icon: string;
+  backgroundColor: 'secondary' | 'quinary';
+}) {
+  return (
+    <Slide backgroundColor={backgroundColor}>
+      <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
+        <Heading color="primary" textAlign="center" fontSize="1.7rem" margin="0 0 24px" width="80%">
+          {title}
+        </Heading>
+        <Box
+          backgroundColor={backgroundColor === 'secondary' ? 'quinary' : 'secondary'}
+          style={{
+            width: '85%',
+            height: 480,
+            borderRadius: 4,
+            border: '1px solid rgba(239, 231, 217, 0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '8rem',
+          }}
+        >
+          {icon}
+        </Box>
+      </FlexBox>
+      <Notes>Placeholder ilustrace -- nahradit skutečným obrázkem.</Notes>
+    </Slide>
   );
 }
 
@@ -106,7 +176,7 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
        {/* 2. Section 1 -- title */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
-            <SectionBadge index={1} />
+            <SectionBadge label="1" />
             <Heading color="primary" textAlign="center">
               Ajťák a jeho práce dnes
             </Heading>
@@ -119,6 +189,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             některých dovedností. FOMO, přetížení a pocit, že je stále potřeba něco dohánět.
           </Notes>
         </Slide>
+        <IntroSlide title="Nestačí mít dobrou motivaci" icon="🎯" backgroundColor="quinary" />
+
         {/* 3. Placeholder -- Nestačí mít dobrou motivaci */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -134,6 +206,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             potřeba mít jasný positioning"
           </Notes>
         </Slide>
+
+        <IntroSlide title="Nestačí dělat tolik, co mi přijde normální" icon="🚀" backgroundColor="secondary" />
 
         {/* 4. Placeholder -- Nestačí dělat, co přijde normální */}
         <Slide backgroundColor="quinary">
@@ -151,6 +225,12 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
+        <IntroSlide
+          title="Nestačí poslat životopis a čekat, že se něco stane"
+          icon="🤝"
+          backgroundColor="quinary"
+        />
+
         {/* 5. Placeholder -- Nestačí poslat životopis */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -166,6 +246,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             stane =&gt; je nutné opečovávat kontakty a síť"
           </Notes>
         </Slide>
+
+        <IntroSlide title="Nestačí to dohnat školením" icon="🔄" backgroundColor="secondary" />
 
         {/* 6. Placeholder -- Nestačí to dohnat školením */}
         <Slide backgroundColor="quinary">
@@ -183,6 +265,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
+        <IntroSlide title="Nestačí to jen dohnat po nocích" icon="🧠" backgroundColor="quinary" />
+
         {/* 7. Placeholder -- Nestačí to dohnat po nocích */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -199,35 +283,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
-        {/* 8. Hook */}
-        <Slide backgroundColor="quinary">
-          <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
-            <Quote
-              color="primary"
-              fontSize="1.6rem"
-              textAlign="center"
-              style={{ fontFamily: "'DM Sans', sans-serif", fontStyle: 'normal', fontWeight: 500 }}
-            >
-              "Zajímavé technologie. Řešení reálných problémů. Možnost se učit."
-            </Quote>
-            <Heading color="tertiary" fontSize="2.2rem" margin="40px 0 0">
-              Kdo dnes umí snít?
-            </Heading>
-          </FlexBox>
-          <Notes>
-            Tahle odpověď nemá informační hodnotu -- nikdo by přece nechtěl opak. Za obecností je
-            strach: konkrétní přání = riziko zavřených dveří. Výsledek: signál dost obecný, aby
-            nikoho neodradil -- a proto nikoho nezaujme. 200 odeslaných životopisů, 3 zamítnutí, ticho.
-            ⚡ Hrana: snaha být bezpečně obecný dělá paradoxně neviditelným pro všechny -- specifičnost,
-            která se zdá riskantní, riziko ve skutečnosti snižuje. Osobní odhalení: vlastní odchod od
-            korporátního leadershipu a hands-on AI práce do koučování -- kdo tohle vede, si tím sám
-            prošel. Slib webináře: jak si přiznat, kam chci jít, a vyslat signál, podle kterého mě
-            najdou správní lidé. Most dál: tenhle strach ze specifičnosti znovu potkáme v cvičení
-            "Zamiř jasně".
-          </Notes>
-        </Slide>
+        <IntroSlide title="Co se dnes děje s ajťákem?" icon="💻" backgroundColor="secondary" />
 
- 
         {/* 9. Block 1 -- co se děje ajťákovi */}
         <Slide backgroundColor="quinary">
           <Heading color="primary">Co se dnes děje s ajťákem?</Heading>
@@ -270,7 +327,7 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
         {/* 11. Section 2 -- title */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
-            <SectionBadge index={2} />
+            <SectionBadge label="2" />
             <Heading color="primary" textAlign="center">
               Jak funguje mozek v prostředí neustálé změny
             </Heading>
@@ -285,6 +342,12 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             zdroji podložené a co ne).
           </Notes>
         </Slide>
+
+        <IntroSlide
+          title="Tvůj mozek hledá zkratky. AI mu je servíruje na podnose."
+          icon="🧠"
+          backgroundColor="secondary"
+        />
 
         {/* 12-1a. Pár 1/5 -- problém: cognitive miser */}
         <Slide backgroundColor="quinary">
@@ -311,6 +374,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
+        <IntroSlide title="Než se zeptáš AI, zeptej se sebe" icon="🔍" backgroundColor="quinary" />
+
         {/* 12-1b. Pár 1/5 -- lék: human-first protokol */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -327,6 +392,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             Design) -- "Human-First Protocols" jsou ve zdroji doslova, včetně vazby na anchoring.
           </Notes>
         </Slide>
+
+        <IntroSlide title="S AI se dá splést dvěma způsoby" icon="⚠️" backgroundColor="secondary" />
 
         {/* 12-2a. Pár 2/5 -- problém: dva typy chyb */}
         <Slide backgroundColor="quinary">
@@ -351,6 +418,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
+        <IntroSlide title="U rizikových věcí -- zastav se" icon="⏸️" backgroundColor="quinary" />
+
         {/* 12-2b. Pár 2/5 -- lék: vědomá pauza */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -374,6 +443,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             před citováním na živo.
           </Notes>
         </Slide>
+
+        <IntroSlide title="Nebezpečný nejsi jako začátečník" icon="📊" backgroundColor="secondary" />
 
         {/* 12-3a. Pár 3/5 -- problém: střední znalost */}
         <Slide backgroundColor="quinary">
@@ -402,6 +473,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
+        <IntroSlide title="Nespokoj se s vysvětlením. Chtěj příklad." icon="❓" backgroundColor="quinary" />
+
         {/* 12-3b. Pár 3/5 -- lék: ptejte se na příklady */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -424,6 +497,12 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             slidů. ⚠️ Přesná bibliografická citace není v poskytnutém seznamu zdrojů -- doplnit a ověřit.
           </Notes>
         </Slide>
+
+        <IntroSlide
+          title="Tvoje přesnost se může zhroutit, aniž bys to poznal."
+          icon="📉"
+          backgroundColor="secondary"
+        />
 
         {/* 12-4a. Pár 4/5 -- problém: přesnost se hroutí */}
         <Slide backgroundColor="quinary">
@@ -449,6 +528,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
           </Notes>
         </Slide>
 
+        <IntroSlide title="Hlídej si, kolik rozhodnutí je ještě tvých" icon="🎚️" backgroundColor="quinary" />
+
         {/* 12-4b. Pár 4/5 -- lék: hlídej si poměr rozhodnutí */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
@@ -470,6 +551,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             ukazatel, který si z toho výzkumu beru".
           </Notes>
         </Slide>
+
+        <IntroSlide title="Co nepoužíváš, to ztrácíš" icon="🪫" backgroundColor="secondary" />
 
         {/* 12-5a. Pár 5/5 -- problém: cognitive debt */}
         <Slide backgroundColor="quinary">
@@ -499,6 +582,8 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
             říct "výzkumný tým z MIT Media Lab", ale je fér dodat, že jde o preprint.
           </Notes>
         </Slide>
+
+        <IntroSlide title="Ne všechno si zaslouží stejnou pozornost" icon="⚖️" backgroundColor="quinary" />
 
         {/* 12-5b. Pár 5/5 -- lék: rozlište úkoly podle rizika */}
         <Slide backgroundColor="secondary">
@@ -548,12 +633,12 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
         {/* 23. Section 3 -- title */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
-            <SectionBadge index={3} />
+            <SectionBadge label="3" />
             <Heading color="primary" textAlign="center">
-              Dvě kariéry, dva odlišné problémy
+              Jak na to jít celkově
             </Heading>
-            <Text color="tertiary" margin="24px 0 0">
-              Metoda: NeuroLeadership (David Rock)
+            <Text color="tertiary" textAlign="center" margin="24px 0 0">
+              Realitou inspirované příklady
             </Text>
           </FlexBox>
           <Notes>
@@ -621,21 +706,117 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
         {/* 26. Section 4 -- title */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
-            <SectionBadge index={4} />
+            <SectionBadge label="4" />
             <Heading color="primary" textAlign="center">
-              Jak řídit svou kariéru v době AI
+              Ochutnávka pro Tebe
             </Heading>
             <Text color="tertiary" margin="24px 0 0">
               Zamiř / Zvaž / Zaber
             </Text>
             <Text color="quaternary" margin="8px 0 0">
-              Tenhle blok je aktivní, ne poslechový -- tužku a papír.
+              Aktivní blok -- připravte si tužku a papír.
             </Text>
           </FlexBox>
           <Notes>
-            Velký cíl (Londýn, udržitelné vedení firmy) i malý první krok (lekce jógy) fungovaly
-            současně -- přesně tenhle vzorec teď rozpracujeme do postupu, který si každý účastník udělá
-            sám pro sebe.
+            Velký cíl (Londýn, udržitelné vedení firmy) i malý první krok (lekce jógy) z případových
+            studií fungovaly současně -- přesně tenhle vzorec teď rozpracujeme do postupu, který si
+            každý účastník udělá sám pro sebe.
+          </Notes>
+        </Slide>
+
+        {/* 26b. Zamiř/Zvaž/Zaber jako svorky nad stejnou 4-krokovou metodou jako na webu */}
+        <Slide backgroundColor="quinary">
+          <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
+            <Heading color="primary" textAlign="center" fontSize="1.9rem" margin="0 0 8px">
+              Tři kroky, čtyři fáze
+            </Heading>
+            <Text color="quaternary" textAlign="center" fontSize="1rem">
+              Stejná metoda, kterou stavíme na webu -- checklist, plán, experiment, průlom.
+            </Text>
+            <Box style={{ position: 'relative', width: '92%', height: 240, margin: '36px 0 0' }}>
+              {OVERLAY_STEPS.flatMap((overlay) => {
+                const { left, width } = braceGeometry(overlay.from, overlay.to);
+                const labelTop = overlay.tier === 1 ? 0 : 54;
+                return [
+                  <Text
+                    key={`${overlay.label}-label`}
+                    color="tertiary"
+                    fontWeight={700}
+                    fontSize="1rem"
+                    margin={0}
+                    textAlign="center"
+                    style={{ position: 'absolute', top: labelTop, left: `${left}%`, width: `${width}%` }}
+                  >
+                    {overlay.label}
+                  </Text>,
+                  <Box
+                    key={`${overlay.label}-brace`}
+                    style={{
+                      position: 'absolute',
+                      top: labelTop + 26,
+                      left: `${left}%`,
+                      width: `${width}%`,
+                      height: 10,
+                      borderTop: '2px solid #dbb155',
+                      borderLeft: '2px solid #dbb155',
+                      borderRight: '2px solid #dbb155',
+                      borderTopLeftRadius: 6,
+                      borderTopRightRadius: 6,
+                    }}
+                  />,
+                ];
+              })}
+              <Box
+                style={{
+                  position: 'absolute',
+                  top: 128,
+                  left: 0,
+                  width: '100%',
+                  height: 1,
+                  background: 'linear-gradient(to right, transparent, rgba(219, 177, 85, 0.35), transparent)',
+                }}
+              />
+              {METHOD_STEPS.map((step, i) => (
+                <Box
+                  key={step.num}
+                  backgroundColor="secondary"
+                  style={{
+                    position: 'absolute',
+                    top: 104,
+                    left: `${methodCardLeft(i)}%`,
+                    width: `${METHOD_CARD_WIDTH}%`,
+                    height: 130,
+                    borderRadius: 2,
+                    border: '1px solid rgba(239, 231, 217, 0.12)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1,
+                  }}
+                >
+                  <Heading color="tertiary" fontSize="2rem" margin={0}>
+                    {step.num}
+                  </Heading>
+                  <Text
+                    color="primary"
+                    fontWeight={600}
+                    fontSize="0.85rem"
+                    margin="8px 0 0"
+                    textAlign="center"
+                    width="80%"
+                  >
+                    {step.title}
+                  </Text>
+                </Box>
+              ))}
+            </Box>
+          </FlexBox>
+          <Notes>
+            Tři kroky se překrývají, ne jsou oddělené -- Zamiř jasně pokrývá checklist podmínek a plán,
+            Zvaž věcně přemosťuje plán a experimentování, Zaber mocně spojuje experiment s průlomem.
+            Vizuál vychází ze stejné "4 kroky" sekce jako na webu (Home.tsx, t.method.steps) --
+            konzistentní vizuální jazyk napříč webinářem a webem.
           </Notes>
         </Slide>
 
@@ -703,7 +884,7 @@ export function WebinarDeck({ focusActive }: WebinarDeckProps) {
         {/* 30. Section 5 -- title */}
         <Slide backgroundColor="secondary">
           <FlexBox height="100%" flexDirection="column" alignItems="center" justifyContent="center">
-            <SectionBadge index={5} />
+            <SectionBadge label="5" />
             <Heading color="primary" textAlign="center">
               Závěr: používat nejen AI, ale také sebe
             </Heading>

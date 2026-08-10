@@ -24,7 +24,7 @@ from PIL import Image, ImageDraw, ImageFont
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 FONT_DIR = os.path.join(ROOT, "marketing/fonts")
 OUT_DIR = os.path.join(ROOT, "marketing/linkedin")
-LOGO = os.path.join(ROOT, "client/public/images/logo-icon.png")
+LOGO = os.path.join(ROOT, "landing/public/images/logo-icon.png")
 
 GOLD = (228, 183, 80)
 BG = (9, 7, 5)

@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 FONT_DIR = os.path.join(ROOT, "marketing/fonts")
 OUT_DIR = os.path.join(ROOT, "marketing/linkedin")
 PHOTO = os.path.join(ROOT, "marketing/05_bo_ja_budu_s_toboyu/karel_ua.png")
-LOGO = os.path.join(ROOT, "client/public/images/logo-icon.png")
+LOGO = os.path.join(ROOT, "landing/public/images/logo-icon.png")
 OUTPUT_NAME = "poster-05-bo-ja-budu-s-toboyu.png"
 
 W, H = 1080, 1350

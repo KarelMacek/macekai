@@ -3,3 +3,6 @@ node_modules
 .git
 *.min.js
 *.min.css
+
+# webinars/ decks (e.g. cameo-spike) manage their own formatting/lint config
+webinars/

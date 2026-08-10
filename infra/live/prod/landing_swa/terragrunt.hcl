@@ -46,9 +46,9 @@ inputs = {
   project_name        = local.env.project_name
   environment_name    = local.env.environment_name
   resource_group_name = "macekai_group" # override — see warning above, NOT dependency.resource_group.outputs.name
-  location             = "westus2"       # override — see warning above
+  location            = "westus2"       # override — see warning above
   app_name            = "landing"
-  name                = "macekai"       # override — see warning above
-  sku_tier            = "Standard"      # override — see warning above
+  name                = "macekai"  # override — see warning above
+  sku_tier            = "Standard" # override — see warning above
   custom_domains      = ["macek.ai", "www.macek.ai"]
 }

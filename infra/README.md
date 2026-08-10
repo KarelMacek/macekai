@@ -5,7 +5,8 @@ Terraform + Terragrunt, adapted from a working sibling project (`asistentka`) �
 **Status:**
 - [x] State storage bootstrap (step 2 below) — done 2026-08-10. Resource group `macekai-tfstate`, storage account `sttfstatemacekai`, container `tfstate`, blob versioning + 14-day soft-delete enabled. Subscription `02b1dc83-906b-4652-9a02-acce7d9a80c1`, tenant `169b8ff6-9bc7-43e8-8ad3-902fd6852f89` (`karel@macek.ai`) — **a different tenant than `asistentka`'s**, confirmed via `az account show`.
 - [x] `common.hcl`'s `tenant_id` filled in with the real value above.
-- [x] Entra app registration for Easy Auth (step 3) — done 2026-08-10. `macekai-app-backend`, appId `90756a5b-ac1f-439e-99ff-291df4f467d8`, sign-in audience `AzureADMyOrg`. `common.hcl`'s `easy_auth_client_id` filled in. All 3 redirect URIs added. Client secret generated and stored **locally only** at `~/.macekai/easy_auth_client_secret.txt` (chmod 600, not in this repo, not printed anywhere) — needed as `TF_VAR_easy_auth_client_secret` when `key_vault` is actually applied (step 6). Expires 2028-08-10 (2 years) — regenerate via `az ad app credential reset --id 90756a5b-ac1f-439e-99ff-291df4f467d8` before then.
+- [x] ~~Entra app registration for Easy Auth~~ — done 2026-08-10, then **superseded same day**: Google is now the only auth provider (explicit decision), Microsoft/Entra fully removed from `web_app`'s `auth_settings_v2`. The Entra app registration (`macekai-app-backend`, appId `90756a5b-ac1f-439e-99ff-291df4f467d8`) is unused/vestigial, safe to delete later.
+- [ ] Google OAuth client for Easy Auth (step 3, revised) — **not done yet**, blocked on you creating it in the Google Cloud Console (can't be done via CLI here, no `gcloud` installed). `common.hcl`'s `google_client_id` is still a placeholder. `dev/key_vault` and `dev/web_app` need re-applying once the real Client ID/Secret exist.
 - [x] `entry_service` merged into `main` via [PR #19](https://github.com/KarelMacek/macekai/pull/19) — done 2026-08-10. Caught and fixed a real bug in the process: `pnpm/action-setup@v4` errors when both its `version:` input and `package.json`'s `packageManager` conflict, even when they agree — the SWA workflow now lets `packageManager` be the only source.
 - [x] **Incident, same day**: that merge's deploy returned HTTP 200 with the correct `<title>` (what got checked at the time) but was actually serving the **raw unbuilt** `landing/index.html` (`<script src="/src/main.tsx">`, which browsers can't execute — blank page). Root cause: `Azure/static-web-apps-deploy@v1` with `skip_app_build: true` uploads `app_location` verbatim, it does **not** join `app_location`+`output_location` the way it does during its own build. Only caught later while verifying `dev`'s SWA visually in a browser (curl-only checks miss this — 200 + right title, wrong body). Fixed by pointing `app_location` directly at the built output (`landing/dist/public`) and leaving `output_location` empty, pushed straight to `main` (no PR) given live production impact. Re-verified after: `curl https://macek.ai/ | grep script` now shows the real hashed `/assets/*.js` bundle, not the source reference.
 - [x] Branches (step 4) — done 2026-08-10. `dev` and `staging` created off the now-current `main` and pushed.
@@ -28,7 +29,7 @@ Note the state storage bootstrap itself (resource group + storage account + cont
 infra/
   root.hcl            # generates the azurerm backend + provider for every component below
   live/
-    common.hcl          # tenant_id, easy_auth_client_id — shared across all envs, currently placeholders
+    common.hcl          # tenant_id (for Key Vault's own resource field), google_client_id — shared across all envs
     dev/ staging/ prod/  # resource_group, storage, postgres, openai, key_vault, web_app, landing_swa
     shared/               # resource_group, acr — one registry for all environments
   modules/               # the Terraform modules each terragrunt.hcl above sources
@@ -69,29 +70,28 @@ Terraform/Terragrunt can't do these — they need elevated Entra/subscription pe
    ```
    Blob versioning + 14-day soft-delete are on (state backend is a single point of failure for all three environments — see the plan's risk callouts).
 
-3. **Entra app registration for Easy Auth**, and fill in `infra/live/common.hcl`.
+3. **Google OAuth client for Easy Auth**, and fill in `infra/live/common.hcl`.
 
-   **Done** (2026-08-10):
-   ```bash
-   az ad app create --display-name macekai-app-backend --sign-in-audience AzureADMyOrg
-   # -> appId 90756a5b-ac1f-439e-99ff-291df4f467d8, now in common.hcl as easy_auth_client_id
+   **Superseded 2026-08-10**: originally built with Microsoft/Entra (`macekai-app-backend`, appId `90756a5b-ac1f-439e-99ff-291df4f467d8`) — per explicit decision, **Google is now the only auth provider**, Microsoft/Entra is fully removed from `web_app`'s `auth_settings_v2`. That Entra app registration is now unused/vestigial; harmless to leave, safe to delete later if you want to tidy up (`az ad app delete --id 90756a5b-ac1f-439e-99ff-291df4f467d8`).
 
-   az ad app update --id 90756a5b-ac1f-439e-99ff-291df4f467d8 \
-     --web-redirect-uris \
-       "https://app-macekai-dev.azurewebsites.net/.auth/login/aad/callback" \
-       "https://app-macekai-staging.azurewebsites.net/.auth/login/aad/callback" \
-       "https://app-macekai-prod.azurewebsites.net/.auth/login/aad/callback"
+   Azure App Service's Easy Auth has a native Google provider (`google_v2` in `auth_settings_v2`) — same mechanism as the old Microsoft one, just a different upstream identity provider. This can't be created via `az` CLI or `gcloud` (not installed here) — it's a manual step in the Google Cloud Console:
 
-   # Client secret — captured directly into a local file, never printed to a
-   # terminal/chat transcript. Regenerate the same way if it's ever lost:
-   az ad app credential reset --id 90756a5b-ac1f-439e-99ff-291df4f467d8 \
-     --display-name "easy-auth-bootstrap-2026-08-10" --years 2 \
-     --query "password" -o tsv > ~/.macekai/easy_auth_client_secret.txt
-   chmod 600 ~/.macekai/easy_auth_client_secret.txt
-   ```
-   Needed later as `TF_VAR_easy_auth_client_secret` when `key_vault` is applied (step 6) — e.g. `export TF_VAR_easy_auth_client_secret="$(cat ~/.macekai/easy_auth_client_secret.txt)"`.
-
-   Note: `azureactivedirectory` as configured in the `web_app` module only allows sign-in from accounts in this tenant. If coaching clients ever need to log in with their own accounts, this app registration's sign-in audience and the module's `auth_settings_v2` need revisiting — not yet decided, see `CLAUDE.md`.
+   1. [console.cloud.google.com](https://console.cloud.google.com/) → create or select a project (e.g. "macekai").
+   2. **APIs & Services → OAuth consent screen** (if not already configured): User type **External**, app name "macekai", your email as support/developer contact.
+   3. **APIs & Services → Credentials → Create Credentials → OAuth client ID**:
+      - Application type: **Web application**
+      - Name: `macekai-app-backend` (or similar)
+      - Authorized redirect URIs — one per environment as its Web App exists:
+        - `https://app-macekai-dev.azurewebsites.net/.auth/login/google/callback`
+        - `https://app-macekai-staging.azurewebsites.net/.auth/login/google/callback`
+        - `https://app-macekai-prod.azurewebsites.net/.auth/login/google/callback`
+   4. Copy the **Client ID** into `infra/live/common.hcl`'s `google_client_id` (not secret, fine to commit).
+   5. Save the **Client Secret** the same way the old Easy Auth secret was handled — never pasted into a terminal/chat transcript:
+      ```bash
+      echo -n "<paste the Client Secret here in your own terminal, not via Claude>" > ~/.macekai/google_client_secret.txt
+      chmod 600 ~/.macekai/google_client_secret.txt
+      ```
+   Needed later as `TF_VAR_google_client_secret` when `key_vault` is applied — e.g. `export TF_VAR_google_client_secret="$(cat ~/.macekai/google_client_secret.txt)"`.
 
 4. **Branches**: `main` already exists (currently deploys landing only). Create `dev` and `staging` off it.
 
@@ -133,7 +133,7 @@ Terraform/Terragrunt can't do these — they need elevated Entra/subscription pe
 
    **Still NOT done** (the actual "massive deploy," deliberately deferred): `postgres`, `web_app`, `key_vault`, `openai` for `dev`/`staging`/`prod`. When ready:
    ```bash
-   export TF_VAR_easy_auth_client_secret="$(cat ~/.macekai/easy_auth_client_secret.txt)"
+   export TF_VAR_google_client_secret="$(cat ~/.macekai/google_client_secret.txt)"
    export TF_VAR_tavily_api_key=""   # optional, set if/when actually used
 
    cd infra/live/dev

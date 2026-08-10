@@ -45,14 +45,10 @@ variable "acr_admin_password" {
   sensitive = true
 }
 
-# Not secret (a directory ID / a public client ID, both visible in login
-# redirect URLs) and identical for every environment on this tenant — set
-# once in live/common.hcl rather than repeated per environment.
-variable "tenant_id" {
-  type = string
-}
-
-variable "easy_auth_client_id" {
+# Not secret (a public OAuth client ID, visible in the browser's redirect
+# regardless) and identical for every environment — set once in
+# live/common.hcl rather than repeated per environment.
+variable "google_client_id" {
   type = string
 }
 
@@ -96,7 +92,7 @@ locals {
   kv_ref = {
     for secret_name in [
       "secret-key",
-      "easy-auth-client-secret",
+      "google-client-secret",
       "postgres-admin-password",
       "storage-connection-string",
       "azure-openai-api-key",
@@ -156,8 +152,7 @@ resource "azurerm_linux_web_app" "app" {
     "ALLOWED_HOSTS"     = "${local.web_app_name}.azurewebsites.net"
     "EASY_AUTH_ENABLED" = "True"
 
-    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["easy-auth-client-secret"]
-    "WEBSITE_AUTH_AAD_ALLOWED_TENANTS"         = var.tenant_id
+    "GOOGLE_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["google-client-secret"]
 
     "POSTGRES_DB"       = var.postgres_database_name
     "POSTGRES_USER"     = var.postgres_administrator_login
@@ -182,13 +177,11 @@ resource "azurerm_linux_web_app" "app" {
     require_authentication = true
     require_https          = true
     unauthenticated_action = "RedirectToLoginPage"
-    default_provider       = "azureactivedirectory"
+    default_provider       = "google"
 
-    # TODO: azureactivedirectory as configured below only allows sign-in from
-    # accounts in var.tenant_id's own directory. If coaching clients need to
-    # log in with their own (non-Microsoft-tenant) accounts, this needs a
-    # multi-tenant config or a different auth provider — not yet decided,
-    # this is a Phase 2 app-design question.
+    # Google is the ONLY auth provider in this system, by explicit choice —
+    # no Microsoft/Entra fallback. Login: /.auth/login/google
+    # (post_login_redirect_uri=/ query param sends the user back to the SPA).
     excluded_paths = [
       # Both with and without the trailing slash — App Service's excluded_paths
       # matching turned out to be exact, not prefix, when checked against
@@ -202,10 +195,9 @@ resource "azurerm_linux_web_app" "app" {
       "/signed-out",
     ]
 
-    active_directory_v2 {
-      client_id                  = var.easy_auth_client_id
-      client_secret_setting_name = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-      tenant_auth_endpoint       = "https://login.microsoftonline.com/${var.tenant_id}/v2.0/"
+    google_v2 {
+      client_id                  = var.google_client_id
+      client_secret_setting_name = "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
     login {

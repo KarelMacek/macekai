@@ -6,7 +6,12 @@ from dataclasses import dataclass, field
 logger = logging.getLogger(__name__)
 
 # Short names and their URI-style equivalents, in preference order.
+# "sub" is Google's (and standard OIDC's) subject-identifier claim — the
+# provider this app actually uses. The oid/tid/schemas.microsoft.com forms
+# are kept only in case Easy Auth is ever pointed at an AAD-based provider
+# again; they're simply never present for Google logins.
 _OID_TYPES = [
+    "sub",
     "oid",
     "http://schemas.microsoft.com/identity/claims/objectidentifier",
 ]
@@ -15,8 +20,8 @@ _TID_TYPES = [
     "http://schemas.microsoft.com/identity/claims/tenantid",
 ]
 _EMAIL_TYPES = [
-    "preferred_username",
     "email",
+    "preferred_username",
     "upn",
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
     "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn",
@@ -49,7 +54,7 @@ class AzureEasyAuthPrincipal:
 
     @property
     def username(self) -> str:
-        return self.email.lower() if self.email else f"aad_{self.object_id}"
+        return self.email.lower() if self.email else f"easyauth_{self.object_id}"
 
     @property
     def is_valid(self) -> bool:

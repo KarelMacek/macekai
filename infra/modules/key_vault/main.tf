@@ -29,7 +29,7 @@ variable "web_app_principal_id" {
   description = "Object ID of the Web App's system-assigned managed identity — granted read access to secrets."
 }
 
-variable "easy_auth_client_secret" {
+variable "google_client_secret" {
   type      = string
   sensitive = true
 }
@@ -86,7 +86,7 @@ resource "azurerm_role_assignment" "web_app_secrets_user" {
 locals {
   secrets = {
     "secret-key"                = random_password.django_secret_key.result
-    "easy-auth-client-secret"   = var.easy_auth_client_secret
+    "google-client-secret"      = var.google_client_secret
     "postgres-admin-password"   = var.postgres_administrator_password
     "storage-connection-string" = var.storage_connection_string
     "azure-openai-api-key"      = var.azure_openai_api_key

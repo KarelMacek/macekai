@@ -2,16 +2,17 @@ import { useState, useEffect } from 'react'
 
 function SignedOutPage() {
   useEffect(() => {
-    // Clear the Easy Auth session cookie in the background without navigating to Microsoft.
-    // redirect:"manual" prevents the browser following the 302 to login.microsoftonline.com
-    // while still letting the browser apply the Set-Cookie that expires the session.
+    // Clear the Easy Auth session cookie in the background without navigating to Google.
+    // redirect:"manual" prevents the browser following the redirect to Google's own
+    // logout/consent pages while still letting the browser apply the Set-Cookie that
+    // expires the session.
     fetch('/.auth/logout', { redirect: 'manual', credentials: 'include' }).catch(() => {})
   }, [])
 
   return (
     <div style={{ padding: '2rem' }}>
       <h2>Signed out.</h2>
-      <a href="/.auth/login/aad?post_login_redirect_uri=/">Sign in with Microsoft</a>
+      <a href="/.auth/login/google?post_login_redirect_uri=/">Sign in with Google</a>
     </div>
   )
 }
@@ -51,7 +52,7 @@ function App() {
       ) : (
         <div>
           <p>Not signed in.</p>
-          <a href="/.auth/login/aad?post_login_redirect_uri=/">Sign in with Microsoft</a>
+          <a href="/.auth/login/google?post_login_redirect_uri=/">Sign in with Google</a>
           {devLogin && (
             <>
               {' '}

@@ -26,16 +26,30 @@ New webinar decks: add their path explicitly to `pnpm-workspace.yaml`'s `package
 
 ## Deployment
 
-- `landing/` deploys to **Azure Static Web Apps** via `.github/workflows/azure-static-web-apps-icy-beach-0ba33b71e.yml` on push/PR to `main`. The workflow explicitly runs `pnpm install && pnpm --filter landing build` and passes `skip_app_build: true` to the SWA deploy action — Oryx's auto-build detection isn't reliable against a workspace root, so don't remove the explicit build step. `app_location: "landing"`, `output_location: "dist/public"` (resolved relative to `app_location`, i.e. `landing/dist/public`). The workflow is path-filtered to `landing/**` + workspace root files, so unrelated commits elsewhere in the repo don't retrigger it.
-- `app-backend`/`app-frontend` (Phase 2, not built) will target **Azure App Service or Container Apps**, not Azure Static Web Apps.
+- `landing/` deploys to **Azure Static Web Apps** via `.github/workflows/azure-static-web-apps-icy-beach-0ba33b71e.yml` on push/PR to `main`. The workflow explicitly runs `pnpm install && pnpm --filter landing build` and passes `skip_app_build: true` to the SWA deploy action — Oryx's auto-build detection isn't reliable against a workspace root, so don't remove the explicit build step. `app_location: "landing"`, `output_location: "dist/public"` (resolved relative to `app_location`, i.e. `landing/dist/public`). The workflow is path-filtered to `landing/**` + workspace root files, so unrelated commits elsewhere in the repo don't retrigger it. **This is prod-only today** — landing's `dev`/`staging` counterparts get wired up once `infra/live/{dev,staging}/landing_swa` exists (see below).
+- `app-backend`/`app-frontend` (Phase 2, not built) will deploy together as **one Docker container per environment** to **Azure App Service**, via `.github/workflows/deploy_environments.yml` (not yet functional — needs the app code + the infra bootstrap, see `infra/README.md`).
 
-## Future phases (described, not built)
+## Infra (Terraform + Terragrunt) — `infra/`
 
-- **Phase 2 — `app-backend` + `app-frontend`**: Django API (`app-backend/`, likely DRF) + a separate React frontend (`app-frontend/`, added to `pnpm-workspace.yaml` when started). Local dev story, Python dependency tool (uv/poetry/pip), and whether `app-frontend` reuses `landing`'s Vite/shadcn/Tailwind stack are all still open — decide these when Phase 2 actually starts rather than guessing now.
-- **Phase 3 — `infra/`**: Terraform, `infra/environments/{dev,staging,prod}/` + `infra/modules/*`, Azure Storage remote state. Should **import**, not recreate, the existing Static Web App resource. Adds App Service/Container Apps + Postgres + Key Vault for Phase 2's backend.
+Scaffolded (not yet applied to Azure — see `infra/README.md` for bootstrap status), adapted from a working sibling project, `asistentka` (`/home/karel/projects/asistentka`), reused as closely as possible rather than designed fresh. Full rationale for every reuse/deviation decision lives in the plan history; the durable facts:
+
+- **Layout**: `infra/root.hcl` (backend+provider generation, per-component state keys) + `infra/live/{dev,staging,prod,shared}/<component>/terragrunt.hcl` + `infra/modules/<component>/main.tf`. One shared remote state storage account (`sttfstatemacekai`), one state file per environment×component pair.
+- **Components per environment**: `resource_group`, `storage`, `postgres` (Flexible Server, public+firewall, no VNet), `openai` (Azure OpenAI, kept for future use), `key_vault` (RBAC, Web App reads secrets via managed identity + Key Vault references), `web_app` (Linux App Service, container-based, serves app-backend+app-frontend bundled in one image), `landing_swa` (Azure Static Web App — landing's hosting). `shared/` holds one `acr` (container registry) + its own `resource_group`, used by every environment's `web_app`.
+- **App bundling**: app-backend (Django) + app-frontend (React) build into **one Docker image** (`Dockerfile` at repo root) — Django serves the built React SPA as static files via `collectstatic`. They stay separate codebases/packages, just not separately hosted.
+- **Landing stays on Azure Static Web Apps**, not folded into the App Service pattern — free tier, already proven working, independently releasable from the app. Prod's `landing_swa` unit is for **importing** the already-live SWA, not creating a new one — see the big warning comment in `infra/live/prod/landing_swa/terragrunt.hcl` before ever running `apply` there.
+- **Easy Auth** (Entra ID login via App Service's `auth_settings_v2`) and the **Azure OpenAI** module are kept from `asistentka`, wired but not necessarily used by app logic yet — `common.hcl`'s `tenant_id`/`easy_auth_client_id` are still placeholders (`REPLACE_ME_*`).
+- **No Postgres stop/start cost-saving schedule** (unlike `asistentka`) — macekai's app-backend is meant to serve coaching clients who may use it any time, so Postgres stays always-on in every environment.
+- **One deploy pattern for all three environments including prod** (`deploy_environments.yml`) — branches `dev`/`staging`/`main` map to environments `dev`/`staging`/`prod`.
+- **Local dev**: `docker-compose.yml` + `.env.example` at repo root (Django + Postgres only, no worker) — purely local, unrelated to any deployed environment.
+- **Not yet functional**: none of this builds/deploys until `app-backend`/`app-frontend` have at least a minimal skeleton (Phase 2) and the one-time bootstrap in `infra/README.md` has been run.
+
+## Future phases (described, not fully built)
+
+- **Phase 2 — `app-backend` + `app-frontend` code**: Django API (`app-backend/`, likely DRF) + a separate React frontend (`app-frontend/`, added to `pnpm-workspace.yaml` when started). Local dev story, Python dependency tool (uv/poetry/pip — `asistentka` uses `uv`, the Dockerfile assumes the same), and whether `app-frontend` reuses `landing`'s Vite/shadcn/Tailwind stack are all still open. A minimal "hello world" skeleton is needed before `infra/` can be meaningfully validated end-to-end (nothing real to containerize otherwise).
 - **Blog**: shape undecided (static Vite site vs. Django-templated vs. separate SSG) — resolve when work on it actually starts.
 
 ## Notes
 
 - `CONTEXT.md` at repo root holds brand/positioning notes shared across `marketing/` and (eventually) `app-frontend` copy — don't move it into a subfolder.
 - `landing/.manus/`, `landing/.manus-logs/`, `landing/.project-config.json`, `landing/template.json` are leftovers from the original Manus.im app-builder scaffold that produced `landing/`. `.project-config.json` looks like it holds secrets but is gitignored and has never been committed — keep it that way.
+- `Dockerfile`, `docker-compose.yml`, and `.env.example` at repo root are for `app-backend`/`app-frontend` (Phase 2) — not landing, not marketing, not webinars. None of them are functional yet (see above).

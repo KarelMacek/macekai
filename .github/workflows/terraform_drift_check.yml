@@ -1,0 +1,146 @@
+name: Terraform drift check
+
+# Read-only: runs `terragrunt plan -detailed-exitcode` for every
+# environment/component pair and fails loudly if live Azure state has
+# drifted from what infra/live declares. Never applies anything — a red run
+# here means "go look and decide," not "auto-fixed."
+#
+# key_vault is deliberately excluded: its plan needs real secret values
+# (easy_auth_client_secret, tavily_api_key) that aren't wired via
+# `dependency` blocks — see infra/README.md. Feeding it placeholder values
+# would show permanent fake drift instead of catching real drift, so until
+# those are added as CI secrets it stays a manual `terragrunt plan`.
+#
+# NOT YET FUNCTIONAL until the infra bootstrap has actually been applied at
+# least once per environment — an empty environment isn't "drift," it's
+# just not built yet. Enable this once dev is standing.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Monday 06:00 UTC — infra here changes rarely, weekly is enough
+  workflow_dispatch:
+
+permissions:
+  id-token: write # required for azure/login OIDC — no stored Azure secrets
+  contents: read
+
+env:
+  TERRAFORM_VERSION: 1.15.7
+  TERRAGRUNT_VERSION: 1.1.1
+
+jobs:
+  plan:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tf_env: dev
+            gh_environment: dev
+            component: resource_group
+          - tf_env: dev
+            gh_environment: dev
+            component: storage
+          - tf_env: dev
+            gh_environment: dev
+            component: postgres
+          - tf_env: dev
+            gh_environment: dev
+            component: openai
+          - tf_env: dev
+            gh_environment: dev
+            component: web_app
+          - tf_env: dev
+            gh_environment: dev
+            component: landing_swa
+
+          - tf_env: staging
+            gh_environment: staging
+            component: resource_group
+          - tf_env: staging
+            gh_environment: staging
+            component: storage
+          - tf_env: staging
+            gh_environment: staging
+            component: postgres
+          - tf_env: staging
+            gh_environment: staging
+            component: openai
+          - tf_env: staging
+            gh_environment: staging
+            component: web_app
+          - tf_env: staging
+            gh_environment: staging
+            component: landing_swa
+
+          - tf_env: prod
+            gh_environment: prod
+            component: resource_group
+          - tf_env: prod
+            gh_environment: prod
+            component: storage
+          - tf_env: prod
+            gh_environment: prod
+            component: postgres
+          - tf_env: prod
+            gh_environment: prod
+            component: openai
+          - tf_env: prod
+            gh_environment: prod
+            component: web_app
+          - tf_env: prod
+            gh_environment: prod
+            component: landing_swa
+
+          - tf_env: shared
+            gh_environment: shared
+            component: resource_group
+          - tf_env: shared
+            gh_environment: shared
+            component: acr
+
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.gh_environment }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to Azure (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - name: Install Terragrunt
+        run: |
+          curl -sL -o /usr/local/bin/terragrunt \
+            "https://github.com/gruntwork-io/terragrunt/releases/download/v${{ env.TERRAGRUNT_VERSION }}/terragrunt_linux_amd64"
+          chmod +x /usr/local/bin/terragrunt
+
+      - name: terragrunt plan
+        id: plan
+        working-directory: infra/live/${{ matrix.tf_env }}/${{ matrix.component }}
+        run: |
+          terragrunt init -input=false -no-color
+          set +e
+          terragrunt plan -input=false -no-color -detailed-exitcode
+          code=$?
+          set -e
+          case $code in
+            0) echo "result=clean" >> "$GITHUB_OUTPUT" ;;
+            2) echo "result=drift" >> "$GITHUB_OUTPUT"
+               echo "::error::Drift detected in ${{ matrix.tf_env }}/${{ matrix.component }} — live Azure state doesn't match infra/live/${{ matrix.tf_env }}/${{ matrix.component }}"
+               exit 1 ;;
+            *) echo "result=error" >> "$GITHUB_OUTPUT"
+               echo "::error::terragrunt plan itself failed for ${{ matrix.tf_env }}/${{ matrix.component }} (exit $code) — see log above"
+               exit 1 ;;
+          esac
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "- ${{ matrix.tf_env }}/${{ matrix.component }}: ${{ steps.plan.outputs.result || 'error (plan step did not complete)' }}" >> "$GITHUB_STEP_SUMMARY"

@@ -4,7 +4,7 @@
  * Style: patent-diagram framing, blueprint lines, technical annotations
  * Bilingual: CS / EN via LangContext
  */
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/contexts/LangContext";
 import { t, tx, type Lang } from "@/lib/content";
@@ -16,6 +16,7 @@ import {
 import { trackEvent } from "@/lib/analytics";
 import {
   QuickReflectionModal,
+  isValidReflectionState,
   type Answers,
   type ResultKey,
 } from "@/components/QuickReflectionModal";
@@ -468,7 +469,7 @@ function Nav() {
           ))}
           <LangToggle />
           <a
-            href="#kontakt"
+            href="#jak-zacit"
             className="text-sm px-4 py-2 border border-[oklch(0.78_0.12_85/0.4)] text-gold hover:bg-[oklch(0.78_0.12_85/0.1)] transition-all duration-200"
             style={{ fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}
           >
@@ -508,7 +509,7 @@ function Nav() {
             </a>
           ))}
           <a
-            href="#kontakt"
+            href="#jak-zacit"
             onClick={() => setOpen(false)}
             className="text-gold border border-[oklch(0.78_0.12_85/0.4)] px-4 py-2 text-center text-sm"
             style={{ fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}
@@ -579,7 +580,7 @@ function Hero() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <a
-              href="#kontakt"
+              href="#jak-zacit"
               onClick={() =>
                 trackEvent(lang, "cta_click", {
                   location: "hero",
@@ -1364,6 +1365,12 @@ type PricingStep = {
   desc: string;
   price?: string;
   cta?: string;
+  yesNo?: {
+    yes: string;
+    no: string;
+    yesResponse: string;
+    noResponse: string;
+  };
 };
 
 function Pricing({
@@ -1377,6 +1384,7 @@ function Pricing({
   const ref = useFadeUp();
   const steps = t.pricing.steps[lang] as readonly PricingStep[];
   const packages = t.method.packages[lang];
+  const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
   return (
     <section
       id="jak-zacit"
@@ -1410,23 +1418,83 @@ function Pricing({
           </p>
         </div>
 
-        <div className="hidden lg:flex items-stretch">
+        {/* Wide desktop: single horizontal row with connectors.
+            Cards and connectors are flattened into equal flex siblings —
+            nesting each connector inside its preceding card's wrapper made
+            the last card (with no trailing connector) render ~32px wider
+            than the rest. */}
+        <div className="hidden xl:flex items-stretch">
           {steps.map((s, i) => (
-            <div key={s.num} className="flex items-stretch flex-1 min-w-0">
-              <FunnelStepCard
-                step={s}
-                lang={lang}
-                delay={i * 80}
-                packages={s.num === "05" ? packages : undefined}
-                onQuickCheckClick={onQuickCheckClick}
-                quickCheckDone={quickCheckDone}
-              />
+            <Fragment key={s.num}>
+              <div className="flex items-stretch flex-1 min-w-0">
+                <FunnelStepCard
+                  step={s}
+                  lang={lang}
+                  delay={i * 80}
+                  packages={s.num === "05" ? packages : undefined}
+                  onQuickCheckClick={onQuickCheckClick}
+                  quickCheckDone={quickCheckDone}
+                  highlightCta={
+                    s.num === "02" ? step1Answer === "yes" : undefined
+                  }
+                  muted={
+                    s.num === "02" || s.num === "03" || s.num === "04"
+                      ? step1Answer === "no"
+                      : undefined
+                  }
+                  onAnswerChange={
+                    s.num === "01" ? a => setStep1Answer(a) : undefined
+                  }
+                />
+              </div>
               {i < steps.length - 1 && <ConnectorNode />}
-            </div>
+            </Fragment>
           ))}
         </div>
 
-        <div className="flex lg:hidden flex-col gap-6">
+        {/* Tablet / narrow desktop: same row-with-connectors layout as
+            desktop (keeps the 01→02→03→04→05 flow legible), but scrollable
+            with fixed-width cards instead of being squeezed via flex-1 */}
+        <div className="hidden md:block xl:hidden relative">
+          <div className="flex items-stretch overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-1 px-1">
+            {steps.map((s, i) => (
+              <div
+                key={s.num}
+                className="flex items-stretch shrink-0 w-72 snap-start"
+              >
+                <FunnelStepCard
+                  step={s}
+                  lang={lang}
+                  delay={i * 80}
+                  packages={s.num === "05" ? packages : undefined}
+                  onQuickCheckClick={onQuickCheckClick}
+                  quickCheckDone={quickCheckDone}
+                  highlightCta={
+                    s.num === "02" ? step1Answer === "yes" : undefined
+                  }
+                  muted={
+                    s.num === "02" || s.num === "03" || s.num === "04"
+                      ? step1Answer === "no"
+                      : undefined
+                  }
+                  onAnswerChange={
+                    s.num === "01" ? a => setStep1Answer(a) : undefined
+                  }
+                />
+                {i < steps.length - 1 && <ConnectorNode />}
+              </div>
+            ))}
+          </div>
+          <div
+            className="pointer-events-none absolute right-0 top-0 bottom-4 w-16"
+            style={{
+              background:
+                "linear-gradient(90deg, transparent, oklch(0.12 0.015 60))",
+            }}
+          />
+        </div>
+
+        <div className="flex md:hidden flex-col gap-6">
           {steps.map((s, i) => (
             <FunnelStepCard
               key={s.num}
@@ -1436,15 +1504,23 @@ function Pricing({
               packages={s.num === "05" ? packages : undefined}
               onQuickCheckClick={onQuickCheckClick}
               quickCheckDone={quickCheckDone}
+              highlightCta={
+                s.num === "02" ? step1Answer === "yes" : undefined
+              }
+              muted={
+                s.num === "02" || s.num === "03" || s.num === "04"
+                  ? step1Answer === "no"
+                  : undefined
+              }
+              onAnswerChange={
+                s.num === "01" ? a => setStep1Answer(a) : undefined
+              }
             />
           ))}
         </div>
 
         <div className="mt-12 max-w-3xl mx-auto">
-          <PatentCard className="flex items-center gap-5">
-            <div className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center border border-[oklch(0.78_0.12_85/0.4)] text-gold">
-              {icons["shieldCheck"]}
-            </div>
+          <PatentCard className="text-center">
             <p
               className="text-sm text-[oklch(0.60_0.02_72)] leading-relaxed"
               style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
@@ -1475,6 +1551,9 @@ function FunnelStepCard({
   packages,
   onQuickCheckClick,
   quickCheckDone,
+  highlightCta,
+  muted,
+  onAnswerChange,
 }: {
   step: PricingStep;
   lang: Lang;
@@ -1487,8 +1566,12 @@ function FunnelStepCard({
   }[];
   onQuickCheckClick?: () => void;
   quickCheckDone?: boolean;
+  highlightCta?: boolean;
+  muted?: boolean;
+  onAnswerChange?: (answer: "yes" | "no") => void;
 }) {
   const ref = useFadeUp(delay);
+  const [yesNoAnswer, setYesNoAnswer] = useState<"yes" | "no" | null>(null);
   const ctaMeta: Record<string, { event: string; todo: string }> = {
     "03": {
       event: "diagnostics_click",
@@ -1529,6 +1612,78 @@ function FunnelStepCard({
           {step.desc}
         </p>
 
+        {step.yesNo && (
+          <div className="mt-auto w-full">
+            {yesNoAnswer === "yes" && (
+              <p className="mb-3 text-xs text-gold leading-relaxed">
+                {step.yesNo.yesResponse} →
+              </p>
+            )}
+            {yesNoAnswer === "no" && (
+              <p
+                className="mb-3 text-xs text-[oklch(0.52_0.02_70)] leading-relaxed"
+                style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
+              >
+                × {step.yesNo.noResponse}
+              </p>
+            )}
+            <div className="flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setYesNoAnswer("yes");
+                  onAnswerChange?.("yes");
+                }}
+                className="px-5 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={
+                  yesNoAnswer === "yes"
+                    ? {
+                        background: "oklch(0.78 0.12 85)",
+                        color: "oklch(0.12 0.015 60)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        borderRadius: "2px",
+                      }
+                    : {
+                        background: "transparent",
+                        color: "oklch(0.60 0.02 72)",
+                        border: "1px solid oklch(1 0 0 / 15%)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        borderRadius: "2px",
+                      }
+                }
+              >
+                {step.yesNo.yes}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setYesNoAnswer("no");
+                  onAnswerChange?.("no");
+                }}
+                className="px-5 py-2 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                style={
+                  yesNoAnswer === "no"
+                    ? {
+                        background: "oklch(0.78 0.12 85)",
+                        color: "oklch(0.12 0.015 60)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        borderRadius: "2px",
+                      }
+                    : {
+                        background: "transparent",
+                        color: "oklch(0.60 0.02 72)",
+                        border: "1px solid oklch(1 0 0 / 15%)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        borderRadius: "2px",
+                      }
+                }
+              >
+                {step.yesNo.no}
+              </button>
+            </div>
+          </div>
+        )}
+
         {step.price && (
           <p
             className="text-2xl font-bold text-gold mt-auto mb-1"
@@ -1548,7 +1703,7 @@ function FunnelStepCard({
               );
               onQuickCheckClick?.();
             }}
-            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"}`}
+            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta && !quickCheckDone ? "invite-glow" : ""} ${muted ? "opacity-40 grayscale" : ""}`}
             style={
               quickCheckDone
                 ? {
@@ -1583,7 +1738,7 @@ function FunnelStepCard({
                 { location: "pricing" }
               )
             }
-            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"}`}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${muted ? "opacity-40 grayscale" : ""}`}
             style={{
               background: "oklch(0.78 0.12 85)",
               color: "oklch(0.12 0.015 60)",
@@ -1596,42 +1751,47 @@ function FunnelStepCard({
         )}
 
         {packages && (
-          <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4 w-full text-left">
+          <ul className="mt-auto w-full text-left space-y-3">
             {packages.map(pkg => (
-              <div
-                key={pkg.label}
-                className="p-4"
-                style={{
-                  background: "oklch(0.14 0.015 60)",
-                  border: "1px solid oklch(1 0 0 / 8%)",
-                  borderRadius: "2px",
-                }}
-              >
-                <p
-                  className="text-[oklch(0.62_0.02_72)] text-xs mb-2 leading-relaxed"
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontWeight: 300,
-                  }}
+              <li key={pkg.label} className="flex items-start gap-2.5">
+                <span
+                  className="text-gold shrink-0 leading-none mt-0.5"
+                  aria-hidden
                 >
-                  {pkg.label.split(" · ").map((line, i) => (
-                    <span key={i} className="block">
-                      {line}
-                    </span>
-                  ))}
-                </p>
-                <p
-                  className="text-gold text-sm"
-                  style={{
-                    fontFamily: "'DM Sans', sans-serif",
-                    fontWeight: 400,
-                  }}
-                >
-                  {pkg.price}
-                </p>
-              </div>
+                  ›
+                </span>
+                <div>
+                  <p
+                    className="text-[oklch(0.88_0.02_80)] text-[10px] uppercase tracking-wider mb-0.5"
+                    style={{
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {pkg.tag}
+                  </p>
+                  <p
+                    className="text-[oklch(0.62_0.02_72)] text-xs leading-relaxed"
+                    style={{
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: 300,
+                    }}
+                  >
+                    {pkg.label}
+                  </p>
+                  <p
+                    className="text-gold text-sm whitespace-nowrap"
+                    style={{
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {pkg.price}
+                  </p>
+                </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </PatentCard>
     </div>
@@ -1767,8 +1927,15 @@ function loadSavedReflection(): { answers: Answers; result: ResultKey } | null {
   try {
     const raw = window.localStorage.getItem(QUICK_REFLECTION_DONE_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as { answers: Answers; result: ResultKey };
+    const parsed: unknown = JSON.parse(raw);
+    if (isValidReflectionState(parsed)) return parsed;
+    // Stale/incompatible data from an older version of the quiz — drop it
+    // so the funnel button reverts to "Spustit" instead of a permanently
+    // broken "Hotovo" that crashes on reopen.
+    window.localStorage.removeItem(QUICK_REFLECTION_DONE_KEY);
+    return null;
   } catch {
+    window.localStorage.removeItem(QUICK_REFLECTION_DONE_KEY);
     return null;
   }
 }
@@ -1821,6 +1988,10 @@ export default function Home() {
         }}
         onGrowthCTA={scrollToPricing}
         onChangeCTA={scrollToPricing}
+        onInvalidState={() => {
+          setSavedReflection(null);
+          window.localStorage.removeItem(QUICK_REFLECTION_DONE_KEY);
+        }}
       />
     </div>
   );

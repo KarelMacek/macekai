@@ -168,6 +168,24 @@
     transform: translateY(0);
   }
 
+  /* Invites a click on a CTA the user hasn't noticed yet (e.g. the free
+     quick check, after answering "maybe" to the step-01 prompt) — a real
+     blink (brightness + glow ring), not just a subtle breathing pulse */
+  @keyframes invite-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 oklch(0.78 0.12 85 / 0.55);
+      filter: brightness(1);
+    }
+    50% {
+      box-shadow: 0 0 16px 5px oklch(0.78 0.12 85 / 0.65);
+      filter: brightness(1.35);
+    }
+  }
+  .invite-glow {
+    animation: invite-glow 1s ease-in-out infinite;
+  }
+
   /* Problem card */
   .problem-card {
     background: oklch(0.16 0.015 60);

@@ -10,7 +10,14 @@
  * without review. Add an `en` variant to RESULT_CONTENT / QUESTIONS once
  * reviewed copy exists.
  */
-import { Fragment, useEffect, useId, useRef, useState } from "react";
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useLang } from "@/contexts/LangContext";
@@ -96,6 +103,26 @@ function calculateScores(answers: Answers): Scores {
 }
 
 export type ResultKey = "support" | "ok" | "growth" | "change";
+const RESULT_KEYS: readonly ResultKey[] = ["support", "ok", "growth", "change"];
+
+/** Guards against stale/incompatible data from a previous version of this
+ * quiz (e.g. localStorage written before a QUESTIONS/ResultKey change) —
+ * without this, `RESULT_CONTENT[result]` crashes on an unrecognized key. */
+export function isValidReflectionState(
+  value: unknown
+): value is { answers: Answers; result: ResultKey } {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  if (!RESULT_KEYS.includes(v.result as ResultKey)) return false;
+  if (!v.answers || typeof v.answers !== "object") return false;
+  return Object.entries(v.answers as Record<string, unknown>).every(
+    ([id, val]) =>
+      QUESTIONS.some(q => q.id === Number(id)) &&
+      typeof val === "number" &&
+      val >= 0 &&
+      val <= 10
+  );
+}
 
 // Order matters: support overrides everything, then ok, then growth, then change.
 function getResult({ S, A, C, L }: Scores): ResultKey {
@@ -109,20 +136,31 @@ function formatScore(value: number): string {
   return (Math.round(value * 10) / 10).toString().replace(".", ",");
 }
 
-// Short, transparent explanation of which threshold matched — shown alongside
-// the answer chart so the result doesn't feel like a black box.
-function explainRule(scores: Scores, result: ResultKey): string {
+// Traces the same branches getResult() checks, in the same order, so the
+// explanation can never drift out of sync with the actual decision — each
+// step names the threshold, the measured value, and whether it passed.
+function explainRule(scores: Scores): string {
   const { S, A, C, L } = scores;
-  switch (result) {
-    case "support":
-      return `zátěž L = ${formatScore(L)} a kapacita C = ${formatScore(C)} → podpora má přednost před ostatními pravidly`;
-    case "ok":
-      return `spokojenost S = ${formatScore(S)} a ambice A = ${formatScore(A)} → OK`;
-    case "growth":
-      return `spokojenost S = ${formatScore(S)} a ambice A = ${formatScore(A)} → růst`;
-    case "change":
-      return `S = ${formatScore(S)}, A = ${formatScore(A)}, C = ${formatScore(C)}, L = ${formatScore(L)} → žádná jiná podmínka neplatí, takže změna`;
+  const supportHolds = L >= 8 && C <= 4;
+  const supportStep = `zátěž L = ${formatScore(L)} ${L >= 8 ? "≥" : "<"} 8 a kapacita C = ${formatScore(C)} ${C <= 4 ? "≤" : ">"} 4`;
+
+  if (supportHolds) {
+    return `${supportStep} → pravidlo pro podporu platí a má přednost před ostatními pravidly.`;
   }
+
+  const satisfactionStep = `spokojenost S = ${formatScore(S)} ${S >= 7 ? "≥" : "<"} 7`;
+
+  if (S < 7) {
+    return `${supportStep} → neplatí. ${satisfactionStep}, takže nejde o OK ani růst → zbývá změna.`;
+  }
+
+  const ambitionStep = `ambice A = ${formatScore(A)} ${A >= 6 ? "≥" : "<"} 6`;
+
+  if (A < 6) {
+    return `${supportStep} → neplatí. ${satisfactionStep} a ${ambitionStep} → OK.`;
+  }
+
+  return `${supportStep} → neplatí. ${satisfactionStep} a ${ambitionStep} → růst.`;
 }
 
 // ── Result copy ──────────────────────────────────────────────────────────────
@@ -184,6 +222,10 @@ interface QuickReflectionModalProps {
   onComplete?: (answers: Answers, result: ResultKey) => void;
   /** If provided, opening the modal shows this previously computed result instead of starting the quiz. */
   initialState?: { answers: Answers; result: ResultKey };
+  /** Fired when `initialState` was provided but fails validation, so the
+   * caller can drop its own "done" flag (and any persisted copy) instead of
+   * it staying stuck showing a result the modal itself just discarded. */
+  onInvalidState?: () => void;
 }
 
 type Phase = "question" | "calculating" | "result";
@@ -195,6 +237,7 @@ export function QuickReflectionModal({
   onChangeCTA,
   onComplete,
   initialState,
+  onInvalidState,
 }: QuickReflectionModalProps) {
   const { lang } = useLang();
   const headingId = useId();
@@ -205,15 +248,16 @@ export function QuickReflectionModal({
   const [result, setResult] = useState<ResultKey | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen) return;
-    if (initialState) {
+    if (initialState && isValidReflectionState(initialState)) {
       setAnswers(initialState.answers);
       setResult(initialState.result);
       setCurrentQuestion(QUESTIONS.length - 1);
       setIsCalculating(false);
       trackEvent(lang, "quick_reflection_open", { resumed: true });
     } else {
+      if (initialState) onInvalidState?.();
       setCurrentQuestion(0);
       setAnswers({});
       setIsCalculating(false);
@@ -572,7 +616,7 @@ export function QuickReflectionModal({
                         {formatScore(resultScores.C)} · L{" "}
                         {formatScore(resultScores.L)}
                         {" — "}
-                        {explainRule(resultScores, result)}
+                        {explainRule(resultScores)}
                       </p>
                     </div>
                   )}

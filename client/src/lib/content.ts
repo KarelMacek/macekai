@@ -294,15 +294,43 @@ export const t = {
     },
   },
 
-  // ── Contact ───────────────────────────────────────────────────────────────
-  contact: {
-    label: { cs: "06 — Kontakt", en: "06 — Contact" },
+  // ── Pricing / funnel ─────────────────────────────────────────────────────
+  pricing: {
+    label: { cs: "06 — Jak začít", en: "06 — How to start" },
     h2a: { cs: "Pojďme", en: "Let's" },
     h2b: { cs: "na to.", en: "go." },
     sub: {
-      cs: "Pracuješ v AI nebo datech a chceš řídit svůj život, ne jen reagovat?\nOzvi se — první hovor je nezávazný a zdarma.",
-      en: "You work in AI or data and want to run your life, not just react to it?\nReach out — the first call is free, no strings attached.",
+      cs: "Jednoduchá cesta od rychlé sebereflexe k cílené spolupráci.",
+      en: "A simple path from a quick self-check to focused collaboration.",
     },
+    steps: {
+      cs: [
+        { num: "01", icon: "check", title: "Chci vůbec v životě něco měnit?", desc: "Pokud ne, můžeš opustit tuto stránku." },
+        { num: "02", icon: "clipboardCheck", title: "Rychlý check zdarma", desc: "7 otázek · 2 minuty", price: "0 Kč", cta: "Spustit" },
+        { num: "03", icon: "search", title: "Vstupní diagnostika", desc: "Hlubší dotazník + moje stručné vyjádření do týdne", price: "590 Kč", cta: "Koupit" },
+        { num: "04", icon: "compass", title: "Mapovací konzultace 360°", desc: "Společně ujasníme situaci a směr během 90minutové konzultace.", price: "3 600 Kč", cta: "Rezervovat" },
+        { num: "05", icon: "handshake", title: "Další spolupráce", desc: "Jen pokud to bude dávat smysl" },
+      ],
+      en: [
+        { num: "01", icon: "check", title: "Do I even want to change anything in my life?", desc: "If not, you can leave this page." },
+        { num: "02", icon: "clipboardCheck", title: "Free quick check", desc: "7 questions · 2 minutes", price: "0 CZK", cta: "Start the check" },
+        { num: "03", icon: "search", title: "Intake diagnostics", desc: "A deeper questionnaire + my brief take within a week", price: "590 CZK", cta: "Buy" },
+        { num: "04", icon: "compass", title: "360° mapping consultation", desc: "Together we'll clarify the situation and direction during a 90-minute consultation.", price: "3 600 CZK", cta: "Book" },
+        { num: "05", icon: "handshake", title: "Further collaboration", desc: "Only if it makes sense" },
+      ],
+    },
+    discountNote: {
+      cs: "Když si něco zaplatíš, sníží se o to cena dalších kroků.",
+      en: "If you pay for a step, its price is deducted from the next one.",
+    },
+    checkDoneLabel: { cs: "Hotovo", en: "Done" },
+  },
+
+  // ── Contact ───────────────────────────────────────────────────────────────
+  contact: {
+    label: { cs: "07 — Kontakt", en: "07 — Contact" },
+    h2a: { cs: "Buďme", en: "Let's" },
+    h2b: { cs: "v kontaktu.", en: "stay in touch." },
     call: { cs: "Krátce si zavolejme", en: "Let's have a quick call" },
     email: { cs: "nebo napiš", en: "or write" },
     emailHint: { cs: "Kopírovat e-mailovou adresu karel@macek.ai do schránky", en: "Copy email address karel@macek.ai to clipboard" },

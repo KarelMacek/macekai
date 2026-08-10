@@ -58,6 +58,13 @@ jspm_packages/
 # TypeScript cache
 *.tsbuildinfo
 
+# Vite dependency cache
+.vite/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
 # Optional npm cache directory
 .npm
 
@@ -109,5 +116,5 @@ temp/
 .webdev/
 
 # Manus version file (auto-generated, not part of source)
-client/public/__manus__/version.json
+landing/public/__manus__/version.json
 .project-config.json

@@ -1,0 +1,203 @@
+# Individual Contributor => Team Lead
+
+## 6 otázek, na kterých se pozná, jestli stojíte o vedení lidí, nebo jen titul.
+
+Jiným z nich je horko, vy je zvládněte s chladnou hlavou
+
+---
+
+# 1. Zdědíte člověka, kterého byste sami nikdy nenabrali. Co uděláte?
+
+### Typická odpověď IC
+
+„Zjistím jeho silné stránky, budu ho mentorovat a najdu mu vhodnější práci.“
+
+### Co hiring manager skutečně zjišťuje
+
+Dokážete oddělit svůj první dojem od skutečného výkonu?
+
+Umíte chránit jednotlivce, ale zároveň nenechat tým dlouhodobě nést důsledky jeho slabého výkonu?
+
+### Silná odpověď
+
+„Svůj první dojem bych bral jako hypotézu, ne jako verdikt. Zjistil bych, proč byl člověk přijat, co se od něj očekává, jaké má výsledky a jaký má dopad na tým. Nastavil bych jasná očekávání, přímou zpětnou vazbu a časově omezený plán zlepšení. Pokud by problém přetrvával, udělal bych potřebné personální rozhodnutí.“
+
+### Jaký důkaz má kandidát přinést
+
+Příklad, kdy změnil svůj původní názor na člověka — nebo kdy včas ukončil nefunkční situaci.
+
+---
+
+# 2. Co vás na této roli motivuje?
+
+### Typická odpověď IC
+
+„Větší dopad, více odpovědnosti, architektura a mentoring.“
+
+To ale může být spíš motivace pro Staff Engineera.
+
+### Co hiring manager skutečně zjišťuje
+
+Chcete vést lidi?
+
+Nebo chcete hlavně větší vliv na technická rozhodnutí?
+
+Jste připraveni mít méně času na vlastní technickou práci a nést odpovědnost za práci druhých?
+
+### Silná odpověď
+
+„Motivuje mě vytvářet prostředí, ve kterém několik lidí podává lepší výkon. Chci určovat směr, rozvíjet lidi, odstraňovat překážky a nést odpovědnost za fungování celého týmu. Zároveň chápu, že nebudu autorem každého důležitého řešení.“
+
+### Jaký důkaz má kandidát přinést
+
+Situaci, kdy vědomě ustoupil z role hlavního řešitele a pomohl uspět někomu jinému.
+
+---
+
+# 3. Kdy jste chránili vědeckou svobodu — a kdy ji naopak omezili?
+
+### Typická odpověď IC
+
+„Nechal jsem tým experimentovat, ale před deadlinem jsem vybral jedno řešení.“
+
+### Co hiring manager skutečně zjišťuje
+
+Umíte rozlišit, kde svoboda přináší nové poznání a kde už vytváří provozní riziko?
+
+V AI a R&D se často chrání svoboda v:
+
+* hypotézách,
+* experimentech,
+* volbě vědeckého přístupu.
+
+Naopak se omezuje v:
+
+* přístupu k datům,
+* evaluaci,
+* reprodukovatelnosti,
+* compliance,
+* nasazení,
+* dlouhodobé podpoře.
+
+### Silná odpověď
+
+„V jednom projektu jsem chránil prostor pro různé hypotézy, protože problém ještě nebyl dostatečně pochopený. Stanovil jsem ale společná hodnoticí kritéria, rozpočet a termín rozhodnutí. V jiném projektu jsem omezil volbu nástrojů a způsob nasazení, protože řešení muselo být auditovatelné, reprodukovatelné a dlouhodobě podporovatelné. Omezil jsem provozní variabilitu, ne vědecké myšlení.“
+
+### Jaký důkaz má kandidát přinést
+
+Dva konkrétní příběhy: jeden, kdy svobodu ubránil, a druhý, kdy dokázal říct kvalifikované „ne“.
+
+---
+
+# 4. Manažerská role obsahuje administrativu, kterou kreativní člověk nemusí mít rád. Jak zajistíte, že se udělá?
+
+### Typická odpověď IC
+
+„Používám Jira, kalendář, připomínky a time blocking.“
+
+To odpovídá na otázku, jak si pamatovat úkoly.
+
+Ne na otázku, jak spolehlivě plnit povinnosti vedoucího.
+
+### Co hiring manager skutečně zjišťuje
+
+Považujete administrativu za podřadnou práci?
+
+Nebo chápete, že některé administrativní úkoly chrání zaměstnance, rozpočet, provoz a firmu?
+
+### Silná odpověď
+
+„U povinných činností nespoléhám na momentální motivaci. Nastavuji pravidelný rytmus, jasné vlastníky, jednoduché šablony a kontrolu dokončení. Co lze, zjednoduším nebo automatizuji. Úkoly, které musí udělat vedoucí osobně, ale neodsouvám jen proto, že mě baví méně než technická práce.“
+
+### Jaký důkaz má kandidát přinést
+
+Konkrétní rutinu nebo systém, který vytvořil a který fungoval i v hektickém období.
+
+---
+
+# 5. Proces dává smysl, ale v konkrétní situaci se zdá praktičtější zkratka. Co uděláte?
+
+### Typická odpověď IC
+
+„Pokud je riziko malé, změna vratná a ušetří nám to čas, udělám výjimku a zdokumentuji ji.“
+
+To zní pragmaticky.
+
+Ale může to znamenat, že si kandidát sám přisvojil právo rozhodovat o riziku, které nevlastní.
+
+### Co hiring manager skutečně zjišťuje
+
+Umíte rozlišit zdravý úsudek od tichého obcházení pravidel?
+
+Chápete, že technické riziko není jediné riziko?
+
+### Silná odpověď
+
+„Nejdřív bych zjistil, jaké riziko proces řídí a kdo za něj odpovídá. Pokud situace skutečně vyžaduje výjimku, musí být vědomá, schválená, zdokumentovaná a časově omezená. Pokud se stejná výjimka opakuje, je potřeba změnit proces, ne vytvořit kulturu skrytých zkratek.“
+
+### Jaký důkaz má kandidát přinést
+
+Situaci, kdy buď správně eskaloval výjimku, nebo změnil nefunkční proces místo jeho opakovaného obcházení.
+
+---
+
+# 6. Jaká je vaše největší mezera pro tuto roli?
+
+### Typická odpověď IC
+
+„Občas jdu příliš do technického detailu.“
+
+„Mám problém delegovat.“
+
+„Jsem perfekcionista.“
+
+To jsou často jen převlečené silné stránky.
+
+### Co hiring manager skutečně zjišťuje
+
+Rozumíte skutečnému riziku přechodu z IC do vedení?
+
+Dokážete pojmenovat:
+
+* konkrétní chování,
+* jeho negativní dopad,
+* způsob změny,
+* důkaz pokroku?
+
+### Silná odpověď
+
+„Pod tlakem mám tendenci problém sám převzít a vyřešit. Krátkodobě to může pomoci, ale oslabuje to vlastnictví a růst lidí v týmu. Proto nechávám kolegy nejdřív navrhnout řešení, jasně rozděluji odpovědnost a hodnotím se podle toho, zda jsem zvýšil schopnost týmu, ne jen zachránil konkrétní výsledek.“
+
+### Jaký důkaz má kandidát přinést
+
+Příklad zpětné vazby, která skutečně změnila jeho chování — ne pouze hezky formulovanou slabinu.
+
+---
+
+# Co mají všechny otázky společné?
+
+Neověřují jen technickou senioritu.
+
+Ověřují, zda kandidát dokáže přestat používat vlastní technickou kompetenci jako hlavní zdroj:
+
+* kontroly,
+* identity,
+* autority,
+* osobní hodnoty.
+
+Silný IC snižuje nejistotu tím, že problém sám dobře vyřeší.
+
+Silný lead snižuje nejistotu tím, že vytvoří:
+
+* jasná očekávání,
+* rozdělené vlastnictví,
+* kvalitní rozhodování,
+* včasnou zpětnou vazbu,
+* bezpečné hranice experimentování,
+* tým, který funguje i bez něj.
+
+---
+
+# IC řeší problém.
+
+# Lead vytváří prostředí, ve kterém tým řeší problémy opakovaně, kvalitně — a i bez něj.

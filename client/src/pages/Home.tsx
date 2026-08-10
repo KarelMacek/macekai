@@ -10,6 +10,7 @@ import { useLang } from "@/contexts/LangContext";
 import { t, tx, type Lang } from "@/lib/content";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { trackEvent } from "@/lib/analytics";
+import { QuickReflectionModal, type Answers, type ResultKey } from "@/components/QuickReflectionModal";
 
 // ── Fade-up hook ──────────────────────────────────────────────────────────────
 function useFadeUp(delay = 0) {
@@ -134,6 +135,36 @@ const icons: Record<string, React.ReactElement> = {
   bridge: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
       <path d="M3 17h18"/><path d="M3 17V9a9 9 0 0 1 18 0v8"/><path d="M9 17V9"/><path d="M15 17V9"/>
+    </svg>
+  ),
+  check: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  ),
+  clipboardCheck: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+      <rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><polyline points="9.5 13 11.5 15 15 10.5"/>
+    </svg>
+  ),
+  search: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+      <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+  ),
+  compass: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+      <circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+    </svg>
+  ),
+  handshake: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+      <path d="M2 12h4l3-3 4 4 3-3h6"/><path d="M9 13v3a2 2 0 0 0 2 2h1"/><path d="M15 13v2a2 2 0 0 1-2 2h-1"/>
+    </svg>
+  ),
+  shieldCheck: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/>
     </svg>
   ),
 };
@@ -691,11 +722,150 @@ function ChatBubble({ msg, delay }: { msg: { role: string; name: string; text: s
   );
 }
 
+// ── Pricing / funnel ─────────────────────────────────────────────────────────
+type PricingStep = { num: string; icon: string; title: string; desc: string; price?: string; cta?: string };
+
+function Pricing({ onQuickCheckClick, quickCheckDone }: { onQuickCheckClick: () => void; quickCheckDone: boolean }) {
+  const { lang } = useLang();
+  const ref = useFadeUp();
+  const steps = t.pricing.steps[lang] as readonly PricingStep[];
+  const packages = t.method.packages[lang];
+  return (
+    <section id="jak-zacit" className="py-24 relative overflow-hidden" style={{ background: "oklch(0.12 0.015 60)" }}>
+      <div className="absolute inset-0 opacity-[0.025]"
+        style={{ backgroundImage: "linear-gradient(oklch(0.78 0.12 85) 1px, transparent 1px), linear-gradient(90deg, oklch(0.78 0.12 85) 1px, transparent 1px)", backgroundSize: "60px 60px" }}
+      />
+      <div className="container relative z-10">
+        <div ref={ref} className="fade-up text-center mb-16">
+          <SectionLabel>{tx(t.pricing.label, lang)}</SectionLabel>
+          <GoldLine className="mx-auto mb-8" />
+          <h2 className="text-4xl md:text-5xl font-bold text-[oklch(0.93_0.02_80)]" style={{ fontFamily: "'Playfair Display', serif" }}>
+            {tx(t.pricing.h2a, lang)} <span className="italic text-gold">{tx(t.pricing.h2b, lang)}</span>
+          </h2>
+          <p className="mt-4 text-[oklch(0.52_0.02_70)] max-w-xl mx-auto" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+            {tx(t.pricing.sub, lang)}
+          </p>
+        </div>
+
+        <div className="hidden lg:flex items-stretch">
+          {steps.map((s, i) => (
+            <div key={s.num} className="flex items-stretch flex-1 min-w-0">
+              <FunnelStepCard step={s} lang={lang} delay={i * 80} packages={s.num === "05" ? packages : undefined} onQuickCheckClick={onQuickCheckClick} quickCheckDone={quickCheckDone} />
+              {i < steps.length - 1 && <ConnectorNode />}
+            </div>
+          ))}
+        </div>
+
+        <div className="flex lg:hidden flex-col gap-6">
+          {steps.map((s, i) => (
+            <FunnelStepCard key={s.num} step={s} lang={lang} delay={i * 80} packages={s.num === "05" ? packages : undefined} onQuickCheckClick={onQuickCheckClick} quickCheckDone={quickCheckDone} />
+          ))}
+        </div>
+
+        <div className="mt-12 max-w-3xl mx-auto">
+          <PatentCard className="flex items-center gap-5">
+            <div className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center border border-[oklch(0.78_0.12_85/0.4)] text-gold">
+              {icons["shieldCheck"]}
+            </div>
+            <p className="text-sm text-[oklch(0.60_0.02_72)] leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+              {tx(t.pricing.discountNote, lang)}
+            </p>
+          </PatentCard>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ConnectorNode() {
+  return (
+    <div className="w-8 shrink-0 flex items-start justify-center">
+      <div className="w-6 h-6 mt-14 rounded-full border border-[oklch(0.78_0.12_85/0.4)] flex items-center justify-center text-gold shrink-0">
+        <span className="text-xs leading-none">›</span>
+      </div>
+    </div>
+  );
+}
+
+function FunnelStepCard({
+  step, lang, delay, packages, onQuickCheckClick, quickCheckDone,
+}: {
+  step: PricingStep;
+  lang: Lang;
+  delay: number;
+  packages?: readonly { label: string; tag: string; price: string; desc: string }[];
+  onQuickCheckClick?: () => void;
+  quickCheckDone?: boolean;
+}) {
+  const ref = useFadeUp(delay);
+  const ctaMeta: Record<string, { event: string; todo: string }> = {
+    "03": { event: "diagnostics_click", todo: "TODO(pricing-links): replace with real payment/booking URL for the 590 Kč diagnostics" },
+    "04": { event: "consult_click", todo: "TODO(pricing-links): replace with real booking URL for the 3 600 Kč 360° consultation" },
+  };
+
+  return (
+    <div ref={ref} className="fade-up flex-1 min-w-0">
+      <PatentCard className="h-full flex flex-col items-center text-center hover:border-[oklch(0.78_0.12_85/0.3)] transition-colors duration-200 group">
+        <span className="absolute top-4 left-5 text-[oklch(0.78_0.12_85/0.55)]" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.7rem", letterSpacing: "0.05em" }}>
+          {step.num}
+        </span>
+        <div className="w-11 h-11 rounded-full border border-[oklch(0.78_0.12_85/0.4)] text-gold flex items-center justify-center mb-4 group-hover:bg-[oklch(0.78_0.12_85/0.08)] transition-colors duration-200">
+          {icons[step.icon]}
+        </div>
+        <h3 className="text-sm font-semibold text-[oklch(0.88_0.02_80)] mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>{step.title}</h3>
+        <p className="text-xs text-[oklch(0.52_0.02_70)] leading-relaxed mb-4" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>{step.desc}</p>
+
+        {step.price && (
+          <p className="text-2xl font-bold text-gold mt-auto mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>{step.price}</p>
+        )}
+        {step.cta && step.num === "02" && (
+          <button type="button"
+            onClick={() => {
+              trackEvent(lang, quickCheckDone ? "check_result_reopen_click" : "check_click", { location: "pricing" });
+              onQuickCheckClick?.();
+            }}
+            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"}`}
+            style={
+              quickCheckDone
+                ? { background: "transparent", color: "oklch(0.78 0.12 85)", border: "1px solid oklch(0.78 0.12 85 / 0.4)", fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }
+                : { background: "oklch(0.78 0.12 85)", color: "oklch(0.12 0.015 60)", fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }
+            }>
+            {quickCheckDone && icons["check"]}
+            {quickCheckDone ? tx(t.pricing.checkDoneLabel, lang) : step.cta}
+          </button>
+        )}
+        {step.cta && step.num !== "02" && (
+          // TODO(pricing-links): href="#" is a placeholder — wire up ctaMeta[step.num].todo before launch
+          <a href="#"
+            target="_blank" rel="noopener noreferrer"
+            onClick={() => trackEvent(lang, ctaMeta[step.num]?.event ?? "pricing_cta_click", { location: "pricing" })}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"}`}
+            style={{ background: "oklch(0.78 0.12 85)", color: "oklch(0.12 0.015 60)", fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
+            {step.cta}
+          </a>
+        )}
+
+        {packages && (
+          <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4 w-full text-left">
+            {packages.map((pkg) => (
+              <div key={pkg.label} className="p-4" style={{ background: "oklch(0.14 0.015 60)", border: "1px solid oklch(1 0 0 / 8%)", borderRadius: "2px" }}>
+                <p className="text-[oklch(0.62_0.02_72)] text-xs mb-2 leading-relaxed" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+                  {pkg.label.split(" · ").map((line, i) => <span key={i} className="block">{line}</span>)}
+                </p>
+                <p className="text-gold text-sm" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400 }}>{pkg.price}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </PatentCard>
+    </div>
+  );
+}
+
 // ── Contact ───────────────────────────────────────────────────────────────────
 function Contact() {
   const { lang } = useLang();
   const ref = useFadeUp();
-  const packages = t.method.packages[lang];
   return (
     <section id="kontakt" className="py-24 relative overflow-hidden grain-overlay" style={{ background: "oklch(0.12 0.015 60)" }}>
       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `url('/images/abstract-texture.jpg')`, backgroundSize: "cover" }} />
@@ -706,20 +876,17 @@ function Contact() {
         <div ref={ref} className="fade-up max-w-2xl mx-auto text-center">
           <SectionLabel>{tx(t.contact.label, lang)}</SectionLabel>
           <GoldLine className="mx-auto mb-8" />
-          <h2 className="text-4xl md:text-5xl font-bold text-[oklch(0.93_0.02_80)] mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+          <h2 className="text-4xl md:text-5xl font-bold text-[oklch(0.93_0.02_80)] mb-10" style={{ fontFamily: "'Playfair Display', serif" }}>
             {tx(t.contact.h2a, lang)} <span className="italic text-gold">{tx(t.contact.h2b, lang)}</span>
           </h2>
-          <p className="text-[oklch(0.52_0.02_70)] mb-10 leading-relaxed whitespace-pre-line" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
-            {tx(t.contact.sub, lang)}
-          </p>
           <div className="flex flex-col items-center gap-4">
-            <a href="https://calendly.com/karel-macek/30min" target="_blank" rel="noopener noreferrer"
-              onClick={() => trackEvent(lang, "calendly_click", { location: "contact" })}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: "oklch(0.78 0.12 85)", color: "oklch(0.12 0.015 60)", fontFamily: "'DM Sans', sans-serif", borderRadius: "2px" }}>
-              {tx(t.contact.call, lang)}
-            </a>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 text-sm">
+              <a href="https://calendly.com/karel-macek/30min" target="_blank" rel="noopener noreferrer"
+                onClick={() => trackEvent(lang, "calendly_click", { location: "contact" })}
+                className="text-[oklch(0.52_0.02_70)] hover:text-gold transition-all duration-200"
+                style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
+                {tx(t.contact.call, lang)}
+              </a>
               <button type="button"
                 onClick={() => {
                   navigator.clipboard.writeText("karel@macek.ai");
@@ -738,23 +905,6 @@ function Contact() {
                 {tx(t.contact.linkedin, lang)}
               </a>
             </div>
-          </div>
-          <div className="mt-12 max-w-3xl mx-auto">
-            <p className="text-[oklch(0.38_0.02_68)] mb-4" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>
-              {tx(t.contact.priceLabel, lang)}
-            </p>
-            <div className="grid sm:grid-cols-2 gap-6">
-              {packages.map((pkg) => (
-                <PatentCard key={pkg.label}>
-                  <p className="text-[oklch(0.42_0.02_68)] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.2em" }}>{pkg.tag}</p>
-                  <p className="text-[oklch(0.52_0.02_70)] text-sm mb-2" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>{pkg.label}</p>
-                  <p className="text-gold text-3xl font-bold" style={{ fontFamily: "'Playfair Display', serif" }}>{pkg.price}</p>
-                </PatentCard>
-              ))}
-            </div>
-            <p className="mt-6 text-[oklch(0.46_0.02_68)] text-sm whitespace-pre-line" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}>
-              {tx(t.contact.priceNote, lang)}
-            </p>
           </div>
         </div>
       </div>
@@ -785,9 +935,32 @@ function Footer() {
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
+const QUICK_REFLECTION_DONE_KEY = "quickReflectionDone";
+
+function loadSavedReflection(): { answers: Answers; result: ResultKey } | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(QUICK_REFLECTION_DONE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as { answers: Answers; result: ResultKey };
+  } catch {
+    return null;
+  }
+}
+
 export default function Home() {
   const { lang } = useLang();
   useScrollDepthTracking(lang);
+  const [showReflection, setShowReflection] = useState(false);
+  const [savedReflection, setSavedReflection] = useState(loadSavedReflection);
+
+  // No dedicated "next step" page exists yet, so growth/change results scroll
+  // the visitor to the pricing funnel (steps 03/04) rather than a hardcoded URL.
+  // TODO(pricing-links): point at a dedicated /diagnostika-style destination once one exists.
+  const scrollToPricing = () => {
+    document.getElementById("jak-zacit")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen" style={{ background: "oklch(0.12 0.015 60)" }}>
       <Nav />
@@ -798,8 +971,21 @@ export default function Home() {
       <ClientProblems />
       <Testimonials />
       <SusitaDemo />
+      <Pricing onQuickCheckClick={() => setShowReflection(true)} quickCheckDone={!!savedReflection} />
       <Contact />
       <Footer />
+      <QuickReflectionModal
+        isOpen={showReflection}
+        initialState={savedReflection ?? undefined}
+        onClose={() => setShowReflection(false)}
+        onComplete={(answers, result) => {
+          const payload = { answers, result };
+          setSavedReflection(payload);
+          window.localStorage.setItem(QUICK_REFLECTION_DONE_KEY, JSON.stringify(payload));
+        }}
+        onGrowthCTA={scrollToPricing}
+        onChangeCTA={scrollToPricing}
+      />
     </div>
   );
 }

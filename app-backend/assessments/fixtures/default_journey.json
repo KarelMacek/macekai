@@ -19,30 +19,30 @@
       "cs": "U každého tvrzení odpověz Ano nebo Ne — podle toho, co teď platí. Neexistují správné odpovědi."
     },
     "is_active": true,
-    "created_at": "2026-08-10T16:32:25.505Z"
+    "created_at": "2026-08-10T17:13:43.485Z"
   }
 },
 {
   "model": "assessments.test",
   "pk": 2,
   "fields": {
-    "slug": "career-mapping",
+    "slug": "operating-map",
     "test_type": "mapping",
     "version": 1,
     "title": {
-      "en": "Career Mapping",
-      "cs": "Kariérní mapování"
+      "en": "Personal Operating Map",
+      "cs": "Osobní mapa fungování"
     },
     "description": {
-      "en": "A few open questions to help us understand your situation in your own words.",
-      "cs": "Několik otevřených otázek, které nám pomohou pochopit tvou situaci tvými vlastními slovy."
+      "en": "",
+      "cs": ""
     },
     "instructions": {
-      "en": "Write as much or as little as feels useful — there's no ideal length.",
-      "cs": "Napiš tolik nebo tak málo, kolik je ti užitečné — neexistuje ideální délka."
+      "en": "Please answer the following questions honestly.",
+      "cs": "Prosím, odpovězte upřímně na následující otázky."
     },
     "is_active": true,
-    "created_at": "2026-08-10T16:32:27.690Z"
+    "created_at": "2026-08-10T17:13:45.763Z"
   }
 },
 {
@@ -136,7 +136,7 @@
     },
     "help_text": {},
     "order": 0,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -153,7 +153,7 @@
     },
     "help_text": {},
     "order": 1,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -170,7 +170,7 @@
     },
     "help_text": {},
     "order": 2,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -187,7 +187,7 @@
     },
     "help_text": {},
     "order": 3,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -204,7 +204,7 @@
     },
     "help_text": {},
     "order": 4,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -221,7 +221,7 @@
     },
     "help_text": {},
     "order": 5,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -238,7 +238,7 @@
     },
     "help_text": {},
     "order": 6,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -255,7 +255,7 @@
     },
     "help_text": {},
     "order": 7,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -272,7 +272,7 @@
     },
     "help_text": {},
     "order": 8,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -289,7 +289,7 @@
     },
     "help_text": {},
     "order": 9,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -306,7 +306,7 @@
     },
     "help_text": {},
     "order": 0,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -323,7 +323,7 @@
     },
     "help_text": {},
     "order": 1,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -340,7 +340,7 @@
     },
     "help_text": {},
     "order": 2,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -357,7 +357,7 @@
     },
     "help_text": {},
     "order": 3,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -374,7 +374,7 @@
     },
     "help_text": {},
     "order": 4,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -391,7 +391,7 @@
     },
     "help_text": {},
     "order": 5,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -408,7 +408,7 @@
     },
     "help_text": {},
     "order": 6,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -425,7 +425,7 @@
     },
     "help_text": {},
     "order": 7,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -442,7 +442,7 @@
     },
     "help_text": {},
     "order": 8,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -459,7 +459,7 @@
     },
     "help_text": {},
     "order": 9,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -476,7 +476,7 @@
     },
     "help_text": {},
     "order": 0,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -493,7 +493,7 @@
     },
     "help_text": {},
     "order": 1,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -510,7 +510,7 @@
     },
     "help_text": {},
     "order": 2,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -527,7 +527,7 @@
     },
     "help_text": {},
     "order": 3,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -544,7 +544,7 @@
     },
     "help_text": {},
     "order": 4,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -561,7 +561,7 @@
     },
     "help_text": {},
     "order": 5,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -578,7 +578,7 @@
     },
     "help_text": {},
     "order": 6,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -595,7 +595,7 @@
     },
     "help_text": {},
     "order": 7,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -612,7 +612,7 @@
     },
     "help_text": {},
     "order": 8,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -629,7 +629,7 @@
     },
     "help_text": {},
     "order": 9,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -646,7 +646,7 @@
     },
     "help_text": {},
     "order": 0,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -663,7 +663,7 @@
     },
     "help_text": {},
     "order": 1,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -680,7 +680,7 @@
     },
     "help_text": {},
     "order": 2,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -697,7 +697,7 @@
     },
     "help_text": {},
     "order": 3,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -714,7 +714,7 @@
     },
     "help_text": {},
     "order": 4,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -731,7 +731,7 @@
     },
     "help_text": {},
     "order": 5,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -748,7 +748,7 @@
     },
     "help_text": {},
     "order": 6,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -765,7 +765,7 @@
     },
     "help_text": {},
     "order": 7,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -782,7 +782,7 @@
     },
     "help_text": {},
     "order": 8,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -799,7 +799,7 @@
     },
     "help_text": {},
     "order": 9,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -816,7 +816,7 @@
     },
     "help_text": {},
     "order": 0,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -833,7 +833,7 @@
     },
     "help_text": {},
     "order": 1,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -850,7 +850,7 @@
     },
     "help_text": {},
     "order": 2,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -867,7 +867,7 @@
     },
     "help_text": {},
     "order": 3,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -884,7 +884,7 @@
     },
     "help_text": {},
     "order": 4,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -901,7 +901,7 @@
     },
     "help_text": {},
     "order": 5,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -918,7 +918,7 @@
     },
     "help_text": {},
     "order": 6,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -935,7 +935,7 @@
     },
     "help_text": {},
     "order": 7,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -952,7 +952,7 @@
     },
     "help_text": {},
     "order": 8,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -969,7 +969,7 @@
     },
     "help_text": {},
     "order": 9,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -986,7 +986,7 @@
     },
     "help_text": {},
     "order": 0,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1003,7 +1003,7 @@
     },
     "help_text": {},
     "order": 1,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1020,7 +1020,7 @@
     },
     "help_text": {},
     "order": 2,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1037,7 +1037,7 @@
     },
     "help_text": {},
     "order": 3,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1054,7 +1054,7 @@
     },
     "help_text": {},
     "order": 4,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1071,7 +1071,7 @@
     },
     "help_text": {},
     "order": 5,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1088,7 +1088,7 @@
     },
     "help_text": {},
     "order": 6,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1105,7 +1105,7 @@
     },
     "help_text": {},
     "order": 7,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1122,7 +1122,7 @@
     },
     "help_text": {},
     "order": 8,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1139,7 +1139,7 @@
     },
     "help_text": {},
     "order": 9,
-    "allow_comment": false,
+    "allow_comment": true,
     "config": {}
   }
 },
@@ -1151,8 +1151,8 @@
     "category": null,
     "question_type": "open_text",
     "text": {
-      "en": "What does your ideal next role or chapter look like?",
-      "cs": "Jak vypadá tvá ideální další role nebo kapitola?"
+      "en": "What currently motivates you the most?",
+      "cs": "Co vás aktuálně nejvíc motivuje?"
     },
     "help_text": {},
     "order": 0,
@@ -1168,8 +1168,8 @@
     "category": null,
     "question_type": "open_text",
     "text": {
-      "en": "What's the biggest obstacle between you and that?",
-      "cs": "Jaká je největší překážka mezi tebou a tímto cílem?"
+      "en": "What most often holds you back?",
+      "cs": "Co vás naopak nejčastěji brzdí?"
     },
     "help_text": {},
     "order": 1,
@@ -1185,11 +1185,300 @@
     "category": null,
     "question_type": "open_text",
     "text": {
-      "en": "What have you already tried, and what happened?",
-      "cs": "Co jsi už zkusil/a a co se stalo?"
+      "en": "In what ways do you tend to sabotage yourself?",
+      "cs": "Jaké máte tendence podkopávat sám sebe?"
     },
     "help_text": {},
     "order": 2,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 64,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "In what situations do you make worse decisions than you would like?",
+      "cs": "V jakých situacích děláte horší rozhodnutí než byste chtěl/a?"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 65,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you know when you are “in flow”?",
+      "cs": "Jak poznáte, že jste „ve flow“?"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 66,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you learn best? What does not work for you?",
+      "cs": "Jak se nejlépe učíte? Co vám naopak nefunguje?"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 67,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you react under pressure?",
+      "cs": "Jak reagujete pod tlakem?"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 68,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you relieve stress?",
+      "cs": "Jak uvolňujete stres?"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 69,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What gives you energy in the long term?",
+      "cs": "Co vám dlouhodobě dodává energii?"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 70,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What systematically drains your energy?",
+      "cs": "Co vám energii systematicky bere?"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 71,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you have fun (really, not how you “should”)?",
+      "cs": "Jak se bavíte (opravdu, ne „mělo by se“)?"
+    },
+    "help_text": {},
+    "order": 10,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 72,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What do you do to take regular care of yourself?",
+      "cs": "Co děláte, abyste o sebe pravidelně pečoval/a?"
+    },
+    "help_text": {},
+    "order": 11,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 73,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What are your strengths?",
+      "cs": "Jaká jsou vaše silná místa?"
+    },
+    "help_text": {},
+    "order": 12,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 74,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "Where do you see your weaknesses?",
+      "cs": "Kde vidíte svá slabá místa?"
+    },
+    "help_text": {},
+    "order": 13,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 75,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What have you given up on in life (consciously or unconsciously)?",
+      "cs": "Co jste v životě vzdal/a (vědomě či nevědomě)?"
+    },
+    "help_text": {},
+    "order": 14,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 76,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "When were you happiest in life? Why?",
+      "cs": "Kdy jste byl/a v životě nejvíc spokojený/á? Proč?"
+    },
+    "help_text": {},
+    "order": 15,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 77,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "And when were you least happy? What was happening then?",
+      "cs": "Kdy naopak nejméně? Co se tam dělo?"
+    },
+    "help_text": {},
+    "order": 16,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 78,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What kind of environment brings out the best in you?",
+      "cs": "Jaké prostředí z vás dostává to nejlepší?"
+    },
+    "help_text": {},
+    "order": 17,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 79,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What kind of environment destroys or suppresses you?",
+      "cs": "Jaké prostředí vás ničí nebo tlumí?"
+    },
+    "help_text": {},
+    "order": 18,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 80,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What do people often say about you that you do not fully see yourself?",
+      "cs": "Co o vás lidé často říkají, co vy sám/a úplně nevidíte?"
+    },
+    "help_text": {},
+    "order": 19,
     "allow_comment": false,
     "config": {}
   }

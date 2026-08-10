@@ -44,7 +44,7 @@ export function TestPage() {
 
   return (
     <div className="p-8">
-      <h1 className="mx-auto mb-2 w-full max-w-xl text-lg font-semibold">{test.title}</h1>
+      <h1 className="mx-auto mb-2 w-full max-w-xl text-xl font-semibold">{test.title}</h1>
       {test.description && (
         <p className="mx-auto mb-8 w-full max-w-xl text-sm text-muted-foreground">{test.description}</p>
       )}

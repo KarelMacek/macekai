@@ -13,11 +13,11 @@ import { TestPage } from "@/pages/TestPage";
 function LangSwitcher() {
   const { lang, setLang } = useLang();
   return (
-    <div className="flex gap-1 text-xs">
+    <div className="section-label flex gap-1">
       <button
         type="button"
         onClick={() => setLang("en")}
-        className={lang === "en" ? "font-semibold" : "text-muted-foreground"}
+        className={lang === "en" ? "text-gold" : "text-muted-foreground"}
       >
         EN
       </button>
@@ -25,7 +25,7 @@ function LangSwitcher() {
       <button
         type="button"
         onClick={() => setLang("cs")}
-        className={lang === "cs" ? "font-semibold" : "text-muted-foreground"}
+        className={lang === "cs" ? "text-gold" : "text-muted-foreground"}
       >
         CS
       </button>
@@ -40,11 +40,11 @@ function SignedInApp() {
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between border-b px-8 py-4">
-        <span className="font-semibold">{t("appTitle")}</span>
+        <h1 className="text-lg font-semibold text-gold">{t("appTitle")}</h1>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <LangSwitcher />
           <span>{user?.email}</span>
-          <a href="/logout/" className="hover:text-foreground">
+          <a href="/logout/" className="transition-colors duration-150 hover:text-gold">
             {t("signOut")}
           </a>
         </div>

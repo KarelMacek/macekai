@@ -302,8 +302,9 @@ tests wired into a default `Journey`, bilingual (en/cs):
   result copy (the low/mid/high threshold titles/descriptions) is a first
   draft, not reviewed final copy — worth a pass before this goes in front of
   real clients.
-- **"Career Mapping"** (`career-mapping`, `mapping` type) — 3 open
-  reflection questions, placeholder copy.
+- **"Personal Operating Map"** (`operating-map`, `mapping` type) — 20 real
+  open reflection questions covering motivation, self-sabotage, energy,
+  stress response, strengths/weaknesses, and environment.
 
 Load it with:
 

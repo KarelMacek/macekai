@@ -31,6 +31,7 @@ export function SnapshotTest({ test, onComplete }: Props) {
   const [answers, setAnswers] = useState<Record<number, AnswerInput>>({});
   const [phase, setPhase] = useState<Phase>("question");
   const [error, setError] = useState<string | null>(null);
+  const [openComments, setOpenComments] = useState<Set<number>>(new Set());
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -66,6 +67,15 @@ export function SnapshotTest({ test, onComplete }: Props) {
     }));
   }
 
+  function toggleComment() {
+    setOpenComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(question.id)) next.delete(question.id);
+      else next.add(question.id);
+      return next;
+    });
+  }
+
   function handleBack() {
     if (timerRef.current) clearTimeout(timerRef.current);
     setCurrentIndex((i) => Math.max(0, i - 1));
@@ -98,14 +108,20 @@ export function SnapshotTest({ test, onComplete }: Props) {
     <div className="mx-auto w-full max-w-xl">
       {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
 
-      <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+      <div className="section-label mb-1 flex items-center justify-between">
         <span>{t("questionProgress", { current: currentIndex + 1, total: questions.length })}</span>
       </div>
       <Progress value={((currentIndex + 1) / questions.length) * 100} className="mb-8" />
 
-      <h2 id={headingId} className="mb-6 text-xl font-semibold">
-        {question.text}
-      </h2>
+      {/* Fixed-height wrapper so the answer buttons below land at the same
+          vertical position regardless of how many lines a question wraps
+          to — otherwise short vs. long questions visibly shift the layout
+          as you page through. */}
+      <div className="mb-6 flex min-h-24 items-center sm:min-h-28">
+        <h2 id={headingId} className="text-xl font-semibold sm:text-2xl">
+          {question.text}
+        </h2>
+      </div>
       {question.help_text && <p className="mb-4 text-sm text-muted-foreground">{question.help_text}</p>}
 
       <div role="group" aria-labelledby={headingId} className="mb-6 grid gap-2" style={{ gridTemplateColumns: `repeat(${question.options.length}, minmax(0, 1fr))` }}>
@@ -117,10 +133,11 @@ export function SnapshotTest({ test, onComplete }: Props) {
               type="button"
               aria-pressed={active}
               onClick={() => handleSelect(option.id)}
-              className={`flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-3 text-center text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+              style={{ borderRadius: "2px" }}
+              className={`flex flex-col items-center justify-center gap-1 border px-2 py-3 text-center text-xs font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
                 active
                   ? "border-primary bg-primary text-primary-foreground"
-                  : "border-input text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                  : "border-white/15 text-muted-foreground hover:border-primary/50 hover:text-gold"
               }`}
             >
               {option.label}
@@ -130,17 +147,29 @@ export function SnapshotTest({ test, onComplete }: Props) {
       </div>
 
       {question.allow_comment && (
-        <Textarea
-          value={currentAnswer?.comment ?? ""}
-          onChange={(e) => handleComment(e.target.value)}
-          placeholder=""
-          className="mb-6"
-        />
+        <div className="mb-6">
+          {openComments.has(question.id) || currentAnswer?.comment ? (
+            <Textarea
+              value={currentAnswer?.comment ?? ""}
+              onChange={(e) => handleComment(e.target.value)}
+              autoFocus
+              placeholder=""
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={toggleComment}
+              className="text-xs text-muted-foreground transition-colors duration-150 hover:text-gold"
+            >
+              + {t("addComment")}
+            </button>
+          )}
+        </div>
       )}
 
       <div className="h-5">
         {currentIndex > 0 && (
-          <button type="button" onClick={handleBack} className="text-xs text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={handleBack} className="text-xs text-muted-foreground transition-colors duration-150 hover:text-gold">
             ← {t("backButton")}
           </button>
         )}

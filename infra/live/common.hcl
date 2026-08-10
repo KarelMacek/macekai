@@ -13,5 +13,5 @@
 # TF_VAR_google_client_secret, same pattern as the old Easy Auth secret.
 locals {
   tenant_id        = "169b8ff6-9bc7-43e8-8ad3-902fd6852f89" # macek.ai tenant, confirmed via `az account show`
-  google_client_id = "REPLACE_ME_GOOGLE_OAUTH_CLIENT_ID"    # from Google Cloud Console — see infra/README.md
+  google_client_id = "216246394621-1392smrosb70db367hiets4fq0cij03m.apps.googleusercontent.com" # "macekai-app-backend" OAuth client, Google Cloud project "MacekAI", created 2026-08-10
 }

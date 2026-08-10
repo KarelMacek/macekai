@@ -49,9 +49,14 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "landing" # App source code path
+          # With skip_app_build: true, this action uploads app_location
+          # verbatim rather than joining app_location+output_location —
+          # confirmed live 2026-08-10 (prod was serving the raw unbuilt
+          # landing/index.html, not the built bundle, until this fix).
+          # app_location must point directly at the already-built output.
+          app_location: "landing/dist/public" # Built app content directory
           api_location: "" # Api source code path - optional
-          output_location: "dist/public" # Built app content directory - optional
+          output_location: "" # app_location already IS the output
           skip_app_build: true # We build explicitly above; Oryx auto-detect isn't reliable against a workspace root
           ###### End of Repository/Build Configurations ######
 

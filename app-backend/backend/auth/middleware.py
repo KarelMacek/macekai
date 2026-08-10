@@ -60,6 +60,9 @@ class AzureEasyAuthMiddleware:
             first_name = parts[0]
             last_name = parts[1] if len(parts) > 1 else ""
 
+        admin_email = getattr(settings, "ADMIN_EMAIL", "") or ""
+        is_staff = bool(admin_email) and principal.email.lower() == admin_email.lower()
+
         User = get_user_model()
         user, _ = User.objects.update_or_create(
             username=principal.username,
@@ -68,6 +71,7 @@ class AzureEasyAuthMiddleware:
                 "first_name": first_name,
                 "last_name": last_name,
                 "is_active": True,
+                "is_staff": is_staff,
             },
         )
         # Required so Django's permission checks (e.g. admin) know which backend authenticated this user.

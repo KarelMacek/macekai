@@ -1,0 +1,591 @@
+[
+{
+  "model": "assessments.test",
+  "pk": 1,
+  "fields": {
+    "slug": "career-snapshot",
+    "test_type": "snapshot",
+    "version": 1,
+    "title": {
+      "en": "Career Snapshot",
+      "cs": "Kariérní snímek"
+    },
+    "description": {
+      "en": "A quick self-check across a few dimensions of where you are right now.",
+      "cs": "Rychlé sebehodnocení napříč několika oblastmi toho, kde teď jsi."
+    },
+    "instructions": {
+      "en": "Answer each question with how true it feels right now — there are no right answers.",
+      "cs": "U každé otázky vyber, jak moc to teď platí — neexistují správné odpovědi."
+    },
+    "is_active": true,
+    "created_at": "2026-08-10T14:29:14.872Z"
+  }
+},
+{
+  "model": "assessments.test",
+  "pk": 2,
+  "fields": {
+    "slug": "career-mapping",
+    "test_type": "mapping",
+    "version": 1,
+    "title": {
+      "en": "Career Mapping",
+      "cs": "Kariérní mapování"
+    },
+    "description": {
+      "en": "A few open questions to help us understand your situation in your own words.",
+      "cs": "Několik otevřených otázek, které nám pomohou pochopit tvou situaci tvými vlastními slovy."
+    },
+    "instructions": {
+      "en": "Write as much or as little as feels useful — there's no ideal length.",
+      "cs": "Napiš tolik nebo tak málo, kolik je ti užitečné — neexistuje ideální délka."
+    },
+    "is_active": true,
+    "created_at": "2026-08-10T14:29:15.277Z"
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 1,
+  "fields": {
+    "test": 1,
+    "key": "clarity",
+    "name": {
+      "en": "Clarity",
+      "cs": "Jasnost"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 2,
+  "fields": {
+    "test": 1,
+    "key": "momentum",
+    "name": {
+      "en": "Momentum",
+      "cs": "Dynamika"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 1,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I have a clear sense of what I want my next career step to be.",
+      "cs": "Mám jasnou představu o tom, jaký chci udělat další kariérní krok."
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 2,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I understand what's currently holding me back.",
+      "cs": "Rozumím tomu, co mě teď brzdí."
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 3,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I've taken concrete action toward my goals in the last month.",
+      "cs": "Za poslední měsíc jsem udělal/a konkrétní krok směrem ke svým cílům."
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 4,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I have the energy and support I need right now.",
+      "cs": "Mám teď dost energie a podpory, kterou potřebuji."
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 5,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What does your ideal next role or chapter look like?",
+      "cs": "Jak vypadá tvá ideální další role nebo kapitola?"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 6,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What's the biggest obstacle between you and that?",
+      "cs": "Jaká je největší překážka mezi tebou a tímto cílem?"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 7,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What have you already tried, and what happened?",
+      "cs": "Co jsi už zkusil/a a co se stalo?"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 1,
+  "fields": {
+    "question": 1,
+    "value": 0.2,
+    "label": {
+      "en": "Not at all",
+      "cs": "Vůbec ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 2,
+  "fields": {
+    "question": 1,
+    "value": 0.4,
+    "label": {
+      "en": "A little",
+      "cs": "Trochu"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 3,
+  "fields": {
+    "question": 1,
+    "value": 0.6,
+    "label": {
+      "en": "Somewhat",
+      "cs": "Částečně"
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 4,
+  "fields": {
+    "question": 1,
+    "value": 0.8,
+    "label": {
+      "en": "Mostly",
+      "cs": "Většinou"
+    },
+    "order": 3
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 5,
+  "fields": {
+    "question": 1,
+    "value": 1.0,
+    "label": {
+      "en": "Completely",
+      "cs": "Naprosto"
+    },
+    "order": 4
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 6,
+  "fields": {
+    "question": 2,
+    "value": 0.2,
+    "label": {
+      "en": "Not at all",
+      "cs": "Vůbec ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 7,
+  "fields": {
+    "question": 2,
+    "value": 0.4,
+    "label": {
+      "en": "A little",
+      "cs": "Trochu"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 8,
+  "fields": {
+    "question": 2,
+    "value": 0.6,
+    "label": {
+      "en": "Somewhat",
+      "cs": "Částečně"
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 9,
+  "fields": {
+    "question": 2,
+    "value": 0.8,
+    "label": {
+      "en": "Mostly",
+      "cs": "Většinou"
+    },
+    "order": 3
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 10,
+  "fields": {
+    "question": 2,
+    "value": 1.0,
+    "label": {
+      "en": "Completely",
+      "cs": "Naprosto"
+    },
+    "order": 4
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 11,
+  "fields": {
+    "question": 3,
+    "value": 0.2,
+    "label": {
+      "en": "Not at all",
+      "cs": "Vůbec ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 12,
+  "fields": {
+    "question": 3,
+    "value": 0.4,
+    "label": {
+      "en": "A little",
+      "cs": "Trochu"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 13,
+  "fields": {
+    "question": 3,
+    "value": 0.6,
+    "label": {
+      "en": "Somewhat",
+      "cs": "Částečně"
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 14,
+  "fields": {
+    "question": 3,
+    "value": 0.8,
+    "label": {
+      "en": "Mostly",
+      "cs": "Většinou"
+    },
+    "order": 3
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 15,
+  "fields": {
+    "question": 3,
+    "value": 1.0,
+    "label": {
+      "en": "Completely",
+      "cs": "Naprosto"
+    },
+    "order": 4
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 16,
+  "fields": {
+    "question": 4,
+    "value": 0.2,
+    "label": {
+      "en": "Not at all",
+      "cs": "Vůbec ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 17,
+  "fields": {
+    "question": 4,
+    "value": 0.4,
+    "label": {
+      "en": "A little",
+      "cs": "Trochu"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 18,
+  "fields": {
+    "question": 4,
+    "value": 0.6,
+    "label": {
+      "en": "Somewhat",
+      "cs": "Částečně"
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 19,
+  "fields": {
+    "question": 4,
+    "value": 0.8,
+    "label": {
+      "en": "Mostly",
+      "cs": "Většinou"
+    },
+    "order": 3
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 20,
+  "fields": {
+    "question": 4,
+    "value": 1.0,
+    "label": {
+      "en": "Completely",
+      "cs": "Naprosto"
+    },
+    "order": 4
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 1,
+  "fields": {
+    "category": 1,
+    "min_score": 0.0,
+    "max_score": 0.45,
+    "title": {
+      "en": "Clarity is still forming.",
+      "cs": "Jasnost se teprve rodí."
+    },
+    "description": {
+      "en": "It's normal not to have all the answers yet — this is a good starting point to work from.",
+      "cs": "Je normální ještě nemít všechny odpovědi — je to dobrý výchozí bod, ze kterého se dá vycházet."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 2,
+  "fields": {
+    "category": 1,
+    "min_score": 0.45,
+    "max_score": 0.75,
+    "title": {
+      "en": "You have a rough direction.",
+      "cs": "Máš hrubý směr."
+    },
+    "description": {
+      "en": "You know roughly where you're headed, even if the details aren't settled.",
+      "cs": "Víš zhruba, kam směřuješ, i když detaily ještě nejsou jasné."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 3,
+  "fields": {
+    "category": 1,
+    "min_score": 0.75,
+    "max_score": 1.0,
+    "title": {
+      "en": "You have real clarity.",
+      "cs": "Máš skutečnou jasnost."
+    },
+    "description": {
+      "en": "You have a clear sense of direction — the next step is likely about execution, not discovery.",
+      "cs": "Máš jasný směr — dalším krokem je pravděpodobně realizace, ne hledání."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 4,
+  "fields": {
+    "category": 2,
+    "min_score": 0.0,
+    "max_score": 0.45,
+    "title": {
+      "en": "Momentum is low right now.",
+      "cs": "Dynamika je teď nízká."
+    },
+    "description": {
+      "en": "It might be worth looking at what's draining your energy before pushing for more action.",
+      "cs": "Možná stojí za to podívat se, co ti ubírá energii, než budeš tlačit na další akci."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "min_score": 0.45,
+    "max_score": 0.75,
+    "title": {
+      "en": "You have some momentum.",
+      "cs": "Máš určitou dynamiku."
+    },
+    "description": {
+      "en": "You're moving, even if not consistently — small, regular steps tend to compound.",
+      "cs": "Pohybuješ se vpřed, i když ne úplně pravidelně — malé, pravidelné kroky se sčítají."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 6,
+  "fields": {
+    "category": 2,
+    "min_score": 0.75,
+    "max_score": 1.0,
+    "title": {
+      "en": "You're building strong momentum.",
+      "cs": "Budujete silnou dynamiku."
+    },
+    "description": {
+      "en": "You're actively moving toward your goals — the focus now is direction, not motivation.",
+      "cs": "Aktivně se pohybuješ ke svým cílům — teď jde hlavně o směr, ne o motivaci."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.journey",
+  "pk": 1,
+  "fields": {
+    "slug": "default",
+    "name": {
+      "en": "Default Journey",
+      "cs": "Výchozí cesta"
+    },
+    "is_active": true
+  }
+},
+{
+  "model": "assessments.journeystep",
+  "pk": 1,
+  "fields": {
+    "journey": 1,
+    "test": 1,
+    "order": 0
+  }
+},
+{
+  "model": "assessments.journeystep",
+  "pk": 2,
+  "fields": {
+    "journey": 1,
+    "test": 2,
+    "order": 1
+  }
+}
+]

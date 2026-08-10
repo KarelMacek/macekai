@@ -21,8 +21,28 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'drf_spectacular',
     'api',
+    'assessments',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'macekai app-backend API',
+    'DESCRIPTION': 'Self-assessment test engine API.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -144,6 +164,10 @@ EASY_AUTH_ALLOWED_EMAILS = [e.strip() for e in _allowed_emails_raw.split(',') if
 
 _allowed_groups_raw = os.environ.get('EASY_AUTH_ALLOWED_GROUP_IDS', '')
 EASY_AUTH_ALLOWED_GROUP_IDS = [g.strip() for g in _allowed_groups_raw.split(',') if g.strip()]
+
+# The one admin (Karel) — this email is granted is_staff on login, giving access
+# to /admin/ (assessments review/authoring). See backend/auth/middleware.py.
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')
 
 # Session security
 SESSION_COOKIE_SAMESITE = 'Lax'

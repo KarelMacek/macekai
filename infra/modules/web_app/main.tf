@@ -190,7 +190,13 @@ resource "azurerm_linux_web_app" "app" {
     # multi-tenant config or a different auth provider — not yet decided,
     # this is a Phase 2 app-design question.
     excluded_paths = [
+      # Both with and without the trailing slash — App Service's excluded_paths
+      # matching turned out to be exact, not prefix, when checked against
+      # the real deployed dev app (2026-08-10): /healthz/ (Django's actual
+      # route, via urls.py's path('healthz/', ...)) still 401'd with only
+      # "/healthz" (no slash) listed here.
       "/healthz",
+      "/healthz/",
       "/health/",
       "/static/*",
       "/signed-out",

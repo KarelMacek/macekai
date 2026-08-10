@@ -1,0 +1,68 @@
+name: Azure Static Web Apps CI/CD (dev)
+
+# Mirrors azure-static-web-apps-icy-beach-0ba33b71e.yml (prod), targeting the
+# dev landing_swa resource (swa-landing-dev) instead.
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - "landing/**"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/azure-static-web-apps-dev.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - dev
+    paths:
+      - "landing/**"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/azure-static-web-apps-dev.yml"
+
+jobs:
+  build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+      - uses: pnpm/action-setup@v4 # version comes from package.json's packageManager field — don't also set version: here, pnpm/action-setup errors on conflicting sources even when they agree
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build landing
+        run: pnpm --filter landing build
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "landing"
+          api_location: ""
+          output_location: "dist/public"
+          skip_app_build: true
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+    steps:
+      - name: Close Pull Request
+        id: closepullrequest
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
+          action: "close"

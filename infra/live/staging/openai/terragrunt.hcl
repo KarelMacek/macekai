@@ -29,4 +29,5 @@ inputs = {
   deployment_name = local.env.openai_deployment_name
   model_name      = local.env.openai_model_name
   model_version   = local.env.openai_model_version
+  deploy_model    = local.env.openai_deploy_model
 }

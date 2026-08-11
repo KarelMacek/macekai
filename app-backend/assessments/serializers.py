@@ -162,20 +162,42 @@ class TestSubmissionInputSerializer(serializers.Serializer):
         return data
 
 
-class AnswerReadSerializer(serializers.ModelSerializer):
+class AnswerReadSerializer(LocaleResolvingMixin, serializers.ModelSerializer):
+    question_text = serializers.SerializerMethodField()
+    selected_option_label = serializers.SerializerMethodField()
+
     class Meta:
         model = Answer
-        fields = ["question_id", "selected_option_id", "text_value", "comment"]
+        fields = [
+            "question_id",
+            "question_text",
+            "selected_option_id",
+            "selected_option_label",
+            "text_value",
+            "comment",
+        ]
+
+    def get_question_text(self, obj) -> str:
+        return resolve_locale(obj.question.text, self.get_lang())
+
+    def get_selected_option_label(self, obj) -> str | None:
+        return resolve_locale(obj.selected_option.label, self.get_lang()) if obj.selected_option_id else None
 
 
 class TestSubmissionReadSerializer(serializers.ModelSerializer):
-    answers = AnswerReadSerializer(many=True, read_only=True)
+    answers = serializers.SerializerMethodField()
     test_slug = serializers.CharField(source="test.slug", read_only=True)
     test_type = serializers.CharField(source="test.test_type", read_only=True)
 
     class Meta:
         model = TestSubmission
         fields = ["id", "test_slug", "test_type", "submitted_at", "computed_result", "answers"]
+
+    def get_answers(self, obj):
+        # Ordered to match the test's question order rather than insertion
+        # order, so the UI can list them straight through without a lookup.
+        answers = obj.answers.select_related("question", "selected_option").order_by("question__order")
+        return AnswerReadSerializer(answers, many=True, context=self.context).data
 
 
 class FeedbackRequestSerializer(serializers.ModelSerializer):

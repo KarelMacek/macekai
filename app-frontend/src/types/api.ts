@@ -75,7 +75,9 @@ export interface AnswerInput {
 
 export interface AnswerRead {
   question_id: number;
+  question_text: string;
   selected_option_id: number | null;
+  selected_option_label: string | null;
   text_value: string;
   comment: string;
 }

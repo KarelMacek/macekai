@@ -72,6 +72,7 @@ const translations = {
     adminCvFile: "CV",
     adminLinkedinUrl: "LinkedIn",
     adminNoResults: "No diagnostics match.",
+    commentLabel: "Comment",
   },
   cs: {
     signIn: "Přihlásit se přes Google",
@@ -140,6 +141,7 @@ const translations = {
     adminCvFile: "Životopis",
     adminLinkedinUrl: "LinkedIn",
     adminNoResults: "Žádné diagnostiky neodpovídají.",
+    commentLabel: "Komentář",
   },
 } as const;
 

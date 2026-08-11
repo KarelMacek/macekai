@@ -67,7 +67,9 @@ export function FeedbackRequestPage() {
         <Label htmlFor="linkedin_url">{t("linkedinLabel")}</Label>
         <Input
           id="linkedin_url"
+          name="linkedin_url"
           type="url"
+          autoComplete="off"
           value={linkedinUrl}
           onChange={(e) => setLinkedinUrl(e.target.value)}
           placeholder="https://www.linkedin.com/in/…"

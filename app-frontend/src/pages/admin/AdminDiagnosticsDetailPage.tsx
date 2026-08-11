@@ -126,7 +126,15 @@ export function AdminDiagnosticsDetailPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="video_url">{t("adminVideoUrlLabel")}</Label>
-              <Input id="video_url" type="url" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} />
+              <Input
+                id="video_url"
+                name="video_url"
+                type="url"
+                autoComplete="off"
+                placeholder="https://…"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+              />
             </div>
 
             <div className="flex flex-col gap-2">

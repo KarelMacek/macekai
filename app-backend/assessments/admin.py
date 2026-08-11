@@ -2,6 +2,8 @@ import json
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
+from django.urls import NoReverseMatch, reverse
+from django.utils.html import format_html
 
 from .i18n import resolve_locale
 from .models import (
@@ -143,10 +145,32 @@ class AdminFeedbackInline(admin.StackedInline):
     max_num = 1
 
 
+class NeedsReviewFilter(admin.SimpleListFilter):
+    """A FeedbackRequest only exists once both tests are done, so the only
+    real statuses here are "waiting on me" vs "already published" — this
+    is the one filter that matters for triage."""
+
+    title = "review status"
+    parameter_name = "review_status"
+
+    def lookups(self, request, model_admin):
+        return [("awaiting", "Awaiting my review"), ("published", "Published")]
+
+    def queryset(self, request, queryset):
+        if self.value() == "awaiting":
+            return queryset.filter(feedback__isnull=True) | queryset.filter(feedback__is_published=False)
+        if self.value() == "published":
+            return queryset.filter(feedback__is_published=True)
+        return queryset
+
+
 @admin.register(FeedbackRequest)
 class FeedbackRequestAdmin(admin.ModelAdmin):
     list_display = ("diagnostics", "linkedin_url", "has_cv", "requested_at", "published")
-    list_filter = ("diagnostics__journey",)
+    list_filter = (NeedsReviewFilter, "diagnostics__journey")
+    search_fields = ("diagnostics__email", "diagnostics__user__email", "diagnostics__user__username")
+    readonly_fields = ("diagnostics", "requested_at", "diagnostics_answers_link")
+    fields = ("diagnostics", "diagnostics_answers_link", "cv_file", "linkedin_url", "requested_at")
     inlines = [AdminFeedbackInline]
 
     @admin.display(description="CV uploaded", boolean=True)
@@ -156,6 +180,39 @@ class FeedbackRequestAdmin(admin.ModelAdmin):
     @admin.display(description="Published", boolean=True)
     def published(self, obj):
         return getattr(obj, "feedback", None) is not None and obj.feedback.is_published
+
+    @admin.display(description="Test answers")
+    def diagnostics_answers_link(self, obj):
+        if not obj.diagnostics_id:
+            return "—"
+        try:
+            url = reverse("admin:assessments_diagnostics_change", args=[obj.diagnostics_id])
+        except NoReverseMatch:
+            return "—"
+        return format_html('<a href="{}">View this person\'s test submissions and answers →</a>', url)
+
+
+class TestSubmissionSummaryInline(admin.TabularInline):
+    """Read-only, compact — the point is seeing at a glance what someone
+    answered/scored without leaving the Diagnostics page. Full per-question
+    answers are one click away via show_change_link (TestSubmissionAdmin's
+    own AnswerInline)."""
+
+    model = TestSubmission
+    extra = 0
+    fields = ("test", "submitted_at", "formatted_result_short")
+    readonly_fields = fields
+    can_delete = False
+    show_change_link = True
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="Result")
+    def formatted_result_short(self, obj):
+        if not obj.computed_result:
+            return "(open-ended — see answers)"
+        return json.dumps(obj.computed_result.get("categories", obj.computed_result), ensure_ascii=False)
 
 
 @admin.register(Diagnostics)
@@ -167,12 +224,30 @@ class DiagnosticsAdmin(admin.ModelAdmin):
     search_fields = ("email", "user__username", "user__email", "source_order_id", "source_order_number")
     readonly_fields = (
         "source_order_id", "source_order_number", "source_product_id", "raw_payload", "opened_at",
+        "feedback_request_link",
     )
+    fields = (
+        "email", "user", "journey", "opened_via", "opened_at",
+        "source_order_id", "source_order_number", "source_product_id", "raw_payload",
+        "notes", "feedback_request_link",
+    )
+    inlines = [TestSubmissionSummaryInline]
     actions = ["open_new_cycle_for_same_email"]
 
     @admin.display(description="Status")
     def status_display(self, obj):
         return diagnostics_status(obj)
+
+    @admin.display(description="Feedback")
+    def feedback_request_link(self, obj):
+        feedback_request = getattr(obj, "feedback_request", None)
+        if not feedback_request:
+            return "Not requested yet"
+        url = reverse("admin:assessments_feedbackrequest_change", args=[feedback_request.id])
+        label = "Review & publish feedback →" if not (
+            getattr(feedback_request, "feedback", None) and feedback_request.feedback.is_published
+        ) else "View published feedback →"
+        return format_html('<a href="{}">{}</a>', url, label)
 
     def save_model(self, request, obj, form, change):
         if not change:

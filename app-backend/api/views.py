@@ -16,7 +16,7 @@ def dev_login_view(request):
     User = get_user_model()
     user, _ = User.objects.get_or_create(
         username="dev",
-        defaults={"email": "dev@localhost", "is_staff": True},
+        defaults={"email": "dev@localhost", "is_staff": True, "is_superuser": True},
     )
     user.backend = "django.contrib.auth.backends.ModelBackend"
     login(request, user)

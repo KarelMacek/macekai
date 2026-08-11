@@ -66,7 +66,7 @@ class AzureEasyAuthMiddleware:
             last_name = parts[1] if len(parts) > 1 else ""
 
         admin_email = getattr(settings, "ADMIN_EMAIL", "") or ""
-        is_staff = bool(admin_email) and principal.email.lower() == admin_email.lower()
+        is_admin = bool(admin_email) and principal.email.lower() == admin_email.lower()
 
         User = get_user_model()
         user, _ = User.objects.update_or_create(
@@ -76,7 +76,14 @@ class AzureEasyAuthMiddleware:
                 "first_name": first_name,
                 "last_name": last_name,
                 "is_active": True,
-                "is_staff": is_staff,
+                # is_staff alone only lets you into /admin/, not see or edit
+                # anything there — Django's permission system still checks
+                # per-model permissions unless is_superuser is also set. This
+                # is a single-admin system (just Karel), so there's no value
+                # in granular per-model permissions — both flags track the
+                # same ADMIN_EMAIL match.
+                "is_staff": is_admin,
+                "is_superuser": is_admin,
             },
         )
         # Required so Django's permission checks (e.g. admin) know which backend authenticated this user.

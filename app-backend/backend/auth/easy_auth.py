@@ -6,11 +6,15 @@ from dataclasses import dataclass, field
 logger = logging.getLogger(__name__)
 
 # Short names and their URI-style equivalents, in preference order.
-# "sub" is Google's (and standard OIDC's) subject-identifier claim — the
-# provider this app actually uses. The oid/tid/schemas.microsoft.com forms
-# are kept only in case Easy Auth is ever pointed at an AAD-based provider
-# again; they're simply never present for Google logins.
+# Confirmed against a real Google-authenticated X-MS-CLIENT-PRINCIPAL header
+# (2026-08-10): Azure Easy Auth normalizes Google's claims into legacy
+# WS-Identity claim types rather than passing through OIDC's own "sub" — the
+# object id actually arrives as
+# http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier.
+# "sub"/"oid"/schemas.microsoft.com forms kept for a possible future
+# AAD-based provider; they're simply never present for Google logins.
 _OID_TYPES = [
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier",
     "sub",
     "oid",
     "http://schemas.microsoft.com/identity/claims/objectidentifier",

@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LangProvider, useLang } from "@/contexts/LangContext";
 import { useTranslation } from "@/lib/i18n";
 import { DashboardPage } from "@/pages/DashboardPage";
+import { DiagnosticsHistoryPage } from "@/pages/DiagnosticsHistoryPage";
 import { FeedbackRequestPage } from "@/pages/FeedbackRequestPage";
 import { FeedbackViewPage } from "@/pages/FeedbackViewPage";
 import { SignedOutPage } from "@/pages/SignedOutPage";
@@ -53,8 +54,33 @@ function SignedInApp() {
         <Route path="/tests/:slug" component={TestPage} />
         <Route path="/feedback-request" component={FeedbackRequestPage} />
         <Route path="/feedback" component={FeedbackViewPage} />
+        <Route path="/diagnostics/:id" component={DiagnosticsHistoryPage} />
         <Route path="/" component={DashboardPage} />
       </Switch>
+    </div>
+  );
+}
+
+function NoDiagnosticsGate() {
+  const { diagnosticsPurchaseUrl } = useAuth();
+  const { t } = useTranslation();
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
+      <h1 className="text-xl font-semibold">{t("noDiagnosticsTitle")}</h1>
+      <p className="text-sm text-muted-foreground">{t("noDiagnosticsBody")}</p>
+      {diagnosticsPurchaseUrl ? (
+        <a
+          className="text-primary underline underline-offset-4"
+          href={diagnosticsPurchaseUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {t("buyHere")}
+        </a>
+      ) : (
+        <p className="text-sm text-muted-foreground">{t("contactToPurchase")}</p>
+      )}
     </div>
   );
 }
@@ -85,7 +111,9 @@ function AppShell() {
   const isSignedOut = window.location.pathname === "/signed-out";
   if (isSignedOut) return <SignedOutPage />;
   if (loading) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
-  return user ? <SignedInApp /> : <SignedOutLanding />;
+  if (!user) return <SignedOutLanding />;
+  if (!user.has_diagnostics) return <NoDiagnosticsGate />;
+  return <SignedInApp />;
 }
 
 function App() {

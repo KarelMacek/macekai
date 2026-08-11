@@ -169,6 +169,15 @@ EASY_AUTH_ALLOWED_GROUP_IDS = [g.strip() for g in _allowed_groups_raw.split(',')
 # to /admin/ (assessments review/authoring). See backend/auth/middleware.py.
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')
 
+# SimpleShop.cz payment webhook — see assessments/webhooks.py. SECRET is the
+# unguessable path segment configured in SimpleShop's "webhook after
+# payment" field (SimpleShop doesn't sign requests, so this is the actual
+# auth mechanism); a blank secret rejects every call, so the webhook is
+# inert until this is set. PURCHASE_URL is where users with no diagnostics
+# get sent to buy one — may be blank (the app shows a fallback message).
+SIMPLESHOP_WEBHOOK_SECRET = os.environ.get('SIMPLESHOP_WEBHOOK_SECRET', '')
+DIAGNOSTICS_PURCHASE_URL = os.environ.get('DIAGNOSTICS_PURCHASE_URL', '')
+
 # Session security
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'

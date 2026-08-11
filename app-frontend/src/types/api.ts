@@ -5,12 +5,14 @@
 
 export interface Config {
   dev_login: boolean;
+  diagnostics_purchase_url: string;
 }
 
 export interface WhoAmI {
   is_authenticated: boolean;
   username?: string;
   email?: string;
+  has_diagnostics?: boolean;
 }
 
 export type TestType = "snapshot" | "mapping";
@@ -101,9 +103,23 @@ export interface JourneyStepStatus {
 
 export interface JourneyStatus {
   journey_slug: string | null;
+  diagnostics_id: number | null;
   steps: JourneyStepStatus[];
   all_tests_done: boolean;
   feedback_request_submitted?: boolean;
+}
+
+export type DiagnosticsStatus =
+  | "tests_in_progress"
+  | "awaiting_feedback_request"
+  | "awaiting_admin_review"
+  | "completed";
+
+export interface DiagnosticsSummary {
+  id: number;
+  journey_slug: string;
+  opened_at: string;
+  status: DiagnosticsStatus;
 }
 
 export interface FeedbackRequest {
@@ -118,4 +134,16 @@ export interface AdminFeedback {
   video_url: string;
   notes: string;
   published_at: string | null;
+}
+
+export interface DiagnosticsDetail {
+  id: number;
+  journey_slug: string;
+  opened_at: string;
+  status: DiagnosticsStatus;
+  all_tests_done: boolean;
+  steps: JourneyStepStatus[];
+  submissions: TestSubmission[];
+  feedback_request: FeedbackRequest | null;
+  feedback: AdminFeedback | null;
 }

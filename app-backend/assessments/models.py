@@ -129,6 +129,9 @@ class TestSubmission(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="test_submissions"
     )
+    diagnostics = models.ForeignKey(
+        "Diagnostics", on_delete=models.CASCADE, related_name="submissions"
+    )
     submitted_at = models.DateTimeField(auto_now_add=True)
     # Computed once at submission time by assessments.scoring.compute_result()
     # and never recomputed on read, so changing scoring logic later doesn't
@@ -137,7 +140,10 @@ class TestSubmission(models.Model):
 
     class Meta:
         ordering = ["-submitted_at"]
-        indexes = [models.Index(fields=["user", "test", "-submitted_at"])]
+        indexes = [
+            models.Index(fields=["user", "test", "-submitted_at"]),
+            models.Index(fields=["diagnostics", "test"]),
+        ]
 
     def __str__(self):
         return f"{self.user} / {self.test.slug} @ {self.submitted_at:%Y-%m-%d}"
@@ -167,11 +173,15 @@ class Answer(models.Model):
 class Journey(models.Model):
     """A named, ordered sequence of required tests. Modeled as data (not a
     hardcoded list) so a second journey variant is a content change, not a
-    code change."""
+    code change. Doubles as "the diagnostics type/product": each purchasable
+    diagnostics maps 1:1 to a Journey via simpleshop_product_id, so adding a
+    second diagnostics product later is a new Journey + JourneySteps in
+    admin, not a code change either."""
 
     slug = models.SlugField(unique=True)
     name = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
+    simpleshop_product_id = models.CharField(max_length=64, blank=True, default="")
 
     def __str__(self):
         return self.slug
@@ -192,14 +202,63 @@ class JourneyStep(models.Model):
         return f"{self.journey.slug} #{self.order}: {self.test.slug}"
 
 
-class FeedbackRequest(models.Model):
-    """The CV/LinkedIn submission that triggers the admin review, once a user
-    has completed every JourneyStep's test."""
+class Diagnostics(models.Model):
+    """One full attempt at a Journey — the "instance" to Journey's
+    "template," the same relationship TestSubmission already has to Test,
+    one level up. Groups together the TestSubmissions, FeedbackRequest, and
+    AdminFeedback that make up a single run-through, so a user who buys
+    twice gets two separate, independently-trackable results instead of one
+    singleton that gets silently overwritten.
 
+    Opened either by the SimpleShop webhook (a real purchase) or manually by
+    an admin (support cases, local testing). email is the durable identity —
+    a purchase can arrive before the buyer ever logs into the app — user is
+    linked immediately if it already exists, or opportunistically later (see
+    services.link_unlinked_diagnostics, called from the auth middleware).
+
+    Deliberately has no stored status field — see services.diagnostics_status,
+    consistent with how journey-step completion is derived elsewhere rather
+    than stored."""
+
+    OPENED_VIA_WEBHOOK = "simpleshop_webhook"
+    OPENED_VIA_ADMIN = "admin"
+    OPENED_VIA_CHOICES = [
+        (OPENED_VIA_WEBHOOK, "SimpleShop webhook"),
+        (OPENED_VIA_ADMIN, "Manually opened (admin)"),
+    ]
+
+    email = models.EmailField(db_index=True)
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="feedback_requests"
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name="diagnostics",
     )
-    journey = models.ForeignKey(Journey, on_delete=models.PROTECT, related_name="feedback_requests")
+    journey = models.ForeignKey(Journey, on_delete=models.PROTECT, related_name="diagnostics")
+    # Audit trail + idempotency against SimpleShop retrying the same webhook call.
+    # Nullable+unique: Postgres/SQLite both treat multiple NULLs as distinct, so
+    # admin-opened diagnostics (no order) never collide with each other.
+    source_order_id = models.CharField(max_length=64, null=True, blank=True, unique=True)
+    source_order_number = models.CharField(max_length=64, blank=True, default="")
+    source_product_id = models.CharField(max_length=64, blank=True, default="")
+    raw_payload = models.JSONField(default=dict, blank=True)
+    opened_via = models.CharField(max_length=32, choices=OPENED_VIA_CHOICES, default=OPENED_VIA_ADMIN)
+    opened_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, default="")
+
+    class Meta:
+        ordering = ["-opened_at"]
+        verbose_name_plural = "diagnostics"
+
+    def __str__(self):
+        return f"{self.email} / {self.journey.slug} (#{self.pk})"
+
+
+class FeedbackRequest(models.Model):
+    """The CV/LinkedIn submission that triggers the admin review, once every
+    JourneyStep's test has a submission under this Diagnostics."""
+
+    diagnostics = models.OneToOneField(
+        Diagnostics, on_delete=models.CASCADE, related_name="feedback_request"
+    )
     cv_file = models.FileField(upload_to="cv/", storage=file_storage, null=True, blank=True)
     linkedin_url = models.URLField(blank=True, default="")
     requested_at = models.DateTimeField(auto_now_add=True)
@@ -208,7 +267,7 @@ class FeedbackRequest(models.Model):
         ordering = ["-requested_at"]
 
     def __str__(self):
-        return f"{self.user} / {self.journey.slug}"
+        return f"Feedback request for {self.diagnostics}"
 
 
 class AdminFeedback(models.Model):
@@ -235,7 +294,7 @@ class AdminFeedback(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Feedback for {self.feedback_request.user}"
+        return f"Feedback for {self.feedback_request.diagnostics}"
 
 
 class FileBlob(models.Model):

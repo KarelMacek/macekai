@@ -5,6 +5,7 @@ from rest_framework.test import APIClient
 from assessments.models import (
     AdminFeedback,
     Category,
+    Diagnostics,
     FeedbackRequest,
     Journey,
     JourneyStep,
@@ -61,7 +62,19 @@ def test_test_detail_falls_back_to_english(api_client, snapshot_test):
     assert resp.data["title"] == "Snapshot"
 
 
-def test_submit_missing_answers_returns_400(api_client, snapshot_test):
+@pytest.fixture
+def journey(snapshot_test):
+    journey = Journey.objects.create(slug="default", is_active=True)
+    JourneyStep.objects.create(journey=journey, test=snapshot_test, order=0)
+    return journey
+
+
+@pytest.fixture
+def diagnostics(user, journey):
+    return Diagnostics.objects.create(email=user.email, user=user, journey=journey)
+
+
+def test_submit_missing_answers_returns_400(api_client, snapshot_test, diagnostics):
     resp = api_client.post(
         f"/api/assessments/tests/{snapshot_test.slug}/submit/", {"answers": []}, format="json"
     )
@@ -69,7 +82,7 @@ def test_submit_missing_answers_returns_400(api_client, snapshot_test):
     assert resp.status_code == 400
 
 
-def test_submit_valid_answer_freezes_computed_result(api_client, snapshot_test):
+def test_submit_valid_answer_freezes_computed_result(api_client, snapshot_test, diagnostics):
     question = snapshot_test.questions.first()
     option = question.options.get(value=1.0)
 
@@ -83,22 +96,22 @@ def test_submit_valid_answer_freezes_computed_result(api_client, snapshot_test):
     assert resp.data["computed_result"]["categories"]["growth"] == 1.0
 
 
+def test_submit_without_open_diagnostics_returns_403(api_client, snapshot_test):
+    resp = api_client.post(
+        f"/api/assessments/tests/{snapshot_test.slug}/submit/", {"answers": []}, format="json"
+    )
+    assert resp.status_code == 403
+
+
 def test_submit_requires_authentication(snapshot_test):
     client = APIClient()
     resp = client.get(f"/api/assessments/tests/{snapshot_test.slug}/")
     assert resp.status_code in (401, 403)
 
 
-@pytest.fixture
-def journey(snapshot_test):
-    journey = Journey.objects.create(slug="default", is_active=True)
-    JourneyStep.objects.create(journey=journey, test=snapshot_test, order=0)
-    return journey
-
-
-def test_feedback_hidden_until_published(api_client, user, journey):
+def test_feedback_hidden_until_published(api_client, diagnostics):
     feedback_request = FeedbackRequest.objects.create(
-        user=user, journey=journey, linkedin_url="https://linkedin.com/in/alice"
+        diagnostics=diagnostics, linkedin_url="https://linkedin.com/in/alice"
     )
 
     resp = api_client.get("/api/assessments/feedback/")
@@ -119,7 +132,7 @@ def test_feedback_hidden_until_published(api_client, user, journey):
     assert resp.data["video_url"] == "https://example.com/video"
 
 
-def test_journey_reports_current_step(api_client, journey, snapshot_test):
+def test_journey_reports_current_step(api_client, diagnostics):
     resp = api_client.get("/api/assessments/journey/")
 
     assert resp.status_code == 200

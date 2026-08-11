@@ -227,6 +227,26 @@ class JourneyStatusSerializer(serializers.Serializer):
     generated TS client a concrete response type."""
 
     journey_slug = serializers.CharField(allow_null=True)
+    diagnostics_id = serializers.IntegerField(allow_null=True, required=False)
     steps = JourneyStepStatusSerializer(many=True)
     all_tests_done = serializers.BooleanField()
     feedback_request_submitted = serializers.BooleanField(required=False)
+
+
+class DiagnosticsSummarySerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    journey_slug = serializers.CharField()
+    opened_at = serializers.DateTimeField()
+    status = serializers.CharField()
+
+
+class DiagnosticsDetailSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    journey_slug = serializers.CharField()
+    opened_at = serializers.DateTimeField()
+    status = serializers.CharField()
+    all_tests_done = serializers.BooleanField()
+    steps = JourneyStepStatusSerializer(many=True)
+    submissions = TestSubmissionReadSerializer(many=True)
+    feedback_request = FeedbackRequestSerializer(allow_null=True)
+    feedback = AdminFeedbackReadSerializer(allow_null=True)

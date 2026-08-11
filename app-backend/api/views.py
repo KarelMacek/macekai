@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model, login, logout
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.decorators.http import require_GET
 
+from assessments.services import has_any_diagnostics
+
 
 def healthz_view(request):
     return HttpResponse("ok")
@@ -30,7 +32,10 @@ def logout_view(request):
 
 @require_GET
 def config_view(request):
-    return JsonResponse({"dev_login": settings.DEBUG})
+    return JsonResponse({
+        "dev_login": settings.DEBUG,
+        "diagnostics_purchase_url": settings.DIAGNOSTICS_PURCHASE_URL,
+    })
 
 
 @require_GET
@@ -40,6 +45,7 @@ def whoami_view(request):
             "is_authenticated": True,
             "username": request.user.username,
             "email": request.user.email,
+            "has_diagnostics": request.user.is_staff or has_any_diagnostics(request.user),
         })
     return JsonResponse({"is_authenticated": False}, status=401)
 

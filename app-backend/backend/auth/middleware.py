@@ -5,6 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 
 from .easy_auth import AzureEasyAuthPrincipal, decode_client_principal
+from assessments.services import link_unlinked_diagnostics
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +77,10 @@ class AzureEasyAuthMiddleware:
         )
         # Required so Django's permission checks (e.g. admin) know which backend authenticated this user.
         user.backend = "django.contrib.auth.backends.ModelBackend"
+        # Self-healing backfill for purchases made before the buyer ever logged
+        # in (see assessments/services.py). Cheap indexed UPDATE, no-op if
+        # nothing matches.
+        link_unlinked_diagnostics(user)
         return user
 
     def _is_allowed(self, principal: AzureEasyAuthPrincipal) -> bool:

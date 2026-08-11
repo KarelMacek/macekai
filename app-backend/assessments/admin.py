@@ -1,12 +1,14 @@
 import json
 
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
 from .i18n import resolve_locale
 from .models import (
     AdminFeedback,
     Answer,
     Category,
+    Diagnostics,
     FeedbackRequest,
     FileBlob,
     Journey,
@@ -17,6 +19,7 @@ from .models import (
     Test,
     TestSubmission,
 )
+from .services import diagnostics_status, open_diagnostics
 
 
 class CategoryInline(admin.TabularInline):
@@ -108,10 +111,10 @@ class AnswerInline(admin.TabularInline):
 
 @admin.register(TestSubmission)
 class TestSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("user", "test", "submitted_at")
-    list_filter = ("test",)
-    readonly_fields = ("test", "user", "submitted_at", "formatted_result")
-    fields = ("test", "user", "submitted_at", "formatted_result")
+    list_display = ("user", "test", "diagnostics", "submitted_at")
+    list_filter = ("test", "diagnostics__journey")
+    readonly_fields = ("test", "user", "diagnostics", "submitted_at", "formatted_result")
+    fields = ("test", "user", "diagnostics", "submitted_at", "formatted_result")
     inlines = [AnswerInline]
 
     @admin.display(description="Computed result")
@@ -130,7 +133,7 @@ class JourneyStepInline(admin.TabularInline):
 
 @admin.register(Journey)
 class JourneyAdmin(admin.ModelAdmin):
-    list_display = ("slug", "is_active")
+    list_display = ("slug", "is_active", "simpleshop_product_id")
     inlines = [JourneyStepInline]
 
 
@@ -142,8 +145,8 @@ class AdminFeedbackInline(admin.StackedInline):
 
 @admin.register(FeedbackRequest)
 class FeedbackRequestAdmin(admin.ModelAdmin):
-    list_display = ("user", "journey", "linkedin_url", "has_cv", "requested_at", "published")
-    list_filter = ("journey",)
+    list_display = ("diagnostics", "linkedin_url", "has_cv", "requested_at", "published")
+    list_filter = ("diagnostics__journey",)
     inlines = [AdminFeedbackInline]
 
     @admin.display(description="CV uploaded", boolean=True)
@@ -153,6 +156,35 @@ class FeedbackRequestAdmin(admin.ModelAdmin):
     @admin.display(description="Published", boolean=True)
     def published(self, obj):
         return getattr(obj, "feedback", None) is not None and obj.feedback.is_published
+
+
+@admin.register(Diagnostics)
+class DiagnosticsAdmin(admin.ModelAdmin):
+    list_display = (
+        "email", "user", "journey", "status_display", "opened_via", "opened_at", "source_order_id",
+    )
+    list_filter = ("journey", "opened_via")
+    search_fields = ("email", "user__username", "user__email", "source_order_id", "source_order_number")
+    readonly_fields = (
+        "source_order_id", "source_order_number", "source_product_id", "raw_payload", "opened_at",
+    )
+    actions = ["open_new_cycle_for_same_email"]
+
+    @admin.display(description="Status")
+    def status_display(self, obj):
+        return diagnostics_status(obj)
+
+    def save_model(self, request, obj, form, change):
+        if not change:
+            if not obj.user_id:
+                obj.user = get_user_model().objects.filter(email__iexact=obj.email).first()
+        super().save_model(request, obj, form, change)
+
+    @admin.action(description="Open a new diagnostics cycle for the same email")
+    def open_new_cycle_for_same_email(self, request, queryset):
+        for diagnostics in queryset:
+            open_diagnostics(email=diagnostics.email, journey=diagnostics.journey)
+        self.message_user(request, f"Opened {queryset.count()} new cycle(s).")
 
 
 @admin.register(FileBlob)

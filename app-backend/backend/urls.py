@@ -5,6 +5,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.generic import TemplateView
 
 from api.views import whoami_view, config_view, logout_view, dev_login_view, me_view, healthz_view
+from assessments.webhooks import SimpleShopWebhookView
 
 # ensure_csrf_cookie guarantees the SPA always has a csrftoken cookie to send back
 # as X-CSRFToken on mutating fetch() calls, once there are any.
@@ -21,6 +22,11 @@ urlpatterns = [
     # is_staff, set in AzureEasyAuthMiddleware from settings.ADMIN_EMAIL.
     path('admin/', admin.site.urls),
     path('api/assessments/', include('assessments.urls')),
+    path(
+        'api/webhooks/simpleshop/<str:token>/',
+        SimpleShopWebhookView.as_view(),
+        name='simpleshop-webhook',
+    ),
 
     # Catch-all: serve the React SPA for root and all unmatched paths (e.g. /signed-out)
     path('', spa_view, name='home'),

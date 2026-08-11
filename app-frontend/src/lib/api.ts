@@ -4,6 +4,8 @@ import type {
   AdminFeedback,
   AnswerInput,
   Config,
+  DiagnosticsDetail,
+  DiagnosticsSummary,
   FeedbackRequest,
   JourneyStatus,
   TestDetail,
@@ -100,4 +102,16 @@ export async function getFeedback(): Promise<AdminFeedback | null> {
   } catch {
     return null;
   }
+}
+
+export async function getDiagnosticsList(): Promise<DiagnosticsSummary[]> {
+  const { data } = await client.get<DiagnosticsSummary[]>("/api/assessments/diagnostics/");
+  return data;
+}
+
+export async function getDiagnosticsDetail(id: number, lang: string): Promise<DiagnosticsDetail> {
+  const { data } = await client.get<DiagnosticsDetail>(`/api/assessments/diagnostics/${id}/`, {
+    params: { lang },
+  });
+  return data;
 }

@@ -10,29 +10,33 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .i18n import get_lang, resolve_locale
+from .i18n import get_lang
 from .models import (
     AdminFeedback,
     Answer,
+    Diagnostics,
     FeedbackRequest,
     FileBlob,
-    Journey,
     Test,
     TestSubmission,
 )
 from .scoring import compute_result
 from .serializers import (
     AdminFeedbackReadSerializer,
+    DiagnosticsDetailSerializer,
+    DiagnosticsSummarySerializer,
     FeedbackRequestSerializer,
     JourneyStatusSerializer,
     TestDetailSerializer,
     TestSubmissionInputSerializer,
     TestSubmissionReadSerializer,
 )
-
-
-def _active_journey():
-    return Journey.objects.filter(is_active=True).prefetch_related("steps__test").first()
+from .services import (
+    current_diagnostics,
+    diagnostics_status,
+    diagnostics_step_statuses,
+)
+from .services import STATUS_COMPLETED
 
 
 def _latest_active_test(slug):
@@ -42,48 +46,22 @@ def _latest_active_test(slug):
 class JourneyView(APIView):
     @extend_schema(responses=JourneyStatusSerializer)
     def get(self, request):
-        journey = _active_journey()
-        if not journey:
-            return Response({"journey_slug": None, "steps": [], "all_tests_done": False})
-
-        lang = get_lang(request)
-        journey_test_ids = [step.test_id for step in journey.steps.all()]
-        completed_test_ids = set(
-            TestSubmission.objects.filter(
-                user=request.user, test_id__in=journey_test_ids
-            ).values_list("test_id", flat=True)
-        )
-
-        steps = []
-        current_assigned = False
-        for step in journey.steps.all():
-            completed = step.test_id in completed_test_ids
-            if completed:
-                step_status = "completed"
-            elif not current_assigned:
-                step_status = "current"
-                current_assigned = True
-            else:
-                step_status = "upcoming"
-            steps.append(
-                {
-                    "order": step.order,
-                    "test_slug": step.test.slug,
-                    "test_type": step.test.test_type,
-                    "title": resolve_locale(step.test.title, lang),
-                    "status": step_status,
-                }
+        diagnostics = current_diagnostics(request.user)
+        if not diagnostics:
+            return Response(
+                {"journey_slug": None, "diagnostics_id": None, "steps": [], "all_tests_done": False}
             )
 
-        all_tests_done = not current_assigned
+        lang = get_lang(request)
+        steps, all_tests_done = diagnostics_step_statuses(diagnostics, lang)
         feedback_request_submitted = (
-            all_tests_done
-            and FeedbackRequest.objects.filter(user=request.user, journey=journey).exists()
+            all_tests_done and FeedbackRequest.objects.filter(diagnostics=diagnostics).exists()
         )
 
         return Response(
             {
-                "journey_slug": journey.slug,
+                "journey_slug": diagnostics.journey.slug,
+                "diagnostics_id": diagnostics.id,
                 "steps": steps,
                 "all_tests_done": all_tests_done,
                 "feedback_request_submitted": feedback_request_submitted,
@@ -108,13 +86,23 @@ class TestSubmitView(APIView):
         if test is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        diagnostics = current_diagnostics(request.user)
+        if diagnostics is None:
+            return Response({"detail": "No open diagnostics."}, status=status.HTTP_403_FORBIDDEN)
+        if diagnostics_status(diagnostics) == STATUS_COMPLETED:
+            return Response(
+                {"detail": "This diagnostics is already completed."}, status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = TestSubmissionInputSerializer(data=request.data, context={"test": test})
         serializer.is_valid(raise_exception=True)
 
         questions = {q.id: q for q in test.questions.all()}
 
         with transaction.atomic():
-            submission = TestSubmission.objects.create(test=test, user=request.user)
+            submission = TestSubmission.objects.create(
+                test=test, user=request.user, diagnostics=diagnostics
+            )
             Answer.objects.bulk_create(
                 [
                     Answer(
@@ -157,11 +145,9 @@ class SubmissionDetailView(APIView):
 class FeedbackRequestView(APIView):
     @extend_schema(responses=FeedbackRequestSerializer)
     def get(self, request):
-        journey = _active_journey()
+        diagnostics = current_diagnostics(request.user)
         feedback_request = (
-            FeedbackRequest.objects.filter(user=request.user, journey=journey).first()
-            if journey
-            else None
+            FeedbackRequest.objects.filter(diagnostics=diagnostics).first() if diagnostics else None
         )
         if not feedback_request:
             return Response(status=status.HTTP_404_NOT_FOUND)
@@ -169,16 +155,20 @@ class FeedbackRequestView(APIView):
 
     @extend_schema(request=FeedbackRequestSerializer, responses=FeedbackRequestSerializer)
     def post(self, request):
-        journey = _active_journey()
-        if not journey:
-            return Response({"detail": "No active journey."}, status=status.HTTP_400_BAD_REQUEST)
+        diagnostics = current_diagnostics(request.user)
+        if diagnostics is None:
+            return Response({"detail": "No open diagnostics."}, status=status.HTTP_403_FORBIDDEN)
+        if diagnostics_status(diagnostics) == STATUS_COMPLETED:
+            return Response(
+                {"detail": "This diagnostics is already completed."}, status=status.HTTP_403_FORBIDDEN
+            )
 
-        instance = FeedbackRequest.objects.filter(user=request.user, journey=journey).first()
+        instance = FeedbackRequest.objects.filter(diagnostics=diagnostics).first()
         serializer = FeedbackRequestSerializer(
             instance=instance, data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save(user=request.user, journey=journey)
+        serializer.save(diagnostics=diagnostics)
         response_status = status.HTTP_200_OK if instance else status.HTTP_201_CREATED
         return Response(serializer.data, status=response_status)
 
@@ -186,11 +176,9 @@ class FeedbackRequestView(APIView):
 class FeedbackView(APIView):
     @extend_schema(responses=AdminFeedbackReadSerializer)
     def get(self, request):
-        journey = _active_journey()
+        diagnostics = current_diagnostics(request.user)
         feedback_request = (
-            FeedbackRequest.objects.filter(user=request.user, journey=journey).first()
-            if journey
-            else None
+            FeedbackRequest.objects.filter(diagnostics=diagnostics).first() if diagnostics else None
         )
         feedback = (
             AdminFeedback.objects.filter(feedback_request=feedback_request, is_published=True).first()
@@ -200,6 +188,61 @@ class FeedbackView(APIView):
         if not feedback:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response(AdminFeedbackReadSerializer(feedback, context={"request": request}).data)
+
+
+class DiagnosticsListView(APIView):
+    @extend_schema(responses=DiagnosticsSummarySerializer(many=True))
+    def get(self, request):
+        diagnostics_qs = Diagnostics.objects.filter(user=request.user).select_related("journey")
+        data = [
+            {
+                "id": d.id,
+                "journey_slug": d.journey.slug,
+                "opened_at": d.opened_at,
+                "status": diagnostics_status(d),
+            }
+            for d in diagnostics_qs
+        ]
+        return Response(DiagnosticsSummarySerializer(data, many=True).data)
+
+
+class DiagnosticsDetailView(APIView):
+    @extend_schema(responses=DiagnosticsDetailSerializer)
+    def get(self, request, pk):
+        diagnostics = get_object_or_404(Diagnostics, pk=pk, user=request.user)
+        lang = get_lang(request)
+        steps, all_tests_done = diagnostics_step_statuses(diagnostics, lang)
+
+        submissions = TestSubmission.objects.filter(diagnostics=diagnostics).select_related("test")
+        feedback_request = FeedbackRequest.objects.filter(diagnostics=diagnostics).first()
+        feedback = (
+            AdminFeedback.objects.filter(feedback_request=feedback_request, is_published=True).first()
+            if feedback_request
+            else None
+        )
+
+        data = {
+            "id": diagnostics.id,
+            "journey_slug": diagnostics.journey.slug,
+            "opened_at": diagnostics.opened_at,
+            "status": diagnostics_status(diagnostics),
+            "all_tests_done": all_tests_done,
+            "steps": steps,
+            "submissions": TestSubmissionReadSerializer(
+                submissions, many=True, context={"request": request}
+            ).data,
+            "feedback_request": (
+                FeedbackRequestSerializer(feedback_request, context={"request": request}).data
+                if feedback_request
+                else None
+            ),
+            "feedback": (
+                AdminFeedbackReadSerializer(feedback, context={"request": request}).data
+                if feedback
+                else None
+            ),
+        }
+        return Response(DiagnosticsDetailSerializer(data).data)
 
 
 class FileDownloadView(APIView):
@@ -217,10 +260,10 @@ class FileDownloadView(APIView):
     def _can_access(self, request, blob):
         if request.user.is_staff:
             return True
-        if FeedbackRequest.objects.filter(user=request.user, cv_file=blob.name).exists():
+        if FeedbackRequest.objects.filter(diagnostics__user=request.user, cv_file=blob.name).exists():
             return True
         if AdminFeedback.objects.filter(
-            feedback_request__user=request.user, document=blob.name, is_published=True
+            feedback_request__diagnostics__user=request.user, document=blob.name, is_published=True
         ).exists():
             return True
         return False

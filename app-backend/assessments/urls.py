@@ -19,4 +19,10 @@ urlpatterns = [
     ),
     path("feedback/", views.FeedbackView.as_view(), name="assessments-feedback"),
     path("files/<int:blob_id>/", views.FileDownloadView.as_view(), name="assessments-file-download"),
+    path("diagnostics/", views.DiagnosticsListView.as_view(), name="assessments-diagnostics-list"),
+    path(
+        "diagnostics/<int:pk>/",
+        views.DiagnosticsDetailView.as_view(),
+        name="assessments-diagnostics-detail",
+    ),
 ]

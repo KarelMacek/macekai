@@ -1,15 +1,60 @@
+import { useEffect, useState } from "react";
 import { Route, Switch } from "wouter";
 
-import { Button } from "@/components/ui/button";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LangProvider, useLang } from "@/contexts/LangContext";
 import { useTranslation } from "@/lib/i18n";
+import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
+import { AdminDiagnosticsDetailPage } from "@/pages/admin/AdminDiagnosticsDetailPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { DiagnosticsHistoryPage } from "@/pages/DiagnosticsHistoryPage";
 import { FeedbackRequestPage } from "@/pages/FeedbackRequestPage";
 import { FeedbackViewPage } from "@/pages/FeedbackViewPage";
 import { SignedOutPage } from "@/pages/SignedOutPage";
 import { TestPage } from "@/pages/TestPage";
+
+type ViewMode = "user" | "admin";
+const VIEW_MODE_KEY = "macekai-view-mode";
+
+function useViewMode(isStaff: boolean) {
+  const [viewMode, setViewMode] = useState<ViewMode>(() =>
+    (localStorage.getItem(VIEW_MODE_KEY) as ViewMode | null) ?? "user"
+  );
+
+  useEffect(() => {
+    if (!isStaff && viewMode === "admin") setViewMode("user");
+  }, [isStaff, viewMode]);
+
+  function setMode(mode: ViewMode) {
+    setViewMode(mode);
+    localStorage.setItem(VIEW_MODE_KEY, mode);
+  }
+
+  return { viewMode: isStaff ? viewMode : "user", setMode } as const;
+}
+
+function ViewModeToggle({ viewMode, setMode }: { viewMode: ViewMode; setMode: (mode: ViewMode) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="section-label flex gap-1">
+      <button
+        type="button"
+        onClick={() => setMode("user")}
+        className={viewMode === "user" ? "text-gold" : "text-muted-foreground"}
+      >
+        {t("viewModeUser")}
+      </button>
+      <span className="text-muted-foreground">/</span>
+      <button
+        type="button"
+        onClick={() => setMode("admin")}
+        className={viewMode === "admin" ? "text-gold" : "text-muted-foreground"}
+      >
+        {t("viewModeAdmin")}
+      </button>
+    </div>
+  );
+}
 
 function LangSwitcher() {
   const { lang, setLang } = useLang();
@@ -37,12 +82,14 @@ function LangSwitcher() {
 function SignedInApp() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { viewMode, setMode } = useViewMode(!!user?.is_staff);
 
   return (
     <div className="min-h-screen">
       <header className="flex items-center justify-between border-b px-8 py-4">
         <h1 className="text-lg font-semibold text-gold">{t("appTitle")}</h1>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          {user?.is_staff && <ViewModeToggle viewMode={viewMode} setMode={setMode} />}
           <LangSwitcher />
           <span>{user?.email}</span>
           <a href="/logout/" className="transition-colors duration-150 hover:text-gold">
@@ -50,13 +97,21 @@ function SignedInApp() {
           </a>
         </div>
       </header>
-      <Switch>
-        <Route path="/tests/:slug" component={TestPage} />
-        <Route path="/feedback-request" component={FeedbackRequestPage} />
-        <Route path="/feedback" component={FeedbackViewPage} />
-        <Route path="/diagnostics/:id" component={DiagnosticsHistoryPage} />
-        <Route path="/" component={DashboardPage} />
-      </Switch>
+      {viewMode === "admin" ? (
+        <Switch>
+          <Route path="/admin/diagnostics/:id" component={AdminDiagnosticsDetailPage} />
+          <Route path="/" component={AdminDashboardPage} />
+          <Route component={AdminDashboardPage} />
+        </Switch>
+      ) : (
+        <Switch>
+          <Route path="/tests/:slug" component={TestPage} />
+          <Route path="/feedback-request" component={FeedbackRequestPage} />
+          <Route path="/feedback" component={FeedbackViewPage} />
+          <Route path="/diagnostics/:id" component={DiagnosticsHistoryPage} />
+          <Route path="/" component={DashboardPage} />
+        </Switch>
+      )}
     </div>
   );
 }

@@ -242,6 +242,7 @@ class DiagnosticsSummarySerializer(serializers.Serializer):
 
 class DiagnosticsDetailSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    email = serializers.CharField()
     journey_slug = serializers.CharField()
     opened_at = serializers.DateTimeField()
     status = serializers.CharField()
@@ -250,3 +251,20 @@ class DiagnosticsDetailSerializer(serializers.Serializer):
     submissions = TestSubmissionReadSerializer(many=True)
     feedback_request = FeedbackRequestSerializer(allow_null=True)
     feedback = AdminFeedbackReadSerializer(allow_null=True)
+
+
+class AdminDiagnosticsSummarySerializer(DiagnosticsSummarySerializer):
+    """Same shape as the customer-facing summary, plus who it belongs to —
+    admin is browsing everyone's, not just their own."""
+
+    email = serializers.CharField()
+
+
+class AdminFeedbackWriteSerializer(serializers.ModelSerializer):
+    """Used by the admin console to create-or-update the AdminFeedback for a
+    FeedbackRequest. document is optional per-request (omit to leave the
+    existing one in place when just editing notes/video_url/publishing)."""
+
+    class Meta:
+        model = AdminFeedback
+        fields = ["document", "video_url", "notes", "is_published"]

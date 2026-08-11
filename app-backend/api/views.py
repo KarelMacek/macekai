@@ -46,6 +46,7 @@ def whoami_view(request):
             "username": request.user.username,
             "email": request.user.email,
             "has_diagnostics": request.user.is_staff or has_any_diagnostics(request.user),
+            "is_staff": request.user.is_staff,
         })
     return JsonResponse({"is_authenticated": False}, status=401)
 

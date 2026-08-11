@@ -1,7 +1,9 @@
 import axios from "axios";
 
 import type {
+  AdminDiagnosticsSummary,
   AdminFeedback,
+  AdminFeedbackWritePayload,
   AnswerInput,
   Config,
   DiagnosticsDetail,
@@ -113,5 +115,40 @@ export async function getDiagnosticsDetail(id: number, lang: string): Promise<Di
   const { data } = await client.get<DiagnosticsDetail>(`/api/assessments/diagnostics/${id}/`, {
     params: { lang },
   });
+  return data;
+}
+
+export async function getAdminDiagnosticsList(params: {
+  status?: string;
+  q?: string;
+}): Promise<AdminDiagnosticsSummary[]> {
+  const { data } = await client.get<AdminDiagnosticsSummary[]>("/api/assessments/admin/diagnostics/", {
+    params,
+  });
+  return data;
+}
+
+export async function getAdminDiagnosticsDetail(id: number, lang: string): Promise<DiagnosticsDetail> {
+  const { data } = await client.get<DiagnosticsDetail>(`/api/assessments/admin/diagnostics/${id}/`, {
+    params: { lang },
+  });
+  return data;
+}
+
+export async function submitAdminFeedback(
+  feedbackRequestId: number,
+  payload: AdminFeedbackWritePayload
+): Promise<AdminFeedback> {
+  const form = new FormData();
+  if (payload.document) form.append("document", payload.document);
+  if (payload.video_url !== undefined) form.append("video_url", payload.video_url);
+  if (payload.notes !== undefined) form.append("notes", payload.notes);
+  if (payload.is_published !== undefined) form.append("is_published", String(payload.is_published));
+
+  const { data } = await client.post<AdminFeedback>(
+    `/api/assessments/admin/feedback-requests/${feedbackRequestId}/feedback/`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
   return data;
 }

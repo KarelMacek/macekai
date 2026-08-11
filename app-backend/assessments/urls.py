@@ -25,4 +25,19 @@ urlpatterns = [
         views.DiagnosticsDetailView.as_view(),
         name="assessments-diagnostics-detail",
     ),
+    path(
+        "admin/diagnostics/",
+        views.AdminDiagnosticsListView.as_view(),
+        name="assessments-admin-diagnostics-list",
+    ),
+    path(
+        "admin/diagnostics/<int:pk>/",
+        views.AdminDiagnosticsDetailView.as_view(),
+        name="assessments-admin-diagnostics-detail",
+    ),
+    path(
+        "admin/feedback-requests/<int:pk>/feedback/",
+        views.AdminFeedbackWriteView.as_view(),
+        name="assessments-admin-feedback-write",
+    ),
 ]

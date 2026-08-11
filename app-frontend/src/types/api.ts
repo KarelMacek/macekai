@@ -13,6 +13,7 @@ export interface WhoAmI {
   username?: string;
   email?: string;
   has_diagnostics?: boolean;
+  is_staff?: boolean;
 }
 
 export type TestType = "snapshot" | "mapping";
@@ -138,6 +139,7 @@ export interface AdminFeedback {
 
 export interface DiagnosticsDetail {
   id: number;
+  email: string;
   journey_slug: string;
   opened_at: string;
   status: DiagnosticsStatus;
@@ -146,4 +148,15 @@ export interface DiagnosticsDetail {
   submissions: TestSubmission[];
   feedback_request: FeedbackRequest | null;
   feedback: AdminFeedback | null;
+}
+
+export interface AdminDiagnosticsSummary extends DiagnosticsSummary {
+  email: string;
+}
+
+export interface AdminFeedbackWritePayload {
+  document?: File | null;
+  video_url?: string;
+  notes?: string;
+  is_published?: boolean;
 }

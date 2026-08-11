@@ -7,7 +7,7 @@ import { getDiagnosticsList, getJourney } from "@/lib/api";
 import { useTranslation, type TranslationKey } from "@/lib/i18n";
 import type { DiagnosticsSummary, DiagnosticsStatus, JourneyStatus } from "@/types/api";
 
-const STATUS_LABEL_KEY: Record<DiagnosticsStatus, TranslationKey> = {
+export const STATUS_LABEL_KEY: Record<DiagnosticsStatus, TranslationKey> = {
   tests_in_progress: "diagnosticsStatusTestsInProgress",
   awaiting_feedback_request: "diagnosticsStatusAwaitingFeedbackRequest",
   awaiting_admin_review: "diagnosticsStatusAwaitingAdminReview",

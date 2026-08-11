@@ -63,9 +63,15 @@ export function DashboardPage() {
             <CardTitle className="text-base">{t("allDone")}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Link href="/feedback-request">
-              <Button size="sm">{t("requestFeedbackTitle")}</Button>
-            </Link>
+            {journey.feedback_request_submitted ? (
+              <Link href="/feedback">
+                <Button size="sm">{t("viewFeedback")}</Button>
+              </Link>
+            ) : (
+              <Link href="/feedback-request">
+                <Button size="sm">{t("requestFeedbackTitle")}</Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       )}

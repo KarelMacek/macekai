@@ -73,6 +73,7 @@ const translations = {
     adminLinkedinUrl: "LinkedIn",
     adminNoResults: "No diagnostics match.",
     commentLabel: "Comment",
+    viewFeedback: "View your feedback",
   },
   cs: {
     signIn: "Přihlásit se přes Google",
@@ -142,6 +143,7 @@ const translations = {
     adminLinkedinUrl: "LinkedIn",
     adminNoResults: "Žádné diagnostiky neodpovídají.",
     commentLabel: "Komentář",
+    viewFeedback: "Zobrazit svou zpětnou vazbu",
   },
 } as const;
 

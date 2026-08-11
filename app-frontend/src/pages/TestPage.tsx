@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 
+import { SubmissionAnswers } from "@/components/SubmissionAnswers";
 import { Button } from "@/components/ui/button";
 import { MappingTest } from "@/features/assessments/MappingTest";
 import { SnapshotResult } from "@/features/assessments/SnapshotResult";
 import { SnapshotTest } from "@/features/assessments/SnapshotTest";
-import { getTest } from "@/lib/api";
+import { getSubmissions, getTest } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import type { TestDetail, TestSubmission } from "@/types/api";
 
@@ -13,15 +14,25 @@ export function TestPage() {
   const { slug } = useParams<{ slug: string }>();
   const { t, lang } = useTranslation();
   const [test, setTest] = useState<TestDetail | null>(null);
+  // The most recent submission already on file for this test, if any — kept
+  // separate from `submission` (the just-now result screen) so "Review"
+  // shows what was actually answered instead of dumping the customer back
+  // into a blank form. undefined = still loading, null = none exists.
+  const [existingSubmission, setExistingSubmission] = useState<TestSubmission | null | undefined>(undefined);
   const [submission, setSubmission] = useState<TestSubmission | null>(null);
+  const [retaking, setRetaking] = useState(false);
 
   useEffect(() => {
     setTest(null);
     setSubmission(null);
-    if (slug) getTest(slug, lang).then(setTest);
+    setExistingSubmission(undefined);
+    setRetaking(false);
+    if (!slug) return;
+    getTest(slug, lang).then(setTest);
+    getSubmissions().then((subs) => setExistingSubmission(subs.find((s) => s.test_slug === slug) ?? null));
   }, [slug, lang]);
 
-  if (!test) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
+  if (!test || existingSubmission === undefined) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
   if (submission) {
     return (
@@ -37,6 +48,25 @@ export function TestPage() {
               {t("continueButton")}
             </Button>
           </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (existingSubmission && !retaking) {
+    return (
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-6 p-8">
+        <h1 className="text-xl font-semibold">{test.title}</h1>
+        <SubmissionAnswers submission={existingSubmission} />
+        <div className="flex gap-3">
+          <Link href="/">
+            <Button variant="outline" size="sm">
+              {t("continueButton")}
+            </Button>
+          </Link>
+          <Button variant="outline" size="sm" onClick={() => setRetaking(true)}>
+            {t("fillAgain")}
+          </Button>
         </div>
       </div>
     );

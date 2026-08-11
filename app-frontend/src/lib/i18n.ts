@@ -74,6 +74,7 @@ const translations = {
     adminNoResults: "No diagnostics match.",
     commentLabel: "Comment",
     viewFeedback: "View your feedback",
+    fillAgain: "Fill again",
   },
   cs: {
     signIn: "Přihlásit se přes Google",
@@ -144,6 +145,7 @@ const translations = {
     adminNoResults: "Žádné diagnostiky neodpovídají.",
     commentLabel: "Komentář",
     viewFeedback: "Zobrazit svou zpětnou vazbu",
+    fillAgain: "Vyplnit znovu",
   },
 } as const;
 

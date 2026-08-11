@@ -159,12 +159,6 @@ LOGGING = {
 EASY_AUTH_ENABLED = os.environ.get('EASY_AUTH_ENABLED', 'False') == 'True'
 EASY_AUTH_DEV_USER_EMAIL = os.environ.get('EASY_AUTH_DEV_USER_EMAIL', '')
 
-_allowed_emails_raw = os.environ.get('EASY_AUTH_ALLOWED_EMAILS', '')
-EASY_AUTH_ALLOWED_EMAILS = [e.strip() for e in _allowed_emails_raw.split(',') if e.strip()]
-
-_allowed_groups_raw = os.environ.get('EASY_AUTH_ALLOWED_GROUP_IDS', '')
-EASY_AUTH_ALLOWED_GROUP_IDS = [g.strip() for g in _allowed_groups_raw.split(',') if g.strip()]
-
 # The one admin (Karel) — this email is granted is_staff on login, giving access
 # to /admin/ (assessments review/authoring). See backend/auth/middleware.py.
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')

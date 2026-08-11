@@ -2,7 +2,6 @@ import logging
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 
 from .easy_auth import AzureEasyAuthPrincipal, decode_client_principal
 from assessments.services import link_unlinked_diagnostics
@@ -51,10 +50,15 @@ class AzureEasyAuthMiddleware:
         )
 
     def _get_or_create_user(self, principal: AzureEasyAuthPrincipal):
-        if not self._is_allowed(principal):
-            logger.warning("Easy Auth: access denied for %s", principal.email or principal.object_id)
-            return AnonymousUser()
-
+        # Any valid Google login gets a real Django session — access to the
+        # app itself is entirely database-driven from there (see
+        # assessments.services.has_any_diagnostics / the frontend gate), not
+        # a static allow-list. There used to be an EASY_AUTH_ALLOWED_EMAILS/
+        # EASY_AUTH_ALLOWED_GROUP_IDS gate here from when this was a closed
+        # testers-only skeleton; removed since it silently rejected real
+        # accounts before Django ever got a chance to show the "you don't
+        # have a diagnostics yet" message, making a legitimate no-access
+        # case look like a broken login loop instead.
         first_name, last_name = "", ""
         if principal.name:
             parts = principal.name.split(" ", 1)
@@ -82,13 +86,3 @@ class AzureEasyAuthMiddleware:
         # nothing matches.
         link_unlinked_diagnostics(user)
         return user
-
-    def _is_allowed(self, principal: AzureEasyAuthPrincipal) -> bool:
-        allowed_emails: list[str] = getattr(settings, "EASY_AUTH_ALLOWED_EMAILS", [])
-        allowed_groups: list[str] = getattr(settings, "EASY_AUTH_ALLOWED_GROUP_IDS", [])
-
-        if allowed_emails and principal.email.lower() not in [e.lower() for e in allowed_emails]:
-            return False
-        if allowed_groups and not any(g in allowed_groups for g in principal.groups):
-            return False
-        return True

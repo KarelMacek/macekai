@@ -52,6 +52,12 @@ variable "google_client_id" {
   type = string
 }
 
+# Not secret — grants is_staff on login, see backend/auth/middleware.py.
+variable "admin_email" {
+  type    = string
+  default = ""
+}
+
 variable "postgres_fqdn" {
   type = string
 }
@@ -161,6 +167,7 @@ resource "azurerm_linux_web_app" "app" {
     "EASY_AUTH_ENABLED" = "True"
 
     "GOOGLE_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["google-client-secret"]
+    "ADMIN_EMAIL"                           = var.admin_email
 
     "POSTGRES_DB"       = var.postgres_database_name
     "POSTGRES_USER"     = var.postgres_administrator_login

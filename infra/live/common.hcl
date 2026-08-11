@@ -11,7 +11,13 @@
 # secret (visible in the browser's OAuth redirect regardless). The
 # corresponding Client *Secret* goes through Key Vault via
 # TF_VAR_google_client_secret, same pattern as the old Easy Auth secret.
+#
+# admin_email: the one admin (Karel) — this Google account gets is_staff on
+# login, granting /admin/ access (assessments authoring + feedback review).
+# Same account for every environment, so set once here rather than repeated
+# per environment. See app-backend/backend/auth/middleware.py.
 locals {
   tenant_id        = "169b8ff6-9bc7-43e8-8ad3-902fd6852f89" # macek.ai tenant, confirmed via `az account show`
   google_client_id = "216246394621-1392smrosb70db367hiets4fq0cij03m.apps.googleusercontent.com" # "macekai-app-backend" OAuth client, Google Cloud project "MacekAI", created 2026-08-10
+  admin_email      = "kouckarel@gmail.com"
 }

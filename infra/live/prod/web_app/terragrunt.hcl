@@ -75,6 +75,7 @@ inputs = {
   acr_admin_password = dependency.acr.outputs.admin_password
 
   google_client_id = local.common.google_client_id
+  admin_email      = local.common.admin_email
 
   postgres_fqdn                = dependency.postgres.outputs.fqdn
   postgres_database_name       = dependency.postgres.outputs.database_name

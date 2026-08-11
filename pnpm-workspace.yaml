@@ -1,4 +1,4 @@
 packages:
   - "landing"
+  - "app-frontend"
   - "webinars/2026-08-22 brain and career nemensis/cameo-spike"
-  # Phase 2: - "app-frontend"

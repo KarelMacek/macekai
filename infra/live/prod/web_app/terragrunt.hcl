@@ -74,8 +74,8 @@ inputs = {
   acr_admin_username = dependency.acr.outputs.admin_username
   acr_admin_password = dependency.acr.outputs.admin_password
 
-  tenant_id           = local.common.tenant_id
-  easy_auth_client_id = local.common.easy_auth_client_id
+  google_client_id = local.common.google_client_id
+  admin_email      = local.common.admin_email
 
   postgres_fqdn                = dependency.postgres.outputs.fqdn
   postgres_database_name       = dependency.postgres.outputs.database_name

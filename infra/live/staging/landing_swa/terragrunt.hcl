@@ -24,8 +24,11 @@ inputs = {
   project_name        = local.env.project_name
   environment_name    = local.env.environment_name
   resource_group_name = dependency.resource_group.outputs.name
-  location            = dependency.resource_group.outputs.location
-  app_name            = "landing"
+  # Azure Static Web Apps aren't available in every region — germanywestcentral
+  # (this env's resource_group location) isn't one of them. Use app_location
+  # (westeurope) instead, same region already used for App Service/Postgres here.
+  location = local.env.app_location
+  app_name = "landing"
   # No custom_domain here — staging doesn't have a DNS subdomain set up yet.
   # Add one (e.g. "staging.macek.ai") once the CNAME/TXT records exist at the
   # external DNS provider — see infra/README.md.

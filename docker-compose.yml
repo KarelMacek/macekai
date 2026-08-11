@@ -3,8 +3,8 @@
 # asistentka's docker-compose.yml, minus its `worker` service (no background
 # job planned for macekai yet — see CLAUDE.md).
 #
-# NOT YET FUNCTIONAL: depends on the Dockerfile, which depends on
-# app-backend/app-frontend code that doesn't exist yet (Phase 2, not built).
+# Verified working end-to-end (build + migrate + dev-login + full assessment
+# journey) against the self-assessment-test-engine feature.
 
 services:
   web:

@@ -1,0 +1,3401 @@
+[
+{
+  "model": "assessments.test",
+  "pk": 1,
+  "fields": {
+    "slug": "personal-snapshot",
+    "test_type": "snapshot",
+    "version": 1,
+    "title": {
+      "en": "Personal Wellbeing Snapshot",
+      "cs": "Osobní kontrolní přehled"
+    },
+    "description": {
+      "en": "A checklist across six areas of your life — mark what's currently true for you.",
+      "cs": "Kontrolní seznam napříč šesti oblastmi tvého života — označ, co je pro tebe teď pravda."
+    },
+    "instructions": {
+      "en": "For each statement, answer Yes or No — whichever currently feels true. There are no right answers.",
+      "cs": "U každého tvrzení odpověz Ano nebo Ne — podle toho, co teď platí. Neexistují správné odpovědi."
+    },
+    "is_active": true,
+    "created_at": "2026-08-10T18:09:36.807Z"
+  }
+},
+{
+  "model": "assessments.test",
+  "pk": 2,
+  "fields": {
+    "slug": "operating-map",
+    "test_type": "mapping",
+    "version": 1,
+    "title": {
+      "en": "Personal Operating Map",
+      "cs": "Osobní mapa fungování"
+    },
+    "description": {
+      "en": "",
+      "cs": ""
+    },
+    "instructions": {
+      "en": "Please answer the following questions honestly.",
+      "cs": "Prosím, odpovězte upřímně na následující otázky."
+    },
+    "is_active": true,
+    "created_at": "2026-08-10T18:09:39.483Z"
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 1,
+  "fields": {
+    "test": 1,
+    "key": "relationships",
+    "name": {
+      "en": "Relationships",
+      "cs": "Vztahy"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 2,
+  "fields": {
+    "test": 1,
+    "key": "personal",
+    "name": {
+      "en": "Personal",
+      "cs": "Osobní"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 3,
+  "fields": {
+    "test": 1,
+    "key": "home-environment",
+    "name": {
+      "en": "Home Environment",
+      "cs": "Domácí prostředí"
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 4,
+  "fields": {
+    "test": 1,
+    "key": "health-and-body",
+    "name": {
+      "en": "Health and Body",
+      "cs": "Zdraví a tělo"
+    },
+    "order": 3
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 5,
+  "fields": {
+    "test": 1,
+    "key": "work",
+    "name": {
+      "en": "Work",
+      "cs": "Práce"
+    },
+    "order": 4
+  }
+},
+{
+  "model": "assessments.category",
+  "pk": 6,
+  "fields": {
+    "test": 1,
+    "key": "finances",
+    "name": {
+      "en": "Finances",
+      "cs": "Finance"
+    },
+    "order": 5
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 1,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I am satisfied with the level of intimacy in my life",
+      "cs": "Jsem spokojen(a) s úrovní intimity ve svém životě"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 2,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "My partner and I respect each other mutually and are equals",
+      "cs": "S mým partnerem se vzájemně respektujeme a jsme rovnocenní"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 3,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I get along well with colleagues at work",
+      "cs": "S kolegy v práci vycházím dobře"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 4,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I easily reach agreement with people I have had conflicts with",
+      "cs": "Snadno se dohodnu s lidmi, se kterými jsem měl(a) konflikty"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 5,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I trust the people who are important in my life",
+      "cs": "Lidem, kteří jsou pro mne v životě důležití, důvěřuji"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 6,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I get along well with my neighbors and talk with them",
+      "cs": "Dobře vycházím se svými sousedy a mluvím s nimi"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 7,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I consider myself a good friend",
+      "cs": "Považuji se za dobrého přítele (přítelkyni)"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 8,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I see the people who are important to me regularly",
+      "cs": "S lidmi, kteří jsou pro mne důležití, se vídám pravidelně"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 9,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "My family and friends know how important they are to me",
+      "cs": "Má rodina a mí přátelé vědí, jak moc jsou pro mne důležití"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 10,
+  "fields": {
+    "test": 1,
+    "category": 1,
+    "question_type": "likert",
+    "text": {
+      "en": "I am satisfied with my social life",
+      "cs": "Jsem spokojený(á) se svým společenským životem"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 11,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I like myself",
+      "cs": "Mám se rád(a)"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 12,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I have celebrated my birthday in the last 2 years",
+      "cs": "V posledních 2 letech jsem slavil(a) své narozeniny"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 13,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I lead an active life outside of work",
+      "cs": "Vedu aktivní mimopracovní život"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 14,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I have enough self-confidence to do what I want in life",
+      "cs": "Mám dost sebedůvěry dělat v životě, co chci"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 15,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I take a reasonable vacation every year",
+      "cs": "Mám každý rok přiměřenou dovolenou"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 16,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I do not lie or exaggerate",
+      "cs": "Nelžu ani nepřeháním"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 17,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I can comfortably say no when I need to",
+      "cs": "V pohodě řeknu ne, když to potřebuji"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 18,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "People know they can count on me and that I do what I say",
+      "cs": "Lidé vědí, že se mnou mohou počítat a že udělám, co řeknu"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 19,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I can easily remember the last time I really laughed",
+      "cs": "Snadno si vzpomenu, kdy jsem se naposled opravdu nasmál(a)"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 20,
+  "fields": {
+    "test": 1,
+    "category": 2,
+    "question_type": "likert",
+    "text": {
+      "en": "I can express my creativity",
+      "cs": "Umím vyjadřovat svou tvořivost"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 21,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "I am happy with my home",
+      "cs": "Jsem šťastný(á) se svým domovem"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 22,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "My home is usually tidy and clean",
+      "cs": "Doma mám obvykle uklizeno a čisto"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 23,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "I surround myself with things I love",
+      "cs": "Obklopuji se věcmi, které mám rád"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 24,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "I do not clutter my space with 'dust catchers' (odds and ends)",
+      "cs": "Nezanáším se „lapači prachu“ (věcmi a věcičkami)"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 25,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "I sort waste at home",
+      "cs": "Doma třídím odpad"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 26,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "My personal files are sorted and organized",
+      "cs": "Mé osobní složky jsou vytříděné a uklizené"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 27,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "My bed supports me in getting good sleep",
+      "cs": "Má postel mne podporuje v dobrém spánku"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 28,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "My bed is always properly made",
+      "cs": "Má postel je vždy řádně ustlaná"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 29,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "I display photos of my loved ones",
+      "cs": "Mám vystavené fotografie svých milovaných blízkých"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 30,
+  "fields": {
+    "test": 1,
+    "category": 3,
+    "question_type": "likert",
+    "text": {
+      "en": "I am satisfied with my means of transportation",
+      "cs": "Jsem spokojený(á) se svým způsobem přepravy"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 31,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I am satisfied with my current weight",
+      "cs": "Jsem spokojený(á) se svou současnou váhou"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 32,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I exercise at least three times a week",
+      "cs": "Cvičím alespoň třikrát týdně"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 33,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I eat a balanced diet with plenty of fresh foods",
+      "cs": "Jím vyváženou stravu se spoustou čerstvých potravin"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 34,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I do not smoke excessively or drink too much alcohol",
+      "cs": "Přehnaně nekouřím a nepiji alkohol"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 35,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I drink at least 2 liters of water every day",
+      "cs": "Denně vypiji alespoň 2 litry vody"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 36,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I regularly go for preventive medical and dental checkups",
+      "cs": "Pravidelně chodím na lékařské a zubařské preventivní prohlídky"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 37,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I am satisfied with the amount of sleep I get",
+      "cs": "Jsem spokojený(á) s množstvím svého spánku"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 38,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I have suitable clothing for work and leisure",
+      "cs": "Mám vhodné oblečení pro práci i volný čas"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 39,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "I do not worry about my stress level",
+      "cs": "Nedělám si starosti s úrovní svého stresu"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 40,
+  "fields": {
+    "test": 1,
+    "category": 4,
+    "question_type": "likert",
+    "text": {
+      "en": "Overall, I feel good",
+      "cs": "Celkově se cítím dobře"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 41,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "My work stimulates me",
+      "cs": "Moje práce mne stimuluje"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 42,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I am proud of what I do in my work",
+      "cs": "Jsem hrdý(á) na to, co dělám ve své práci"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 43,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I feel appreciated at work",
+      "cs": "Cítím se v práci oceňovaný(á)"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 44,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I respect the people I work with",
+      "cs": "Respektuji lidi, se kterými pracuji"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 45,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I know where my career is headed",
+      "cs": "Vím, kam směřuje moje kariéra"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 46,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I respond to phone calls and e-mails within 48 hours",
+      "cs": "Odpovídám na telefony a e-maily do 48 hodin"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 47,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I do not let paperwork pile up",
+      "cs": "Nenechávám narůstat nevyřízené papírování"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 48,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I complete my work in a reasonable amount of time",
+      "cs": "Dokončuji svou práci v rozumné době"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 49,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I manage planning my time well",
+      "cs": "Dobře zvládám plánování svého času"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 50,
+  "fields": {
+    "test": 1,
+    "category": 5,
+    "question_type": "likert",
+    "text": {
+      "en": "I delegate without feeling guilty",
+      "cs": "Deleguji bez pocitu viny"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 51,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I am satisfied with my income",
+      "cs": "Jsem spokojený(á) se svým příjmem"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 52,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I have a budget that I use",
+      "cs": "Mám rozpočet, který využívám"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 53,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I pay my bills on time",
+      "cs": "Platím své účty včas"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 54,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I know how much I owe and when I will repay it",
+      "cs": "Vím, kolik dlužím a kdy to splatím"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 55,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I have a long-term financial plan",
+      "cs": "Mám dlouhodobý finanční plán"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 56,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I am able to reward myself without feeling guilty",
+      "cs": "Jsem schopen (schopna) se odměnit bez pocitu viny"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 57,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I use my credit card responsibly",
+      "cs": "Svou kreditní kartu používám rozumně"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 58,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I have a last will and testament",
+      "cs": "Mám poslední vůli"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 59,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "My wallet is not stuffed with unprocessed receipts",
+      "cs": "Moje peněženka není zanesena nevyřízenými účtenkami"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 60,
+  "fields": {
+    "test": 1,
+    "category": 6,
+    "question_type": "likert",
+    "text": {
+      "en": "I fulfill my tax obligations on time",
+      "cs": "Své daňové povinnosti plním včas"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": true,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 61,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What currently motivates you the most?",
+      "cs": "Co vás aktuálně nejvíc motivuje?"
+    },
+    "help_text": {},
+    "order": 0,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 62,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What most often holds you back?",
+      "cs": "Co vás naopak nejčastěji brzdí?"
+    },
+    "help_text": {},
+    "order": 1,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 63,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "In what ways do you tend to sabotage yourself?",
+      "cs": "Jaké máte tendence podkopávat sám sebe?"
+    },
+    "help_text": {},
+    "order": 2,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 64,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "In what situations do you make worse decisions than you would like?",
+      "cs": "V jakých situacích děláte horší rozhodnutí než byste chtěl/a?"
+    },
+    "help_text": {},
+    "order": 3,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 65,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you know when you are “in flow”?",
+      "cs": "Jak poznáte, že jste „ve flow“?"
+    },
+    "help_text": {},
+    "order": 4,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 66,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you learn best? What does not work for you?",
+      "cs": "Jak se nejlépe učíte? Co vám naopak nefunguje?"
+    },
+    "help_text": {},
+    "order": 5,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 67,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you react under pressure?",
+      "cs": "Jak reagujete pod tlakem?"
+    },
+    "help_text": {},
+    "order": 6,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 68,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you relieve stress?",
+      "cs": "Jak uvolňujete stres?"
+    },
+    "help_text": {},
+    "order": 7,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 69,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What gives you energy in the long term?",
+      "cs": "Co vám dlouhodobě dodává energii?"
+    },
+    "help_text": {},
+    "order": 8,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 70,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What systematically drains your energy?",
+      "cs": "Co vám energii systematicky bere?"
+    },
+    "help_text": {},
+    "order": 9,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 71,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "How do you have fun (really, not how you “should”)?",
+      "cs": "Jak se bavíte (opravdu, ne „mělo by se“)?"
+    },
+    "help_text": {},
+    "order": 10,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 72,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What do you do to take regular care of yourself?",
+      "cs": "Co děláte, abyste o sebe pravidelně pečoval/a?"
+    },
+    "help_text": {},
+    "order": 11,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 73,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What are your strengths?",
+      "cs": "Jaká jsou vaše silná místa?"
+    },
+    "help_text": {},
+    "order": 12,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 74,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "Where do you see your weaknesses?",
+      "cs": "Kde vidíte svá slabá místa?"
+    },
+    "help_text": {},
+    "order": 13,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 75,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What have you given up on in life (consciously or unconsciously)?",
+      "cs": "Co jste v životě vzdal/a (vědomě či nevědomě)?"
+    },
+    "help_text": {},
+    "order": 14,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 76,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "When were you happiest in life? Why?",
+      "cs": "Kdy jste byl/a v životě nejvíc spokojený/á? Proč?"
+    },
+    "help_text": {},
+    "order": 15,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 77,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "And when were you least happy? What was happening then?",
+      "cs": "Kdy naopak nejméně? Co se tam dělo?"
+    },
+    "help_text": {},
+    "order": 16,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 78,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What kind of environment brings out the best in you?",
+      "cs": "Jaké prostředí z vás dostává to nejlepší?"
+    },
+    "help_text": {},
+    "order": 17,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 79,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What kind of environment destroys or suppresses you?",
+      "cs": "Jaké prostředí vás ničí nebo tlumí?"
+    },
+    "help_text": {},
+    "order": 18,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.question",
+  "pk": 80,
+  "fields": {
+    "test": 2,
+    "category": null,
+    "question_type": "open_text",
+    "text": {
+      "en": "What do people often say about you that you do not fully see yourself?",
+      "cs": "Co o vás lidé často říkají, co vy sám/a úplně nevidíte?"
+    },
+    "help_text": {},
+    "order": 19,
+    "allow_comment": false,
+    "config": {}
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 1,
+  "fields": {
+    "question": 1,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 2,
+  "fields": {
+    "question": 1,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 3,
+  "fields": {
+    "question": 2,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 4,
+  "fields": {
+    "question": 2,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 5,
+  "fields": {
+    "question": 3,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 6,
+  "fields": {
+    "question": 3,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 7,
+  "fields": {
+    "question": 4,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 8,
+  "fields": {
+    "question": 4,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 9,
+  "fields": {
+    "question": 5,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 10,
+  "fields": {
+    "question": 5,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 11,
+  "fields": {
+    "question": 6,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 12,
+  "fields": {
+    "question": 6,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 13,
+  "fields": {
+    "question": 7,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 14,
+  "fields": {
+    "question": 7,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 15,
+  "fields": {
+    "question": 8,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 16,
+  "fields": {
+    "question": 8,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 17,
+  "fields": {
+    "question": 9,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 18,
+  "fields": {
+    "question": 9,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 19,
+  "fields": {
+    "question": 10,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 20,
+  "fields": {
+    "question": 10,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 21,
+  "fields": {
+    "question": 11,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 22,
+  "fields": {
+    "question": 11,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 23,
+  "fields": {
+    "question": 12,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 24,
+  "fields": {
+    "question": 12,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 25,
+  "fields": {
+    "question": 13,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 26,
+  "fields": {
+    "question": 13,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 27,
+  "fields": {
+    "question": 14,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 28,
+  "fields": {
+    "question": 14,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 29,
+  "fields": {
+    "question": 15,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 30,
+  "fields": {
+    "question": 15,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 31,
+  "fields": {
+    "question": 16,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 32,
+  "fields": {
+    "question": 16,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 33,
+  "fields": {
+    "question": 17,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 34,
+  "fields": {
+    "question": 17,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 35,
+  "fields": {
+    "question": 18,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 36,
+  "fields": {
+    "question": 18,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 37,
+  "fields": {
+    "question": 19,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 38,
+  "fields": {
+    "question": 19,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 39,
+  "fields": {
+    "question": 20,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 40,
+  "fields": {
+    "question": 20,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 41,
+  "fields": {
+    "question": 21,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 42,
+  "fields": {
+    "question": 21,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 43,
+  "fields": {
+    "question": 22,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 44,
+  "fields": {
+    "question": 22,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 45,
+  "fields": {
+    "question": 23,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 46,
+  "fields": {
+    "question": 23,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 47,
+  "fields": {
+    "question": 24,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 48,
+  "fields": {
+    "question": 24,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 49,
+  "fields": {
+    "question": 25,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 50,
+  "fields": {
+    "question": 25,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 51,
+  "fields": {
+    "question": 26,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 52,
+  "fields": {
+    "question": 26,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 53,
+  "fields": {
+    "question": 27,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 54,
+  "fields": {
+    "question": 27,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 55,
+  "fields": {
+    "question": 28,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 56,
+  "fields": {
+    "question": 28,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 57,
+  "fields": {
+    "question": 29,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 58,
+  "fields": {
+    "question": 29,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 59,
+  "fields": {
+    "question": 30,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 60,
+  "fields": {
+    "question": 30,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 61,
+  "fields": {
+    "question": 31,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 62,
+  "fields": {
+    "question": 31,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 63,
+  "fields": {
+    "question": 32,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 64,
+  "fields": {
+    "question": 32,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 65,
+  "fields": {
+    "question": 33,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 66,
+  "fields": {
+    "question": 33,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 67,
+  "fields": {
+    "question": 34,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 68,
+  "fields": {
+    "question": 34,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 69,
+  "fields": {
+    "question": 35,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 70,
+  "fields": {
+    "question": 35,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 71,
+  "fields": {
+    "question": 36,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 72,
+  "fields": {
+    "question": 36,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 73,
+  "fields": {
+    "question": 37,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 74,
+  "fields": {
+    "question": 37,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 75,
+  "fields": {
+    "question": 38,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 76,
+  "fields": {
+    "question": 38,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 77,
+  "fields": {
+    "question": 39,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 78,
+  "fields": {
+    "question": 39,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 79,
+  "fields": {
+    "question": 40,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 80,
+  "fields": {
+    "question": 40,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 81,
+  "fields": {
+    "question": 41,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 82,
+  "fields": {
+    "question": 41,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 83,
+  "fields": {
+    "question": 42,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 84,
+  "fields": {
+    "question": 42,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 85,
+  "fields": {
+    "question": 43,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 86,
+  "fields": {
+    "question": 43,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 87,
+  "fields": {
+    "question": 44,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 88,
+  "fields": {
+    "question": 44,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 89,
+  "fields": {
+    "question": 45,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 90,
+  "fields": {
+    "question": 45,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 91,
+  "fields": {
+    "question": 46,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 92,
+  "fields": {
+    "question": 46,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 93,
+  "fields": {
+    "question": 47,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 94,
+  "fields": {
+    "question": 47,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 95,
+  "fields": {
+    "question": 48,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 96,
+  "fields": {
+    "question": 48,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 97,
+  "fields": {
+    "question": 49,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 98,
+  "fields": {
+    "question": 49,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 99,
+  "fields": {
+    "question": 50,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 100,
+  "fields": {
+    "question": 50,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 101,
+  "fields": {
+    "question": 51,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 102,
+  "fields": {
+    "question": 51,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 103,
+  "fields": {
+    "question": 52,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 104,
+  "fields": {
+    "question": 52,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 105,
+  "fields": {
+    "question": 53,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 106,
+  "fields": {
+    "question": 53,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 107,
+  "fields": {
+    "question": 54,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 108,
+  "fields": {
+    "question": 54,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 109,
+  "fields": {
+    "question": 55,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 110,
+  "fields": {
+    "question": 55,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 111,
+  "fields": {
+    "question": 56,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 112,
+  "fields": {
+    "question": 56,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 113,
+  "fields": {
+    "question": 57,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 114,
+  "fields": {
+    "question": 57,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 115,
+  "fields": {
+    "question": 58,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 116,
+  "fields": {
+    "question": 58,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 117,
+  "fields": {
+    "question": 59,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 118,
+  "fields": {
+    "question": 59,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 119,
+  "fields": {
+    "question": 60,
+    "value": 0.0,
+    "label": {
+      "en": "No",
+      "cs": "Ne"
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.likertoption",
+  "pk": 120,
+  "fields": {
+    "question": 60,
+    "value": 1.0,
+    "label": {
+      "en": "Yes",
+      "cs": "Ano"
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 1,
+  "fields": {
+    "category": 1,
+    "min_score": 0.0,
+    "max_score": 0.4,
+    "title": {
+      "en": "Relationships may need attention",
+      "cs": "Vztahy možná potřebují pozornost"
+    },
+    "description": {
+      "en": "Fewer of these statements felt true right now — this could be a good area to bring into a coaching conversation.",
+      "cs": "Méně těchto tvrzení teď platí — tohle může být dobrá oblast, kterou probrat v koučinku."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 2,
+  "fields": {
+    "category": 1,
+    "min_score": 0.4,
+    "max_score": 0.7,
+    "title": {
+      "en": "A solid foundation, with room to grow",
+      "cs": "Solidní základ, se kterým je stále prostor pracovat"
+    },
+    "description": {
+      "en": "You have real strengths in your relationships, alongside a few areas worth developing further.",
+      "cs": "Máš ve vztazích reálné silné stránky, spolu s několika oblastmi, které stojí za další rozvoj."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 3,
+  "fields": {
+    "category": 1,
+    "min_score": 0.7,
+    "max_score": 1.0,
+    "title": {
+      "en": "A real strength for you",
+      "cs": "Skutečná silná stránka"
+    },
+    "description": {
+      "en": "Relationships look like a solid part of your foundation right now.",
+      "cs": "Vztahy teď vypadají jako pevná součást tvého základu."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 4,
+  "fields": {
+    "category": 2,
+    "min_score": 0.0,
+    "max_score": 0.4,
+    "title": {
+      "en": "Personal life may need attention",
+      "cs": "Osobní oblast možná potřebuje pozornost"
+    },
+    "description": {
+      "en": "A few of these day-to-day personal habits might be worth revisiting.",
+      "cs": "Několik z těchto každodenních osobních návyků možná stojí za to si znovu projít."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "min_score": 0.4,
+    "max_score": 0.7,
+    "title": {
+      "en": "A solid foundation, with room to grow",
+      "cs": "Solidní základ, se kterým je stále prostor pracovat"
+    },
+    "description": {
+      "en": "You've got good personal habits in place, with a few more to build on.",
+      "cs": "Máš zavedené dobré osobní návyky, a je na čem dál stavět."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 6,
+  "fields": {
+    "category": 2,
+    "min_score": 0.7,
+    "max_score": 1.0,
+    "title": {
+      "en": "A real strength for you",
+      "cs": "Skutečná silná stránka"
+    },
+    "description": {
+      "en": "Your personal life looks like a solid part of your foundation right now.",
+      "cs": "Tvůj osobní život teď vypadá jako pevná součást tvého základu."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 7,
+  "fields": {
+    "category": 3,
+    "min_score": 0.0,
+    "max_score": 0.4,
+    "title": {
+      "en": "Your home environment may need attention",
+      "cs": "Domácí prostředí možná potřebuje pozornost"
+    },
+    "description": {
+      "en": "A few things about your physical space might be worth sorting out.",
+      "cs": "Několik věcí v tvém prostoru možná stojí za to si urovnat."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 8,
+  "fields": {
+    "category": 3,
+    "min_score": 0.4,
+    "max_score": 0.7,
+    "title": {
+      "en": "A solid foundation, with room to grow",
+      "cs": "Solidní základ, se kterým je stále prostor pracovat"
+    },
+    "description": {
+      "en": "Your home mostly supports you, with a few things still worth tidying up.",
+      "cs": "Tvůj domov tě většinou podporuje, a pár věcí ještě stojí za uklizení."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 9,
+  "fields": {
+    "category": 3,
+    "min_score": 0.7,
+    "max_score": 1.0,
+    "title": {
+      "en": "A real strength for you",
+      "cs": "Skutečná silná stránka"
+    },
+    "description": {
+      "en": "Your home environment looks like a solid part of your foundation right now.",
+      "cs": "Tvé domácí prostředí teď vypadá jako pevná součást tvého základu."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 10,
+  "fields": {
+    "category": 4,
+    "min_score": 0.0,
+    "max_score": 0.4,
+    "title": {
+      "en": "Health and body may need attention",
+      "cs": "Zdraví a tělo možná potřebují pozornost"
+    },
+    "description": {
+      "en": "A few health and body basics might be worth revisiting.",
+      "cs": "Několik základních věcí ohledně zdraví a těla možná stojí za to si znovu projít."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 11,
+  "fields": {
+    "category": 4,
+    "min_score": 0.4,
+    "max_score": 0.7,
+    "title": {
+      "en": "A solid foundation, with room to grow",
+      "cs": "Solidní základ, se kterým je stále prostor pracovat"
+    },
+    "description": {
+      "en": "You've got good habits in place, with a few more worth building.",
+      "cs": "Máš zavedené dobré návyky, a je na čem dál stavět."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 12,
+  "fields": {
+    "category": 4,
+    "min_score": 0.7,
+    "max_score": 1.0,
+    "title": {
+      "en": "A real strength for you",
+      "cs": "Skutečná silná stránka"
+    },
+    "description": {
+      "en": "Your health and body look like a solid part of your foundation right now.",
+      "cs": "Tvé zdraví a tělo teď vypadají jako pevná součást tvého základu."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 13,
+  "fields": {
+    "category": 5,
+    "min_score": 0.0,
+    "max_score": 0.4,
+    "title": {
+      "en": "Work may need attention",
+      "cs": "Práce možná potřebuje pozornost"
+    },
+    "description": {
+      "en": "A few things about your work life might be worth bringing into a coaching conversation.",
+      "cs": "Několik věcí ohledně tvé práce možná stojí za to probrat v koučinku."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 14,
+  "fields": {
+    "category": 5,
+    "min_score": 0.4,
+    "max_score": 0.7,
+    "title": {
+      "en": "A solid foundation, with room to grow",
+      "cs": "Solidní základ, se kterým je stále prostor pracovat"
+    },
+    "description": {
+      "en": "Work looks mostly solid, with a few areas still worth developing.",
+      "cs": "Práce vypadá vesměs solidně, a pár oblastí ještě stojí za rozvoj."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 15,
+  "fields": {
+    "category": 5,
+    "min_score": 0.7,
+    "max_score": 1.0,
+    "title": {
+      "en": "A real strength for you",
+      "cs": "Skutečná silná stránka"
+    },
+    "description": {
+      "en": "Work looks like a solid part of your foundation right now.",
+      "cs": "Práce teď vypadá jako pevná součást tvého základu."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 16,
+  "fields": {
+    "category": 6,
+    "min_score": 0.0,
+    "max_score": 0.4,
+    "title": {
+      "en": "Finances may need attention",
+      "cs": "Finance možná potřebují pozornost"
+    },
+    "description": {
+      "en": "A few financial basics might be worth revisiting.",
+      "cs": "Několik finančních základů možná stojí za to si znovu projít."
+    },
+    "order": 0
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 17,
+  "fields": {
+    "category": 6,
+    "min_score": 0.4,
+    "max_score": 0.7,
+    "title": {
+      "en": "A solid foundation, with room to grow",
+      "cs": "Solidní základ, se kterým je stále prostor pracovat"
+    },
+    "description": {
+      "en": "Your finances look mostly solid, with a few habits still worth building.",
+      "cs": "Tvé finance vypadají vesměs solidně, a pár návyků ještě stojí za vybudování."
+    },
+    "order": 1
+  }
+},
+{
+  "model": "assessments.resultthreshold",
+  "pk": 18,
+  "fields": {
+    "category": 6,
+    "min_score": 0.7,
+    "max_score": 1.0,
+    "title": {
+      "en": "A real strength for you",
+      "cs": "Skutečná silná stránka"
+    },
+    "description": {
+      "en": "Finances look like a solid part of your foundation right now.",
+      "cs": "Finance teď vypadají jako pevná součást tvého základu."
+    },
+    "order": 2
+  }
+},
+{
+  "model": "assessments.journey",
+  "pk": 1,
+  "fields": {
+    "slug": "default",
+    "name": {
+      "en": "Default Journey",
+      "cs": "Výchozí cesta"
+    },
+    "is_active": true,
+    "simpleshop_product_id": "DIAGNOSTICS-DEFAULT"
+  }
+},
+{
+  "model": "assessments.journeystep",
+  "pk": 1,
+  "fields": {
+    "journey": 1,
+    "test": 1,
+    "order": 0
+  }
+},
+{
+  "model": "assessments.journeystep",
+  "pk": 2,
+  "fields": {
+    "journey": 1,
+    "test": 2,
+    "order": 1
+  }
+}
+]

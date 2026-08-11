@@ -65,6 +65,11 @@ jspm_packages/
 __pycache__/
 *.pyc
 
+# Python virtual envs and Django static/media build output
+.venv/
+app-backend/staticfiles/
+app-backend/sqlite/
+
 # Optional npm cache directory
 .npm
 

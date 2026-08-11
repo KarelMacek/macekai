@@ -1,6 +1,6 @@
 # Secrets this environment needs from outside Terraform (no dependency
-# module produces them): easy_auth_client_secret, tavily_api_key — via
-# TF_VAR_easy_auth_client_secret / TF_VAR_tavily_api_key (see
+# module produces them): google_client_secret, tavily_api_key — via
+# TF_VAR_google_client_secret / TF_VAR_tavily_api_key (see
 # infra/README.md). tavily_api_key defaults to "" if unset. Everything else
 # secret is generated or already known to Terraform via dependency outputs
 # from postgres/storage/web_app.

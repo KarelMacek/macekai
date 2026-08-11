@@ -711,8 +711,14 @@ export const t = {
         {
           num: "01",
           icon: "check",
-          title: "Chci vůbec v životě něco měnit?",
-          desc: "Pokud ne, můžeš opustit tuto stránku.",
+          title: "Stálo by něco ve tvém životě za změnu k lepšímu?",
+          desc: "Odpověz upřímě.",
+          yesNo: {
+            yes: "Možná",
+            no: "Ne",
+            yesResponse: "Můžeš na rychlý check",
+            noResponse: "Můžeš zavřít okno.",
+          },
         },
         {
           num: "02",
@@ -749,15 +755,21 @@ export const t = {
         {
           num: "01",
           icon: "check",
-          title: "Do I even want to change anything in my life?",
-          desc: "If not, you can leave this page.",
+          title: "Would something in your life be worth changing for the better?",
+          desc: "Answer honestly.",
+          yesNo: {
+            yes: "Maybe",
+            no: "No",
+            yesResponse: "You can take the quick check",
+            noResponse: "You can close this window.",
+          },
         },
         {
           num: "02",
           icon: "clipboardCheck",
           title: "Free quick check",
           desc: "7 questions · 2 minutes",
-          price: "0 CZK",
+          price: "0 EUR",
           cta: "Start the check",
         },
         {
@@ -765,7 +777,7 @@ export const t = {
           icon: "search",
           title: "Intake diagnostics",
           desc: "A deeper questionnaire + my brief take within a week",
-          price: "590 CZK",
+          price: "11.99 EUR",
           cta: "Buy",
         },
         {
@@ -773,7 +785,7 @@ export const t = {
           icon: "compass",
           title: "360° mapping consultation",
           desc: "Together we'll clarify the situation and direction during a 90-minute consultation.",
-          price: "3 600 CZK",
+          price: "150 EUR",
           cta: "Book",
         },
         {

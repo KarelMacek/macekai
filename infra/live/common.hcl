@@ -1,17 +1,23 @@
-# Values shared by every environment: neither secret (both would be visible
-# in login redirect URLs / browser network tabs — a directory ID and a
-# public client ID, not a credential) nor environment-specific (one Entra
-# tenant, one app registration with a redirect URI added per environment
-# hostname).
+# Values shared by every environment: neither secret nor environment-specific.
 #
-# TODO — both are placeholders. Fill in once logged into the macek.ai
-# Azure/Entra tenant (subscription 02b1dc83-906b-4652-9a02-acce7d9a80c1 —
-# NOT the same tenant asistentka uses):
-#   az account show --query tenantId -o tsv                      # tenant_id
-#   az ad app create --display-name macekai-app-backend \
-#     --sign-in-audience AzureADMyOrg                             # creates the Easy Auth app registration, gives you easy_auth_client_id
-# See infra/README.md for the full one-time bootstrap checklist this belongs to.
+# tenant_id: needed by the key_vault module for the azurerm_key_vault
+# resource's own required tenant_id field (which Entra tenant the vault's
+# RBAC is evaluated against) — this is NOT about the login provider, keep it
+# regardless of which auth provider app-backend uses.
+#
+# google_client_id: the OAuth 2.0 Client ID for Google Sign-In via Azure App
+# Service's Easy Auth (a native `google_v2` auth_settings_v2 provider — same
+# mechanism as the old Microsoft one, just a different upstream IdP). Not
+# secret (visible in the browser's OAuth redirect regardless). The
+# corresponding Client *Secret* goes through Key Vault via
+# TF_VAR_google_client_secret, same pattern as the old Easy Auth secret.
+#
+# admin_email: the one admin (Karel) — this Google account gets is_staff on
+# login, granting /admin/ access (assessments authoring + feedback review).
+# Same account for every environment, so set once here rather than repeated
+# per environment. See app-backend/backend/auth/middleware.py.
 locals {
-  tenant_id           = "169b8ff6-9bc7-43e8-8ad3-902fd6852f89" # macek.ai tenant, confirmed via `az account show`
-  easy_auth_client_id = "90756a5b-ac1f-439e-99ff-291df4f467d8" # "macekai-app-backend" Entra app registration, created 2026-08-10
+  tenant_id        = "169b8ff6-9bc7-43e8-8ad3-902fd6852f89" # macek.ai tenant, confirmed via `az account show`
+  google_client_id = "216246394621-1392smrosb70db367hiets4fq0cij03m.apps.googleusercontent.com" # "macekai-app-backend" OAuth client, Google Cloud project "MacekAI", created 2026-08-10
+  admin_email      = "kouckarel@gmail.com"
 }

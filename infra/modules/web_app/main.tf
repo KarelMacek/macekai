@@ -45,15 +45,17 @@ variable "acr_admin_password" {
   sensitive = true
 }
 
-# Not secret (a directory ID / a public client ID, both visible in login
-# redirect URLs) and identical for every environment on this tenant — set
-# once in live/common.hcl rather than repeated per environment.
-variable "tenant_id" {
+# Not secret (a public OAuth client ID, visible in the browser's redirect
+# regardless) and identical for every environment — set once in
+# live/common.hcl rather than repeated per environment.
+variable "google_client_id" {
   type = string
 }
 
-variable "easy_auth_client_id" {
-  type = string
+# Not secret — grants is_staff on login, see backend/auth/middleware.py.
+variable "admin_email" {
+  type    = string
+  default = ""
 }
 
 variable "postgres_fqdn" {
@@ -83,6 +85,13 @@ variable "azure_openai_deployment_name" {
   default = ""
 }
 
+# Not secret — where users with no diagnostics get sent to buy one. May be
+# blank (the app shows a fallback message instead of a dead link).
+variable "diagnostics_purchase_url" {
+  type    = string
+  default = ""
+}
+
 locals {
   web_app_name = "app-${var.project_name}-${var.environment_name}"
 
@@ -96,11 +105,12 @@ locals {
   kv_ref = {
     for secret_name in [
       "secret-key",
-      "easy-auth-client-secret",
+      "google-client-secret",
       "postgres-admin-password",
       "storage-connection-string",
       "azure-openai-api-key",
       "tavily-api-key",
+      "simpleshop-webhook-secret",
     ] : secret_name => "@Microsoft.KeyVault(VaultName=${local.key_vault_name};SecretName=${secret_name})"
   }
 }
@@ -156,8 +166,8 @@ resource "azurerm_linux_web_app" "app" {
     "ALLOWED_HOSTS"     = "${local.web_app_name}.azurewebsites.net"
     "EASY_AUTH_ENABLED" = "True"
 
-    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["easy-auth-client-secret"]
-    "WEBSITE_AUTH_AAD_ALLOWED_TENANTS"         = var.tenant_id
+    "GOOGLE_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["google-client-secret"]
+    "ADMIN_EMAIL"                           = var.admin_email
 
     "POSTGRES_DB"       = var.postgres_database_name
     "POSTGRES_USER"     = var.postgres_administrator_login
@@ -174,6 +184,9 @@ resource "azurerm_linux_web_app" "app" {
     "AZURE_OPENAI_API_KEY"    = local.kv_ref["azure-openai-api-key"]
 
     "TAVILY_API_KEY" = local.kv_ref["tavily-api-key"]
+
+    "SIMPLESHOP_WEBHOOK_SECRET" = local.kv_ref["simpleshop-webhook-secret"]
+    "DIAGNOSTICS_PURCHASE_URL"  = var.diagnostics_purchase_url
   }
 
   auth_settings_v2 {
@@ -182,24 +195,35 @@ resource "azurerm_linux_web_app" "app" {
     require_authentication = true
     require_https          = true
     unauthenticated_action = "RedirectToLoginPage"
-    default_provider       = "azureactivedirectory"
+    default_provider       = "google"
 
-    # TODO: azureactivedirectory as configured below only allows sign-in from
-    # accounts in var.tenant_id's own directory. If coaching clients need to
-    # log in with their own (non-Microsoft-tenant) accounts, this needs a
-    # multi-tenant config or a different auth provider — not yet decided,
-    # this is a Phase 2 app-design question.
+    # Google is the ONLY auth provider in this system, by explicit choice —
+    # no Microsoft/Entra fallback. Login: /.auth/login/google
+    # (post_login_redirect_uri=/ query param sends the user back to the SPA).
     excluded_paths = [
+      # Both with and without the trailing slash — App Service's excluded_paths
+      # matching turned out to be exact, not prefix, when checked against
+      # the real deployed dev app (2026-08-10): /healthz/ (Django's actual
+      # route, via urls.py's path('healthz/', ...)) still 401'd with only
+      # "/healthz" (no slash) listed here.
       "/healthz",
+      "/healthz/",
       "/health/",
       "/static/*",
       "/signed-out",
+      # SimpleShop.cz's payment webhook (assessments/webhooks.py) — external,
+      # unauthenticated caller with no Google session. The secret is the
+      # <token> path segment itself, checked in Django
+      # (constant_time_compare against SIMPLESHOP_WEBHOOK_SECRET), not by
+      # Azure — this exclusion is what lets that check ever run instead of
+      # Azure's edge 401ing the request first. Wildcard, not the literal
+      # secret, so rotating the secret doesn't require a Terraform change.
+      "/api/webhooks/*",
     ]
 
-    active_directory_v2 {
-      client_id                  = var.easy_auth_client_id
-      client_secret_setting_name = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-      tenant_auth_endpoint       = "https://login.microsoftonline.com/${var.tenant_id}/v2.0/"
+    google_v2 {
+      client_id                  = var.google_client_id
+      client_secret_setting_name = "GOOGLE_PROVIDER_AUTHENTICATION_SECRET"
     }
 
     login {

@@ -64,7 +64,7 @@ def test_test_detail_falls_back_to_english(api_client, snapshot_test):
 
 @pytest.fixture
 def journey(snapshot_test):
-    journey = Journey.objects.create(slug="default", is_active=True)
+    journey = Journey.objects.create(slug="test-journey", is_active=True)
     JourneyStep.objects.create(journey=journey, test=snapshot_test, order=0)
     return journey
 

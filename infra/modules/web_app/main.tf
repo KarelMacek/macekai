@@ -79,6 +79,13 @@ variable "azure_openai_deployment_name" {
   default = ""
 }
 
+# Not secret — where users with no diagnostics get sent to buy one. May be
+# blank (the app shows a fallback message instead of a dead link).
+variable "diagnostics_purchase_url" {
+  type    = string
+  default = ""
+}
+
 locals {
   web_app_name = "app-${var.project_name}-${var.environment_name}"
 
@@ -97,6 +104,7 @@ locals {
       "storage-connection-string",
       "azure-openai-api-key",
       "tavily-api-key",
+      "simpleshop-webhook-secret",
     ] : secret_name => "@Microsoft.KeyVault(VaultName=${local.key_vault_name};SecretName=${secret_name})"
   }
 }
@@ -169,6 +177,9 @@ resource "azurerm_linux_web_app" "app" {
     "AZURE_OPENAI_API_KEY"    = local.kv_ref["azure-openai-api-key"]
 
     "TAVILY_API_KEY" = local.kv_ref["tavily-api-key"]
+
+    "SIMPLESHOP_WEBHOOK_SECRET" = local.kv_ref["simpleshop-webhook-secret"]
+    "DIAGNOSTICS_PURCHASE_URL"  = var.diagnostics_purchase_url
   }
 
   auth_settings_v2 {
@@ -193,6 +204,14 @@ resource "azurerm_linux_web_app" "app" {
       "/health/",
       "/static/*",
       "/signed-out",
+      # SimpleShop.cz's payment webhook (assessments/webhooks.py) — external,
+      # unauthenticated caller with no Google session. The secret is the
+      # <token> path segment itself, checked in Django
+      # (constant_time_compare against SIMPLESHOP_WEBHOOK_SECRET), not by
+      # Azure — this exclusion is what lets that check ever run instead of
+      # Azure's edge 401ing the request first. Wildcard, not the literal
+      # secret, so rotating the secret doesn't require a Terraform change.
+      "/api/webhooks/*",
     ]
 
     google_v2 {

@@ -739,7 +739,7 @@ export const t = {
         {
           num: "04",
           icon: "compass",
-          title: "Mapovací konzultace 360°",
+          title: "Mapa změny",
           desc: "Společně ujasníme situaci a směr během 90minutové konzultace.",
           price: "3 600 Kč",
           cta: "Rezervovat",
@@ -783,7 +783,7 @@ export const t = {
         {
           num: "04",
           icon: "compass",
-          title: "360° mapping consultation",
+          title: "Change map",
           desc: "Together we'll clarify the situation and direction during a 90-minute consultation.",
           price: "150 EUR",
           cta: "Book",

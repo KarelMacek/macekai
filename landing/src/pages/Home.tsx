@@ -1572,14 +1572,20 @@ function FunnelStepCard({
 }) {
   const ref = useFadeUp(delay);
   const [yesNoAnswer, setYesNoAnswer] = useState<"yes" | "no" | null>(null);
-  const ctaMeta: Record<string, { event: string; todo: string }> = {
+  const ctaMeta: Record<
+    string,
+    { event: string; todo?: string; url?: { cs: string; en: string } }
+  > = {
     "03": {
       event: "diagnostics_click",
       todo: "TODO(pricing-links): replace with real payment/booking URL for the 590 Kč diagnostics",
     },
     "04": {
       event: "consult_click",
-      todo: "TODO(pricing-links): replace with real booking URL for the 3 600 Kč 360° consultation",
+      url: {
+        cs: "https://calendly.com/karel-macek/mapa-zmeny",
+        en: "https://calendly.com/karel-macek/change-map",
+      },
     },
   };
 
@@ -1726,9 +1732,9 @@ function FunnelStepCard({
           </button>
         )}
         {step.cta && step.num !== "02" && (
-          // TODO(pricing-links): href="#" is a placeholder — wire up ctaMeta[step.num].todo before launch
+          // TODO(pricing-links): step "03" still points to "#" — wire up ctaMeta["03"].todo before launch
           <a
-            href="#"
+            href={ctaMeta[step.num]?.url?.[lang] ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() =>

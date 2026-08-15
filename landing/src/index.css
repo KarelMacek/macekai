@@ -145,6 +145,17 @@
     color: var(--gold);
   }
 
+  /* Hides the scrollbar on a scrollable element while staying scrollable
+     (drag/swipe/wheel) — used where custom controls (arrows, dots) already
+     communicate scroll position, so the native bar is just visual noise. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Grain overlay */
   .grain-overlay::after {
     content: "";

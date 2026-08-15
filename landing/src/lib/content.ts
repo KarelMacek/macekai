@@ -706,6 +706,9 @@ export const t = {
       cs: "Jednoduchá cesta od rychlé sebereflexe k cílené spolupráci.",
       en: "A simple path from a quick self-check to focused collaboration.",
     },
+    prevStep: { cs: "Předchozí krok", en: "Previous step" },
+    nextStep: { cs: "Další krok", en: "Next step" },
+    goToStep: { cs: "Přejít na krok", en: "Go to step" },
     steps: {
       cs: [
         {

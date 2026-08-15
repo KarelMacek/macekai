@@ -4,7 +4,7 @@
  * Style: patent-diagram framing, blueprint lines, technical annotations
  * Bilingual: CS / EN via LangContext
  */
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/contexts/LangContext";
 import { t, tx, type Lang } from "@/lib/content";
@@ -1374,6 +1374,11 @@ type PricingStep = {
   };
 };
 
+const CAROUSEL_CARD_WIDTH = "clamp(280px, 40%, 460px)";
+// Half the leftover track width once one card is centered — used as the
+// spacer width so the first/last cards have room to center too.
+const CAROUSEL_SPACER_WIDTH = `calc((100% - ${CAROUSEL_CARD_WIDTH}) / 2)`;
+
 function Pricing({
   onQuickCheckClick,
   quickCheckDone,
@@ -1386,6 +1391,39 @@ function Pricing({
   const steps = t.pricing.steps[lang] as readonly PricingStep[];
   const packages = t.method.packages[lang];
   const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
+
+  // Carousel: the "current" step is always centered and fully visible, with
+  // its neighbours peeking ~30% in on either side — including step 01 at
+  // rest, so a newcomer's first prompt lands front and center rather than
+  // pinned to the left edge. Spacer elements at each end of the track (see
+  // CAROUSEL_CARD_WIDTH below) give the first/last cards room to actually
+  // center instead of clamping against the scroll boundary.
+  const trackRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const progressIndex = quickCheckDone ? 2 : step1Answer === "yes" ? 1 : 0;
+  const hasScrolledRef = useRef(false);
+
+  useEffect(() => {
+    setActiveIndex(progressIndex);
+  }, [progressIndex]);
+
+  useEffect(() => {
+    cardRefs.current[activeIndex]?.scrollIntoView({
+      // Center step 01 instantly on first render — no animated slide-in
+      // the visitor didn't ask for. Later moves (progress, arrows, dots)
+      // animate normally.
+      behavior: hasScrolledRef.current ? "smooth" : "auto",
+      inline: "center",
+      block: "nearest",
+    });
+    hasScrolledRef.current = true;
+  }, [activeIndex]);
+
+  function goToStep(delta: number) {
+    setActiveIndex(i => Math.min(steps.length - 1, Math.max(0, i + delta)));
+  }
+
   return (
     <section
       id="jak-zacit"
@@ -1419,49 +1457,37 @@ function Pricing({
           </p>
         </div>
 
-        {/* Wide desktop: single horizontal row with connectors.
-            Cards and connectors are flattened into equal flex siblings —
-            nesting each connector inside its preceding card's wrapper made
-            the last card (with no trailing connector) render ~32px wider
-            than the rest. */}
-        <div className="hidden xl:flex items-stretch">
-          {steps.map((s, i) => (
-            <Fragment key={s.num}>
-              <div className="flex items-stretch flex-1 min-w-0">
-                <FunnelStepCard
-                  step={s}
-                  lang={lang}
-                  delay={i * 80}
-                  packages={s.num === "05" ? packages : undefined}
-                  onQuickCheckClick={onQuickCheckClick}
-                  quickCheckDone={quickCheckDone}
-                  highlightCta={
-                    s.num === "02" ? step1Answer === "yes" : undefined
-                  }
-                  muted={
-                    s.num === "02" || s.num === "03" || s.num === "04"
-                      ? step1Answer === "no"
-                      : undefined
-                  }
-                  onAnswerChange={
-                    s.num === "01" ? a => setStep1Answer(a) : undefined
-                  }
-                />
-              </div>
-              {i < steps.length - 1 && <ConnectorNode />}
-            </Fragment>
-          ))}
-        </div>
-
-        {/* Tablet / narrow desktop: same row-with-connectors layout as
-            desktop (keeps the 01→02→03→04→05 flow legible), but scrollable
-            with fixed-width cards instead of being squeezed via flex-1 */}
-        <div className="hidden md:block xl:hidden relative">
-          <div className="flex items-stretch overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-1 px-1">
+        {/* Tablet+: a peeking carousel. Cards are ~40% of the track width, so
+            at rest (index 0) exactly two and a half are visible; centering
+            any later card via scrollIntoView naturally leaves ~30% of its
+            neighbours showing on each side. */}
+        <div className="hidden md:block">
+          <div
+            ref={trackRef}
+            className="no-scrollbar flex items-stretch gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2"
+            style={{
+              // Fades card content (not just a painted rectangle) into
+              // the edges, so a peeking card's icon/title trail off
+              // smoothly instead of being sliced flush against the arrows.
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 64px, black calc(100% - 64px), transparent)",
+              maskImage:
+                "linear-gradient(to right, transparent, black 64px, black calc(100% - 64px), transparent)",
+            }}
+          >
+            <div
+              aria-hidden
+              className="shrink-0"
+              style={{ width: CAROUSEL_SPACER_WIDTH }}
+            />
             {steps.map((s, i) => (
               <div
                 key={s.num}
-                className="flex items-stretch shrink-0 w-72 snap-start"
+                ref={el => {
+                  cardRefs.current[i] = el;
+                }}
+                className="flex items-stretch shrink-0 snap-center"
+                style={{ width: CAROUSEL_CARD_WIDTH }}
               >
                 <FunnelStepCard
                   step={s}
@@ -1482,17 +1508,62 @@ function Pricing({
                     s.num === "01" ? a => setStep1Answer(a) : undefined
                   }
                 />
-                {i < steps.length - 1 && <ConnectorNode />}
               </div>
             ))}
+            <div
+              aria-hidden
+              className="shrink-0"
+              style={{ width: CAROUSEL_SPACER_WIDTH }}
+            />
           </div>
-          <div
-            className="pointer-events-none absolute right-0 top-0 bottom-4 w-16"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, oklch(0.12 0.015 60))",
-            }}
-          />
+
+          {/* Nav controls live below the track, not on top of it — arrows
+              styled as plain chevrons (no circular border) so they read as
+              controls, not as more of the same gold icon-circles the cards
+              already use for their category icons. */}
+          <div className="mt-5 flex items-center justify-center gap-5">
+            <button
+              type="button"
+              onClick={() => goToStep(-1)}
+              disabled={activeIndex === 0}
+              aria-label={tx(t.pricing.prevStep, lang)}
+              className={`text-2xl leading-none text-muted-foreground transition-all duration-200 hover:text-gold disabled:opacity-0 ${activeIndex === 0 ? "pointer-events-none" : ""}`}
+            >
+              ‹
+            </button>
+            <div className="flex items-center gap-2">
+              {steps.map((s, i) => (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  aria-label={`${tx(t.pricing.goToStep, lang)} ${i + 1}`}
+                  aria-current={activeIndex === i}
+                  className="p-1.5"
+                >
+                  <span
+                    className="block h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      width: activeIndex === i ? "1.5rem" : "0.375rem",
+                      background:
+                        activeIndex === i
+                          ? "oklch(0.78 0.12 85)"
+                          : "oklch(1 0 0 / 15%)",
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => goToStep(1)}
+              disabled={activeIndex === steps.length - 1}
+              aria-label={tx(t.pricing.nextStep, lang)}
+              className={`text-2xl leading-none text-muted-foreground transition-all duration-200 hover:text-gold disabled:opacity-0 ${activeIndex === steps.length - 1 ? "pointer-events-none" : ""}`}
+            >
+              ›
+            </button>
+          </div>
         </div>
 
         <div className="flex md:hidden flex-col gap-6">
@@ -1532,16 +1603,6 @@ function Pricing({
         </div>
       </div>
     </section>
-  );
-}
-
-function ConnectorNode() {
-  return (
-    <div className="w-8 shrink-0 flex items-start justify-center">
-      <div className="w-6 h-6 mt-14 rounded-full border border-[oklch(0.78_0.12_85/0.4)] flex items-center justify-center text-gold shrink-0">
-        <span className="text-xs leading-none">›</span>
-      </div>
-    </div>
   );
 }
 
@@ -1607,13 +1668,13 @@ function FunnelStepCard({
           {icons[step.icon]}
         </div>
         <h3
-          className="text-sm font-semibold text-[oklch(0.88_0.02_80)] mb-2"
+          className="text-lg font-semibold text-[oklch(0.88_0.02_80)] mb-2"
           style={{ fontFamily: "'Playfair Display', serif" }}
         >
           {step.title}
         </h3>
         <p
-          className="text-xs text-[oklch(0.52_0.02_70)] leading-relaxed mb-4"
+          className="text-sm text-[oklch(0.52_0.02_70)] leading-relaxed mb-4"
           style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
         >
           {step.desc}
@@ -1622,13 +1683,13 @@ function FunnelStepCard({
         {step.yesNo && (
           <div className="mt-auto w-full">
             {yesNoAnswer === "yes" && (
-              <p className="mb-3 text-xs text-gold leading-relaxed">
+              <p className="mb-3 text-sm text-gold leading-relaxed">
                 {step.yesNo.yesResponse} →
               </p>
             )}
             {yesNoAnswer === "no" && (
               <p
-                className="mb-3 text-xs text-[oklch(0.52_0.02_70)] leading-relaxed"
+                className="mb-3 text-sm text-[oklch(0.52_0.02_70)] leading-relaxed"
                 style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
               >
                 × {step.yesNo.noResponse}
@@ -1693,7 +1754,7 @@ function FunnelStepCard({
 
         {step.price && (
           <p
-            className="text-2xl font-bold text-gold mt-auto mb-1"
+            className="text-3xl font-bold text-gold mt-auto mb-1"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {step.price}

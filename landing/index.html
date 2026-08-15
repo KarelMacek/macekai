@@ -76,6 +76,29 @@
       }
     </script>
 
+    <script>
+      // CONSENT_KEY must stay in sync with COOKIE_CONSENT_KEY in src/lib/cookieConsent.ts
+      (function () {
+        var CONSENT_KEY = "macekai_cookie_consent";
+        var granted = false;
+        try {
+          granted = window.localStorage.getItem(CONSENT_KEY) === "granted";
+        } catch (e) {
+          /* private browsing / storage disabled — fall back to denied */
+        }
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          dataLayer.push(arguments);
+        }
+        window.gtag = gtag;
+        gtag("consent", "default", {
+          ad_storage: "denied",
+          ad_user_data: "denied",
+          ad_personalization: "denied",
+          analytics_storage: granted ? "granted" : "denied",
+        });
+      })();
+    </script>
     <script
       async
       src="https://www.googletagmanager.com/gtag/js?id=G-33Y5LRRR92"

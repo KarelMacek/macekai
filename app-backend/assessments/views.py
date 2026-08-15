@@ -1,7 +1,5 @@
 import io
 
-from django.db import transaction
-from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
@@ -14,14 +12,12 @@ from rest_framework.views import APIView
 from .i18n import get_lang
 from .models import (
     AdminFeedback,
-    Answer,
     Diagnostics,
     FeedbackRequest,
     FileBlob,
     Test,
     TestSubmission,
 )
-from .scoring import compute_result
 from .serializers import (
     AdminDiagnosticsSummarySerializer,
     AdminFeedbackReadSerializer,
@@ -38,6 +34,9 @@ from .services import (
     current_diagnostics,
     diagnostics_status,
     diagnostics_step_statuses,
+    finalize_draft,
+    get_or_create_draft,
+    upsert_draft_answers,
 )
 from .services import STATUS_COMPLETED
 
@@ -49,7 +48,9 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
     lang = get_lang(request)
     steps, all_tests_done = diagnostics_step_statuses(diagnostics, lang)
 
-    submissions = TestSubmission.objects.filter(diagnostics=diagnostics).select_related("test")
+    submissions = TestSubmission.objects.filter(
+        diagnostics=diagnostics, status=TestSubmission.STATUS_SUBMITTED
+    ).select_related("test")
     feedback_request = FeedbackRequest.objects.filter(diagnostics=diagnostics).first()
     feedback_qs = (
         AdminFeedback.objects.filter(feedback_request=feedback_request)
@@ -124,6 +125,60 @@ class TestDetailView(APIView):
         return Response(serializer.data)
 
 
+def _guard_open_diagnostics(request):
+    """Shared by TestSubmitView and TestDraftView: both need an open,
+    not-yet-completed diagnostics before touching any answers. Returns
+    (diagnostics, error_response) — error_response is None on success."""
+    diagnostics = current_diagnostics(request.user)
+    if diagnostics is None:
+        return None, Response({"detail": "No open diagnostics."}, status=status.HTTP_403_FORBIDDEN)
+    if diagnostics_status(diagnostics) == STATUS_COMPLETED:
+        return None, Response(
+            {"detail": "This diagnostics is already completed."}, status=status.HTTP_403_FORBIDDEN
+        )
+    return diagnostics, None
+
+
+class TestDraftView(APIView):
+    """GET fetches (and lazily creates/seeds) the current in-progress
+    attempt — the same primitive used for both "resume where I left off"
+    and "edit a submitted test" (seeded from the latest submitted one).
+    PATCH autosaves one or more answers into it. Neither ever freezes
+    computed_result or flips status to submitted — that only happens via
+    TestSubmitView.post, once every question is answered."""
+
+    @extend_schema(responses=TestSubmissionReadSerializer)
+    def get(self, request, slug):
+        test = _latest_active_test(slug)
+        if test is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        diagnostics, error = _guard_open_diagnostics(request)
+        if error:
+            return error
+
+        draft = get_or_create_draft(test=test, diagnostics=diagnostics, user=request.user)
+        return Response(TestSubmissionReadSerializer(draft, context={"request": request}).data)
+
+    @extend_schema(request=TestSubmissionInputSerializer, responses=TestSubmissionReadSerializer)
+    def patch(self, request, slug):
+        test = _latest_active_test(slug)
+        if test is None:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        diagnostics, error = _guard_open_diagnostics(request)
+        if error:
+            return error
+
+        serializer = TestSubmissionInputSerializer(data=request.data, context={"test": test})
+        serializer.is_valid(raise_exception=True)
+
+        draft = get_or_create_draft(test=test, diagnostics=diagnostics, user=request.user)
+        upsert_draft_answers(draft, serializer.validated_data["answers"])
+
+        return Response(TestSubmissionReadSerializer(draft, context={"request": request}).data)
+
+
 class TestSubmitView(APIView):
     @extend_schema(request=TestSubmissionInputSerializer, responses=TestSubmissionReadSerializer)
     def post(self, request, slug):
@@ -131,42 +186,28 @@ class TestSubmitView(APIView):
         if test is None:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        diagnostics = current_diagnostics(request.user)
-        if diagnostics is None:
-            return Response({"detail": "No open diagnostics."}, status=status.HTTP_403_FORBIDDEN)
-        if diagnostics_status(diagnostics) == STATUS_COMPLETED:
-            return Response(
-                {"detail": "This diagnostics is already completed."}, status=status.HTTP_403_FORBIDDEN
-            )
+        diagnostics, error = _guard_open_diagnostics(request)
+        if error:
+            return error
 
         serializer = TestSubmissionInputSerializer(data=request.data, context={"test": test})
         serializer.is_valid(raise_exception=True)
 
-        questions = {q.id: q for q in test.questions.all()}
+        draft = get_or_create_draft(test=test, diagnostics=diagnostics, user=request.user)
+        upsert_draft_answers(draft, serializer.validated_data["answers"])
 
-        with transaction.atomic():
-            submission = TestSubmission.objects.create(
-                test=test, user=request.user, diagnostics=diagnostics
-            )
-            Answer.objects.bulk_create(
-                [
-                    Answer(
-                        submission=submission,
-                        question=questions[answer["question_id"]],
-                        selected_option_id=answer.get("option_id"),
-                        text_value=answer.get("text_value", ""),
-                        comment=answer.get("comment", ""),
-                    )
-                    for answer in serializer.validated_data["answers"]
-                ]
+        answered_ids = set(draft.answers.values_list("question_id", flat=True))
+        all_ids = set(test.questions.values_list("id", flat=True))
+        if answered_ids != all_ids:
+            return Response(
+                {
+                    "detail": "Must answer every question before submitting.",
+                    "missing_question_ids": sorted(all_ids - answered_ids),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-            answers = list(
-                submission.answers.select_related("question__category", "selected_option")
-            )
-            submission.computed_result = compute_result(test, answers)
-            submission.save(update_fields=["computed_result"])
-
+        submission = finalize_draft(draft, test)
         read_serializer = TestSubmissionReadSerializer(submission, context={"request": request})
         return Response(read_serializer.data, status=status.HTTP_201_CREATED)
 
@@ -174,7 +215,9 @@ class TestSubmitView(APIView):
 class SubmissionListView(APIView):
     @extend_schema(responses=TestSubmissionReadSerializer(many=True))
     def get(self, request):
-        submissions = TestSubmission.objects.filter(user=request.user).select_related("test")
+        submissions = TestSubmission.objects.filter(
+            user=request.user, status=TestSubmission.STATUS_SUBMITTED
+        ).select_related("test")
         serializer = TestSubmissionReadSerializer(submissions, many=True, context={"request": request})
         return Response(serializer.data)
 

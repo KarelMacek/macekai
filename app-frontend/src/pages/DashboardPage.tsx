@@ -41,6 +41,7 @@ export function DashboardPage() {
               <span className="text-xs font-normal text-muted-foreground">
                 {step.status === "completed" && t("stepCompleted")}
                 {step.status === "current" && t("stepCurrent")}
+                {step.status === "in_progress" && t("stepInProgress")}
                 {step.status === "upcoming" && t("stepUpcoming")}
               </span>
             </CardTitle>
@@ -48,8 +49,15 @@ export function DashboardPage() {
           <CardContent>
             {step.status !== "upcoming" && (
               <Link href={`/tests/${step.test_slug}`}>
-                <Button variant={step.status === "current" ? "default" : "outline"} size="sm">
-                  {step.status === "completed" ? t("reviewTest") : t("startTest")}
+                <Button
+                  variant={step.status === "current" || step.status === "in_progress" ? "default" : "outline"}
+                  size="sm"
+                >
+                  {step.status === "completed"
+                    ? t("reviewTest")
+                    : step.status === "in_progress"
+                      ? t("continueButton")
+                      : t("startTest")}
                 </Button>
               </Link>
             )}

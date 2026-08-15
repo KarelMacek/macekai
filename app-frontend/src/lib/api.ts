@@ -69,6 +69,25 @@ export async function submitTest(slug: string, answers: AnswerInput[]): Promise<
   return data;
 }
 
+// Fetches (and lazily creates/seeds — from the latest submitted attempt's
+// answers, if any) the current in-progress draft for this test. The same
+// primitive backs both "resume where I left off" and "edit a submitted
+// test": a first-time visit gets an empty draft, re-opening a completed
+// test for editing gets one pre-filled with the previous answers.
+export async function getDraft(slug: string): Promise<TestSubmission> {
+  const { data } = await client.get<TestSubmission>(`/api/assessments/tests/${slug}/draft/`);
+  return data;
+}
+
+// Autosaves one or more answers into the draft. Safe to call after every
+// single answer — upsert semantics, never loses prior progress.
+export async function patchDraft(slug: string, answers: AnswerInput[]): Promise<TestSubmission> {
+  const { data } = await client.patch<TestSubmission>(`/api/assessments/tests/${slug}/draft/`, {
+    answers,
+  });
+  return data;
+}
+
 export async function getSubmissions(): Promise<TestSubmission[]> {
   const { data } = await client.get<TestSubmission[]>("/api/assessments/submissions/");
   return data;

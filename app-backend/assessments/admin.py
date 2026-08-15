@@ -113,10 +113,12 @@ class AnswerInline(admin.TabularInline):
 
 @admin.register(TestSubmission)
 class TestSubmissionAdmin(admin.ModelAdmin):
-    list_display = ("user", "test", "diagnostics", "submitted_at")
-    list_filter = ("test", "diagnostics__journey")
-    readonly_fields = ("test", "user", "diagnostics", "submitted_at", "formatted_result")
-    fields = ("test", "user", "diagnostics", "submitted_at", "formatted_result")
+    list_display = ("user", "test", "diagnostics", "status", "created_at", "submitted_at")
+    list_filter = ("status", "test", "diagnostics__journey")
+    readonly_fields = (
+        "test", "user", "diagnostics", "status", "created_at", "submitted_at", "formatted_result",
+    )
+    fields = ("test", "user", "diagnostics", "status", "created_at", "submitted_at", "formatted_result")
     inlines = [AnswerInline]
 
     @admin.display(description="Computed result")
@@ -200,7 +202,7 @@ class TestSubmissionSummaryInline(admin.TabularInline):
 
     model = TestSubmission
     extra = 0
-    fields = ("test", "submitted_at", "formatted_result_short")
+    fields = ("test", "status", "submitted_at", "formatted_result_short")
     readonly_fields = fields
     can_delete = False
     show_change_link = True
@@ -210,6 +212,8 @@ class TestSubmissionSummaryInline(admin.TabularInline):
 
     @admin.display(description="Result")
     def formatted_result_short(self, obj):
+        if obj.status == TestSubmission.STATUS_DRAFT:
+            return "(in progress — not yet submitted)"
         if not obj.computed_result:
             return "(open-ended — see answers)"
         return json.dumps(obj.computed_result.get("categories", obj.computed_result), ensure_ascii=False)

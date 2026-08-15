@@ -18,7 +18,7 @@ export interface WhoAmI {
 
 export type TestType = "snapshot" | "mapping";
 export type QuestionType = "likert" | "open_text";
-export type StepStatus = "completed" | "current" | "upcoming";
+export type StepStatus = "completed" | "current" | "in_progress" | "upcoming";
 
 export interface LikertOption {
   id: number;
@@ -87,11 +87,15 @@ export interface ComputedResult {
   matched_thresholds?: Record<string, number>;
 }
 
+export type TestSubmissionStatus = "draft" | "submitted";
+
 export interface TestSubmission {
   id: number;
   test_slug: string;
   test_type: TestType;
-  submitted_at: string;
+  status: TestSubmissionStatus;
+  // null while status is "draft" — only set once the test is finalized.
+  submitted_at: string | null;
   computed_result: ComputedResult;
   answers: AnswerRead[];
 }

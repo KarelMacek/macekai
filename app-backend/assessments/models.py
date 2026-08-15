@@ -125,6 +125,24 @@ class ResultThreshold(models.Model):
 
 
 class TestSubmission(models.Model):
+    """A draft is a real row from the moment the user answers their first
+    question — it just isn't "done" yet. status distinguishes the two;
+    diagnostics_status()/diagnostics_step_statuses() and every listing
+    endpoint must filter on status=submitted so an in-progress draft is
+    never mistaken for a finished attempt. Editing a submitted test never
+    mutates it — see services.get_or_create_draft — a new row is created
+    instead, seeded from the latest submitted one, so computed_result stays
+    frozen and the full answer history is preserved."""
+
+    __test__ = False  # tell pytest this isn't a test class despite the name
+
+    STATUS_DRAFT = "draft"
+    STATUS_SUBMITTED = "submitted"
+    STATUS_CHOICES = [
+        (STATUS_DRAFT, "Draft"),
+        (STATUS_SUBMITTED, "Submitted"),
+    ]
+
     test = models.ForeignKey(Test, on_delete=models.PROTECT, related_name="submissions")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="test_submissions"
@@ -132,21 +150,41 @@ class TestSubmission(models.Model):
     diagnostics = models.ForeignKey(
         "Diagnostics", on_delete=models.CASCADE, related_name="submissions"
     )
-    submitted_at = models.DateTimeField(auto_now_add=True)
+    # default=STATUS_SUBMITTED is the safe backfill value for pre-existing
+    # rows (all implicitly submitted) and the safe fallback for any future
+    # creation path that forgets to pass status= explicitly.
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_SUBMITTED)
+    created_at = models.DateTimeField(auto_now_add=True)
+    # Null while status=draft; set once, explicitly, at the draft->submitted
+    # transition. No longer auto_now_add — a draft's creation moment and its
+    # real submit moment are now two different things.
+    submitted_at = models.DateTimeField(null=True, blank=True)
     # Computed once at submission time by assessments.scoring.compute_result()
     # and never recomputed on read, so changing scoring logic later doesn't
-    # silently rewrite historical results. Empty for mapping-type tests.
+    # silently rewrite historical results. Empty for mapping-type tests and
+    # for any row still in draft status.
     computed_result = models.JSONField(default=dict, blank=True)
 
     class Meta:
-        ordering = ["-submitted_at"]
+        # created_at, not submitted_at: a live draft has submitted_at=None,
+        # and Postgres sorts NULLs first on DESC — ordering by submitted_at
+        # would float unfinished drafts above real history.
+        ordering = ["-created_at"]
         indexes = [
-            models.Index(fields=["user", "test", "-submitted_at"]),
-            models.Index(fields=["diagnostics", "test"]),
+            models.Index(fields=["user", "test", "status", "-created_at"]),
+            models.Index(fields=["diagnostics", "test", "status"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["diagnostics", "test", "user"],
+                condition=models.Q(status="draft"),
+                name="unique_draft_per_test_per_diagnostics_per_user",
+            )
         ]
 
     def __str__(self):
-        return f"{self.user} / {self.test.slug} @ {self.submitted_at:%Y-%m-%d}"
+        when = f"{self.submitted_at:%Y-%m-%d}" if self.submitted_at else "draft"
+        return f"{self.user} / {self.test.slug} @ {when}"
 
 
 class Answer(models.Model):

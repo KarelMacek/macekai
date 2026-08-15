@@ -719,8 +719,7 @@ export const t = {
           yesNo: {
             yes: "Možná",
             no: "Ne",
-            yesResponse: "Můžeš na rychlý check",
-            noResponse: "Můžeš zavřít okno.",
+            noResponse: "Můžeš opustit tento web.",
           },
         },
         {
@@ -743,7 +742,7 @@ export const t = {
           num: "04",
           icon: "compass",
           title: "Mapa změny",
-          desc: "Společně ujasníme situaci a směr během 90minutové konzultace.",
+          desc: "Ujasníš si situaci a směr\nběhem 90 minutové konzultace se mnou.",
           price: "3 600 Kč",
           cta: "Rezervovat",
         },
@@ -763,8 +762,7 @@ export const t = {
           yesNo: {
             yes: "Maybe",
             no: "No",
-            yesResponse: "You can take the quick check",
-            noResponse: "You can close this window.",
+            noResponse: "You can leave this website.",
           },
         },
         {

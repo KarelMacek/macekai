@@ -193,8 +193,35 @@
       filter: brightness(1.35);
     }
   }
+  /* 15 iterations of a 1s cycle = 15s, then stops — each cycle starts/ends
+     at the rest state (0%/100%), so it settles cleanly instead of freezing
+     mid-glow. Not `infinite`: a CTA that never stops blinking stops reading
+     as an invitation and just becomes noise. */
   .invite-glow {
-    animation: invite-glow 1s ease-in-out infinite;
+    animation-name: invite-glow;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 15;
+  }
+
+  /* Small entrance beat for the "you can leave this site" message after a
+     "no" answer — plays once on mount, not a distracting infinite loop. */
+  @keyframes cta-emphasis {
+    0% {
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(-1px) scale(1.01);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .cta-emphasis {
+    animation: cta-emphasis 0.45s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   /* Problem card */

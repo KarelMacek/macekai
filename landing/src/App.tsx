@@ -5,6 +5,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LangProvider } from "./contexts/LangContext";
+import { FunnelDeclinedProvider } from "./contexts/FunnelDeclinedContext";
 import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
 import CookieConsentBanner from "./components/CookieConsentBanner";
@@ -34,11 +35,13 @@ function App() {
           defaultTheme="dark"
           // switchable
         >
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-            <CookieConsentBanner />
-          </TooltipProvider>
+          <FunnelDeclinedProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+              <CookieConsentBanner />
+            </TooltipProvider>
+          </FunnelDeclinedProvider>
         </ThemeProvider>
       </LangProvider>
     </ErrorBoundary>

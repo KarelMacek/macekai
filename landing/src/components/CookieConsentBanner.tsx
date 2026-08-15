@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useLang } from "@/contexts/LangContext";
+import { useFunnelDeclined } from "@/contexts/FunnelDeclinedContext";
 import { t, tx } from "@/lib/content";
 import { trackEvent } from "@/lib/analytics";
 import {
@@ -12,6 +13,7 @@ import {
 
 export default function CookieConsentBanner() {
   const { lang } = useLang();
+  const { declined } = useFunnelDeclined();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -46,7 +48,13 @@ export default function CookieConsentBanner() {
       role="region"
       aria-label={tx(t.cookieConsent.ariaLabel, lang)}
       className="fixed inset-x-0 bottom-0 z-[90] border-t"
-      style={{ background: "var(--card)", borderColor: "var(--border)" }}
+      style={{
+        background: "var(--card)",
+        borderColor: "var(--border)",
+        transition: "opacity 300ms ease, filter 300ms ease",
+        opacity: declined ? 0.3 : undefined,
+        filter: declined ? "grayscale(1)" : undefined,
+      }}
     >
       <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row sm:justify-between">
         <p

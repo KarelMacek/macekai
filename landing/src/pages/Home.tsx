@@ -14,6 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { trackEvent } from "@/lib/analytics";
+import { useFunnelDeclined } from "@/contexts/FunnelDeclinedContext";
 import {
   QuickReflectionModal,
   isValidReflectionState,
@@ -1369,7 +1370,6 @@ type PricingStep = {
   yesNo?: {
     yes: string;
     no: string;
-    yesResponse: string;
     noResponse: string;
   };
 };
@@ -1382,15 +1382,18 @@ const CAROUSEL_SPACER_WIDTH = `calc((100% - ${CAROUSEL_CARD_WIDTH}) / 2)`;
 function Pricing({
   onQuickCheckClick,
   quickCheckDone,
+  step1Answer,
+  onStep1AnswerChange,
 }: {
   onQuickCheckClick: () => void;
   quickCheckDone: boolean;
+  step1Answer: "yes" | "no" | null;
+  onStep1AnswerChange: (answer: "yes" | "no") => void;
 }) {
   const { lang } = useLang();
   const ref = useFadeUp();
   const steps = t.pricing.steps[lang] as readonly PricingStep[];
   const packages = t.method.packages[lang];
-  const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
 
   // Carousel: the "current" step is always centered and fully visible, with
   // its neighbours peeking ~30% in on either side — including step 01 at
@@ -1424,6 +1427,14 @@ function Pricing({
     setActiveIndex(i => Math.min(steps.length - 1, Math.max(0, i + delta)));
   }
 
+  const declined = step1Answer === "no";
+  const restOfPricingStyle: React.CSSProperties = {
+    transition: "opacity 300ms ease, filter 300ms ease",
+    opacity: declined ? 0.3 : undefined,
+    filter: declined ? "grayscale(1)" : undefined,
+    pointerEvents: declined ? "none" : undefined,
+  };
+
   return (
     <section
       id="jak-zacit"
@@ -1439,7 +1450,11 @@ function Pricing({
         }}
       />
       <div className="container relative z-10">
-        <div ref={ref} className="fade-up text-center mb-16">
+        <div
+          ref={ref}
+          className="fade-up text-center mb-16"
+          style={restOfPricingStyle}
+        >
           <SectionLabel>{tx(t.pricing.label, lang)}</SectionLabel>
           <GoldLine className="mx-auto mb-8" />
           <h2
@@ -1497,15 +1512,15 @@ function Pricing({
                   onQuickCheckClick={onQuickCheckClick}
                   quickCheckDone={quickCheckDone}
                   highlightCta={
-                    s.num === "02" ? step1Answer === "yes" : undefined
+                    s.num === "02"
+                      ? step1Answer === "yes"
+                      : s.num === "03"
+                        ? quickCheckDone
+                        : undefined
                   }
-                  muted={
-                    s.num === "02" || s.num === "03" || s.num === "04"
-                      ? step1Answer === "no"
-                      : undefined
-                  }
+                  muted={s.num === "01" ? undefined : step1Answer === "no"}
                   onAnswerChange={
-                    s.num === "01" ? a => setStep1Answer(a) : undefined
+                    s.num === "01" ? onStep1AnswerChange : undefined
                   }
                 />
               </div>
@@ -1521,7 +1536,10 @@ function Pricing({
               styled as plain chevrons (no circular border) so they read as
               controls, not as more of the same gold icon-circles the cards
               already use for their category icons. */}
-          <div className="mt-5 flex items-center justify-center gap-5">
+          <div
+            className="mt-5 flex items-center justify-center gap-5"
+            style={restOfPricingStyle}
+          >
             <button
               type="button"
               onClick={() => goToStep(-1)}
@@ -1577,21 +1595,21 @@ function Pricing({
               onQuickCheckClick={onQuickCheckClick}
               quickCheckDone={quickCheckDone}
               highlightCta={
-                s.num === "02" ? step1Answer === "yes" : undefined
+                s.num === "02"
+                  ? step1Answer === "yes"
+                  : s.num === "03"
+                    ? quickCheckDone
+                    : undefined
               }
-              muted={
-                s.num === "02" || s.num === "03" || s.num === "04"
-                  ? step1Answer === "no"
-                  : undefined
-              }
+              muted={s.num === "01" ? undefined : step1Answer === "no"}
               onAnswerChange={
-                s.num === "01" ? a => setStep1Answer(a) : undefined
+                s.num === "01" ? onStep1AnswerChange : undefined
               }
             />
           ))}
         </div>
 
-        <div className="mt-12 max-w-3xl mx-auto">
+        <div className="mt-12 max-w-3xl mx-auto" style={restOfPricingStyle}>
           <PatentCard className="text-center">
             <p
               className="text-sm text-[oklch(0.60_0.02_72)] leading-relaxed"
@@ -1652,47 +1670,75 @@ function FunnelStepCard({
   };
 
   return (
-    <div ref={ref} className="fade-up flex-1 min-w-0">
+    <div
+      ref={ref}
+      className="fade-up flex-1 min-w-0"
+      style={{
+        transition: "opacity 300ms ease, filter 300ms ease",
+        opacity: muted ? 0.4 : undefined,
+        filter: muted ? "grayscale(1)" : undefined,
+        pointerEvents: muted ? "none" : undefined,
+      }}
+    >
       <PatentCard className="h-full flex flex-col items-center text-center hover:border-[oklch(0.78_0.12_85/0.3)] transition-colors duration-200 group">
-        <span
-          className="absolute top-4 left-5 text-[oklch(0.78_0.12_85/0.55)]"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.7rem",
-            letterSpacing: "0.05em",
-          }}
-        >
-          {step.num}
-        </span>
-        <div className="w-11 h-11 rounded-full border border-[oklch(0.78_0.12_85/0.4)] text-gold flex items-center justify-center mb-4 group-hover:bg-[oklch(0.78_0.12_85/0.08)] transition-colors duration-200">
-          {icons[step.icon]}
-        </div>
-        <h3
-          className="text-lg font-semibold text-[oklch(0.88_0.02_80)] mb-2"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          {step.title}
-        </h3>
-        <p
-          className="text-sm text-[oklch(0.52_0.02_70)] leading-relaxed mb-4"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
-        >
-          {step.desc}
-        </p>
+        {(() => {
+          const declinedHere = yesNoAnswer === "no";
+          const dimStyle: React.CSSProperties = {
+            transition: "opacity 300ms ease, filter 300ms ease",
+            opacity: declinedHere ? 0.3 : undefined,
+            filter: declinedHere ? "grayscale(1)" : undefined,
+          };
+          return (
+            <>
+              <span
+                className="absolute top-4 left-5 text-[oklch(0.78_0.12_85/0.55)]"
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.05em",
+                  ...dimStyle,
+                }}
+              >
+                {step.num}
+              </span>
+              <div
+                className="w-11 h-11 rounded-full border border-[oklch(0.78_0.12_85/0.4)] text-gold flex items-center justify-center mb-4 group-hover:bg-[oklch(0.78_0.12_85/0.08)] transition-colors duration-200"
+                style={dimStyle}
+              >
+                {icons[step.icon]}
+              </div>
+              {/* Kept fully lit even when declined — the question itself is
+                  the context the "you can leave" message is answering, so it
+                  stays legible while everything decorative around it fades. */}
+              <h3
+                className="text-lg font-semibold text-[oklch(0.88_0.02_80)] mb-2"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                {step.title}
+              </h3>
+              <p
+                className="text-sm text-[oklch(0.52_0.02_70)] leading-relaxed mb-4"
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 300,
+                  whiteSpace: "pre-line",
+                  ...dimStyle,
+                }}
+              >
+                {step.desc}
+              </p>
+            </>
+          );
+        })()}
 
         {step.yesNo && (
           <div className="mt-auto w-full">
-            {yesNoAnswer === "yes" && (
-              <p className="mb-3 text-sm text-gold leading-relaxed">
-                {step.yesNo.yesResponse} →
-              </p>
-            )}
             {yesNoAnswer === "no" && (
               <p
-                className="mb-3 text-sm text-[oklch(0.52_0.02_70)] leading-relaxed"
-                style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
+                className="cta-emphasis mb-3 text-base font-semibold text-[oklch(0.88_0.02_80)] leading-relaxed"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                × {step.yesNo.noResponse}
+                {step.yesNo.noResponse}
               </p>
             )}
             <div className="flex items-center justify-center gap-3">
@@ -1717,6 +1763,10 @@ function FunnelStepCard({
                         border: "1px solid oklch(1 0 0 / 15%)",
                         fontFamily: "'DM Sans', sans-serif",
                         borderRadius: "2px",
+                        transition:
+                          "opacity 300ms ease, filter 300ms ease, transform 200ms",
+                        opacity: yesNoAnswer === "no" ? 0.3 : undefined,
+                        filter: yesNoAnswer === "no" ? "grayscale(1)" : undefined,
                       }
                 }
               >
@@ -1771,7 +1821,7 @@ function FunnelStepCard({
               );
               onQuickCheckClick?.();
             }}
-            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta && !quickCheckDone ? "invite-glow" : ""} ${muted ? "opacity-40 grayscale" : ""}`}
+            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta && !quickCheckDone ? "invite-glow" : ""}`}
             style={
               quickCheckDone
                 ? {
@@ -1806,7 +1856,7 @@ function FunnelStepCard({
                 { location: "pricing" }
               )
             }
-            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${muted ? "opacity-40 grayscale" : ""}`}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta ? "invite-glow" : ""}`}
             style={{
               background: "oklch(0.78 0.12 85)",
               color: "oklch(0.12 0.015 60)",
@@ -1975,6 +2025,12 @@ export default function Home() {
   useScrollDepthTracking(lang);
   const [showReflection, setShowReflection] = useState(false);
   const [savedReflection, setSavedReflection] = useState(loadSavedReflection);
+  const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
+  const declined = step1Answer === "no";
+  const { setDeclined } = useFunnelDeclined();
+  useEffect(() => {
+    setDeclined(declined);
+  }, [declined, setDeclined]);
 
   // No dedicated "next step" page exists yet, so growth/change results scroll
   // the visitor to the pricing funnel (steps 03/04) rather than a hardcoded URL.
@@ -1985,25 +2041,37 @@ export default function Home() {
       ?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Once the visitor says "no" to step 01, the rest of the site (nav, every
+  // other section) dims out with it — not just the funnel steps below it —
+  // so the "you can leave" suggestion reads as the page's one clear message
+  // instead of competing with a fully-lit site around it.
+  const restOfSiteClass = `transition-[opacity,filter] duration-500 ${declined ? "pointer-events-none opacity-30 grayscale" : ""}`;
+
   return (
     <div
       className="min-h-screen"
       style={{ background: "oklch(0.12 0.015 60)" }}
     >
-      <Nav />
-      <Hero />
-      <About />
-      <Method />
-      <WhyMe />
-      <ClientProblems />
-      <Testimonials />
-      <SusitaDemo />
+      <div className={restOfSiteClass}>
+        <Nav />
+        <Hero />
+        <About />
+        <Method />
+        <WhyMe />
+        <ClientProblems />
+        <Testimonials />
+        <SusitaDemo />
+      </div>
       <Pricing
         onQuickCheckClick={() => setShowReflection(true)}
         quickCheckDone={!!savedReflection}
+        step1Answer={step1Answer}
+        onStep1AnswerChange={setStep1Answer}
       />
-      <Contact />
-      <Footer />
+      <div className={restOfSiteClass}>
+        <Contact />
+        <Footer />
+      </div>
       <QuickReflectionModal
         isOpen={showReflection}
         initialState={savedReflection ?? undefined}

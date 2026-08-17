@@ -33,6 +33,11 @@ urlpatterns = [
         name="assessments-admin-diagnostics-list",
     ),
     path(
+        "admin/diagnostics/stats/",
+        views.AdminDiagnosticsStatsView.as_view(),
+        name="assessments-admin-diagnostics-stats",
+    ),
+    path(
         "admin/diagnostics/<int:pk>/",
         views.AdminDiagnosticsDetailView.as_view(),
         name="assessments-admin-diagnostics-detail",

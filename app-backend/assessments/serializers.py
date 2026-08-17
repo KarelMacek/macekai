@@ -296,6 +296,12 @@ class AdminDiagnosticsSummarySerializer(DiagnosticsSummarySerializer):
     email = serializers.CharField()
 
 
+class AdminDiagnosticsStatsSerializer(serializers.Serializer):
+    paid_count = serializers.IntegerField()
+    started_count = serializers.IntegerField()
+    completed_count = serializers.IntegerField()
+
+
 class AdminFeedbackWriteSerializer(serializers.ModelSerializer):
     """Used by the admin console to create-or-update the AdminFeedback for a
     FeedbackRequest. document is optional per-request (omit to leave the

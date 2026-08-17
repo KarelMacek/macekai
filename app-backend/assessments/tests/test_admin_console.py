@@ -2,7 +2,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from assessments.models import AdminFeedback, FeedbackRequest, Journey, JourneyStep, Test
+from assessments.models import AdminFeedback, Diagnostics, FeedbackRequest, Journey, JourneyStep, Test, TestSubmission
 from assessments.services import open_diagnostics
 
 
@@ -90,6 +90,55 @@ def test_admin_list_filters_by_status(staff_client, diagnostics):
     resp = staff_client.get("/api/assessments/admin/diagnostics/?status=completed")
     assert resp.status_code == 200
     assert len(resp.data) == 0
+
+
+# --- stats -------------------------------------------------------------------
+
+def test_admin_stats_rejects_non_staff(customer_client):
+    resp = customer_client.get("/api/assessments/admin/diagnostics/stats/")
+    assert resp.status_code == 403
+
+
+def test_admin_stats_counts_paid_started_completed(staff_client, journey):
+    test = journey.steps.first().test
+
+    open_diagnostics(email="paid-only@example.com", journey=journey)
+
+    started_user = get_user_model().objects.create(username="started", email="started@example.com")
+    started_diagnostics = open_diagnostics(email=started_user.email, journey=journey)
+    TestSubmission.objects.create(
+        test=test, diagnostics=started_diagnostics, user=started_user, status=TestSubmission.STATUS_DRAFT
+    )
+
+    done_user = get_user_model().objects.create(username="done", email="done@example.com")
+    done_diagnostics = open_diagnostics(email=done_user.email, journey=journey)
+    TestSubmission.objects.create(
+        test=test, diagnostics=done_diagnostics, user=done_user, status=TestSubmission.STATUS_SUBMITTED
+    )
+    feedback_request = FeedbackRequest.objects.create(diagnostics=done_diagnostics)
+    AdminFeedback.objects.create(feedback_request=feedback_request, is_published=True)
+
+    resp = staff_client.get("/api/assessments/admin/diagnostics/stats/")
+    assert resp.status_code == 200
+    assert resp.data["paid_count"] == 3
+    assert resp.data["started_count"] == 2
+    assert resp.data["completed_count"] == 1
+
+
+def test_admin_stats_filters_by_date_range(staff_client, journey):
+    from datetime import date, timedelta
+
+    from django.utils import timezone
+
+    old = open_diagnostics(email="old@example.com", journey=journey)
+    Diagnostics.objects.filter(pk=old.pk).update(opened_at=timezone.now() - timedelta(days=10))
+
+    open_diagnostics(email="recent@example.com", journey=journey)
+
+    today = date.today().isoformat()
+    resp = staff_client.get(f"/api/assessments/admin/diagnostics/stats/?from={today}")
+    assert resp.status_code == 200
+    assert resp.data["paid_count"] == 1
 
 
 # --- detail ------------------------------------------------------------------

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { getAdminDiagnosticsList } from "@/lib/api";
+import { getAdminDiagnosticsList, getAdminDiagnosticsStats } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import { STATUS_LABEL_KEY } from "@/pages/DashboardPage";
-import type { AdminDiagnosticsSummary, DiagnosticsStatus } from "@/types/api";
+import type { AdminDiagnosticsStats, AdminDiagnosticsSummary, DiagnosticsStatus } from "@/types/api";
 
 const STATUSES: DiagnosticsStatus[] = [
   "tests_in_progress",
@@ -19,14 +20,47 @@ export function AdminDashboardPage() {
   const [rows, setRows] = useState<AdminDiagnosticsSummary[] | null>(null);
   const [status, setStatus] = useState("");
   const [query, setQuery] = useState("");
+  const [stats, setStats] = useState<AdminDiagnosticsStats | null>(null);
 
   useEffect(() => {
     getAdminDiagnosticsList({ status: status || undefined, q: query || undefined }).then(setRows);
   }, [status, query]);
 
+  useEffect(() => {
+    getAdminDiagnosticsStats().then(setStats);
+  }, []);
+
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-8">
       <h1 className="text-xl font-semibold">{t("adminDashboardTitle")}</h1>
+
+      {stats && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("adminStatsTitle")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex gap-8">
+            <div>
+              <div className="text-2xl font-semibold">{stats.paid_count}</div>
+              <div className="text-sm text-muted-foreground">{t("adminStatsPaid")}</div>
+            </div>
+            <div>
+              <div className="text-2xl font-semibold">{stats.started_count}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("adminStatsStarted")}
+                {stats.paid_count > 0 && ` (${Math.round((stats.started_count / stats.paid_count) * 100)}%)`}
+              </div>
+            </div>
+            <div>
+              <div className="text-2xl font-semibold">{stats.completed_count}</div>
+              <div className="text-sm text-muted-foreground">
+                {t("adminStatsCompleted")}
+                {stats.paid_count > 0 && ` (${Math.round((stats.completed_count / stats.paid_count) * 100)}%)`}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex gap-3">
         <Input

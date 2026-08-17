@@ -20,6 +20,7 @@ from .models import (
     UserConsent,
 )
 from .serializers import (
+    AdminDiagnosticsStatsSerializer,
     AdminDiagnosticsSummarySerializer,
     AdminFeedbackReadSerializer,
     AdminFeedbackWriteSerializer,
@@ -34,6 +35,7 @@ from .serializers import (
 )
 from .services import (
     current_diagnostics,
+    diagnostics_funnel_counts,
     diagnostics_status,
     diagnostics_step_statuses,
     finalize_draft,
@@ -361,6 +363,26 @@ class AdminDiagnosticsListView(APIView):
                 }
             )
         return Response(AdminDiagnosticsSummarySerializer(data, many=True).data)
+
+
+class AdminDiagnosticsStatsView(APIView):
+    """Funnel summary for the entry-diagnostic pricing decision: paid vs.
+    started the questionnaire vs. actually finished. All-time by default;
+    ?from=YYYY-MM-DD&to=YYYY-MM-DD narrows the paid cohort by opened_at."""
+
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(responses=AdminDiagnosticsStatsSerializer)
+    def get(self, request):
+        diagnostics_qs = Diagnostics.objects.all()
+        date_from = request.query_params.get("from")
+        date_to = request.query_params.get("to")
+        if date_from:
+            diagnostics_qs = diagnostics_qs.filter(opened_at__date__gte=date_from)
+        if date_to:
+            diagnostics_qs = diagnostics_qs.filter(opened_at__date__lte=date_to)
+
+        return Response(AdminDiagnosticsStatsSerializer(diagnostics_funnel_counts(diagnostics_qs)).data)
 
 
 class AdminDiagnosticsDetailView(APIView):

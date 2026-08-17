@@ -173,6 +173,12 @@ export interface AdminDiagnosticsSummary extends DiagnosticsSummary {
   email: string;
 }
 
+export interface AdminDiagnosticsStats {
+  paid_count: number;
+  started_count: number;
+  completed_count: number;
+}
+
 export interface AdminFeedbackWritePayload {
   document?: File | null;
   video_url?: string;

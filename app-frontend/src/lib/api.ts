@@ -1,6 +1,7 @@
 import axios from "axios";
 
 import type {
+  AdminDiagnosticsStats,
   AdminDiagnosticsSummary,
   AdminFeedback,
   AdminFeedbackWritePayload,
@@ -151,6 +152,11 @@ export async function getAdminDiagnosticsList(params: {
   const { data } = await client.get<AdminDiagnosticsSummary[]>("/api/assessments/admin/diagnostics/", {
     params,
   });
+  return data;
+}
+
+export async function getAdminDiagnosticsStats(): Promise<AdminDiagnosticsStats> {
+  const { data } = await client.get<AdminDiagnosticsStats>("/api/assessments/admin/diagnostics/stats/");
   return data;
 }
 

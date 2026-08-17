@@ -37,6 +37,33 @@ def diagnostics_status(diagnostics: Diagnostics) -> str:
     return STATUS_AWAITING_ADMIN_REVIEW
 
 
+def diagnostics_funnel_counts(diagnostics_qs=None) -> dict:
+    """Paid / started-questionnaire / completed counts for the entry-
+    diagnostic completion-rate view (pricing decision input). diagnostics_qs
+    narrows the paid cohort (e.g. by opened_at range) — started/completed
+    are always subsets of that same cohort. Reuses diagnostics_status() in a
+    loop rather than a queryset annotation: re-deriving its multi-model
+    "all steps submitted + feedback requested + feedback published" logic
+    as a second implementation risks drift, and AdminDiagnosticsListView
+    already does the identical per-row loop on every admin page load at
+    today's volumes with no issue."""
+    if diagnostics_qs is None:
+        diagnostics_qs = Diagnostics.objects.all()
+
+    paid_count = diagnostics_qs.count()
+    started_count = diagnostics_qs.filter(submissions__isnull=False).distinct().count()
+    completed_count = sum(
+        1
+        for d in diagnostics_qs.select_related("journey").prefetch_related("journey__steps")
+        if diagnostics_status(d) == STATUS_COMPLETED
+    )
+    return {
+        "paid_count": paid_count,
+        "started_count": started_count,
+        "completed_count": completed_count,
+    }
+
+
 def current_diagnostics(user) -> Diagnostics | None:
     """The diagnostics new activity (submissions, feedback requests) attaches
     to: the latest one opened for this user. No separate "active" flag —

@@ -248,10 +248,7 @@ export function QuickReflectionModal({
     if (timerRef.current) clearTimeout(timerRef.current);
     const nextAnswers: Answers = { ...answers, [question.id]: value };
     setAnswers(nextAnswers);
-    trackEvent(lang, "quick_reflection_answer", {
-      question: question.id,
-      value,
-    });
+    trackEvent(lang, "quick_reflection_answer", { question: question.id });
 
     timerRef.current = setTimeout(() => {
       if (currentQuestion < QUESTION_COUNT - 1) {
@@ -268,7 +265,7 @@ export function QuickReflectionModal({
       const resultKey = getResult(calculateScores(finalAnswers));
       setResult(resultKey);
       setIsCalculating(false);
-      trackEvent(lang, "quick_reflection_result", { result: resultKey });
+      trackEvent(lang, "quick_reflection_result", {});
       onComplete?.(finalAnswers, resultKey);
     }, CALCULATING_DELAY_MS);
   }
@@ -308,7 +305,7 @@ export function QuickReflectionModal({
     try {
       await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
       setCopyStatus("copied");
-      trackEvent(lang, "quick_reflection_copy", { result });
+      trackEvent(lang, "quick_reflection_copy", {});
     } catch {
       setCopyStatus("error");
     }
@@ -318,7 +315,7 @@ export function QuickReflectionModal({
   function handlePrimary() {
     if (!result) return;
     const action = RESULT_ACTIONS[result];
-    trackEvent(lang, "quick_reflection_cta", { result, action });
+    trackEvent(lang, "quick_reflection_cta", {});
     onClose();
     if (action === "growth") onGrowthCTA?.();
     if (action === "change") onChangeCTA?.();
@@ -330,7 +327,7 @@ export function QuickReflectionModal({
       handleRestart();
       return;
     }
-    trackEvent(lang, "quick_reflection_close", { result });
+    trackEvent(lang, "quick_reflection_close", {});
     onClose();
   }
 

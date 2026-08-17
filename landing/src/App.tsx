@@ -5,12 +5,16 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LangProvider } from "./contexts/LangContext";
+import { FunnelDeclinedProvider } from "./contexts/FunnelDeclinedContext";
 import Home from "./pages/Home";
+import Privacy from "./pages/Privacy";
+import CookieConsentBanner from "./components/CookieConsentBanner";
 
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/privacy"} component={Privacy} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -31,10 +35,13 @@ function App() {
           defaultTheme="dark"
           // switchable
         >
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <FunnelDeclinedProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+              <CookieConsentBanner />
+            </TooltipProvider>
+          </FunnelDeclinedProvider>
         </ThemeProvider>
       </LangProvider>
     </ErrorBoundary>

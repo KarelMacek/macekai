@@ -3,9 +3,11 @@ views/admin/webhooks/management commands so there's exactly one place each
 of these behaviors is implemented, per this codebase's existing convention
 (see scoring.py for the same pattern applied to result computation)."""
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.utils import timezone
 
 from .i18n import resolve_locale
-from .models import AdminFeedback, Diagnostics, FeedbackRequest, TestSubmission
+from .models import AdminFeedback, Answer, Diagnostics, FeedbackRequest, TestSubmission, UserConsent
 
 STATUS_TESTS_IN_PROGRESS = "tests_in_progress"
 STATUS_AWAITING_FEEDBACK_REQUEST = "awaiting_feedback_request"
@@ -17,7 +19,9 @@ def diagnostics_status(diagnostics: Diagnostics) -> str:
     journey_test_ids = [step.test_id for step in diagnostics.journey.steps.all()]
     completed_test_ids = set(
         TestSubmission.objects.filter(
-            diagnostics=diagnostics, test_id__in=journey_test_ids
+            diagnostics=diagnostics,
+            test_id__in=journey_test_ids,
+            status=TestSubmission.STATUS_SUBMITTED,
         ).values_list("test_id", flat=True)
     )
     if set(journey_test_ids) - completed_test_ids:
@@ -52,6 +56,7 @@ def open_diagnostics(
     source_product_id: str = "",
     opened_via: str = Diagnostics.OPENED_VIA_ADMIN,
     raw_payload: dict | None = None,
+    language: str = "",
 ) -> Diagnostics:
     """Single entry point for "a diagnostics gets opened" — called by the
     SimpleShop webhook, the admin action, and the management command alike.
@@ -67,6 +72,7 @@ def open_diagnostics(
                 "source_product_id": source_product_id,
                 "opened_via": opened_via,
                 "raw_payload": raw_payload or {},
+                "language": language,
                 "user": get_user_model().objects.filter(email__iexact=email).first(),
             },
         )
@@ -79,6 +85,7 @@ def open_diagnostics(
         source_product_id=source_product_id,
         opened_via=opened_via,
         raw_payload=raw_payload or {},
+        language=language,
         user=get_user_model().objects.filter(email__iexact=email).first(),
     )
 
@@ -100,7 +107,16 @@ def diagnostics_step_statuses(diagnostics: Diagnostics, lang: str) -> tuple[list
     steps = list(journey.steps.select_related("test"))
     completed_test_ids = set(
         TestSubmission.objects.filter(
-            diagnostics=diagnostics, test_id__in=[s.test_id for s in steps]
+            diagnostics=diagnostics,
+            test_id__in=[s.test_id for s in steps],
+            status=TestSubmission.STATUS_SUBMITTED,
+        ).values_list("test_id", flat=True)
+    )
+    draft_test_ids = set(
+        TestSubmission.objects.filter(
+            diagnostics=diagnostics,
+            test_id__in=[s.test_id for s in steps],
+            status=TestSubmission.STATUS_DRAFT,
         ).values_list("test_id", flat=True)
     )
 
@@ -111,7 +127,7 @@ def diagnostics_step_statuses(diagnostics: Diagnostics, lang: str) -> tuple[list
         if completed:
             step_status = "completed"
         elif not current_assigned:
-            step_status = "current"
+            step_status = "in_progress" if step.test_id in draft_test_ids else "current"
             current_assigned = True
         else:
             step_status = "upcoming"
@@ -133,3 +149,78 @@ def has_any_diagnostics(user) -> bool:
     if not user or not user.is_authenticated:
         return False
     return Diagnostics.objects.filter(user=user).exists()
+
+
+def has_recorded_consent(user) -> bool:
+    if not user or not user.is_authenticated:
+        return False
+    return UserConsent.objects.filter(user=user).exists()
+
+
+def get_or_create_draft(*, test, diagnostics, user) -> TestSubmission:
+    """The single primitive behind both "resume where I left off" and "edit
+    a submitted test": get the live draft for (user, test, diagnostics) if
+    one exists, otherwise create one — seeded from the latest *submitted*
+    attempt's answers if there is one, so re-opening a completed test for
+    editing starts pre-filled rather than blank. A fresh first-time attempt
+    has nothing to seed from and simply starts empty."""
+    draft = TestSubmission.objects.filter(
+        test=test, diagnostics=diagnostics, user=user, status=TestSubmission.STATUS_DRAFT
+    ).first()
+    if draft:
+        return draft
+
+    latest_submitted = (
+        TestSubmission.objects.filter(
+            test=test, diagnostics=diagnostics, user=user, status=TestSubmission.STATUS_SUBMITTED
+        )
+        .order_by("-submitted_at")
+        .first()
+    )
+
+    with transaction.atomic():
+        draft = TestSubmission.objects.create(
+            test=test, diagnostics=diagnostics, user=user, status=TestSubmission.STATUS_DRAFT
+        )
+        if latest_submitted:
+            Answer.objects.bulk_create(
+                [
+                    Answer(
+                        submission=draft,
+                        question_id=answer.question_id,
+                        selected_option_id=answer.selected_option_id,
+                        text_value=answer.text_value,
+                        comment=answer.comment,
+                    )
+                    for answer in latest_submitted.answers.all()
+                ]
+            )
+    return draft
+
+
+def upsert_draft_answers(draft: TestSubmission, answers: list[dict]) -> None:
+    """Saves each answer immediately as it arrives (autosave) — update_or_
+    create per answer is fine at this scale (at most 60 questions per test)."""
+    for answer in answers:
+        Answer.objects.update_or_create(
+            submission=draft,
+            question_id=answer["question_id"],
+            defaults={
+                "selected_option_id": answer.get("option_id"),
+                "text_value": answer.get("text_value", ""),
+                "comment": answer.get("comment", ""),
+            },
+        )
+
+
+def finalize_draft(draft: TestSubmission, test) -> TestSubmission:
+    """Flips a draft to submitted and freezes computed_result — the one
+    moment scoring runs, exactly as a one-shot submit always worked."""
+    from .scoring import compute_result
+
+    answers = list(draft.answers.select_related("question__category", "selected_option"))
+    draft.status = TestSubmission.STATUS_SUBMITTED
+    draft.submitted_at = timezone.now()
+    draft.computed_result = compute_result(test, answers)
+    draft.save(update_fields=["status", "submitted_at", "computed_result"])
+    return draft

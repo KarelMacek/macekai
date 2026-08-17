@@ -13,12 +13,22 @@ export interface WhoAmI {
   username?: string;
   email?: string;
   has_diagnostics?: boolean;
+  consent_recorded?: boolean;
   is_staff?: boolean;
+}
+
+export interface ConsentPayload {
+  ai_processing_consent: boolean;
+  research_consent: boolean;
+}
+
+export interface ConsentRecord extends ConsentPayload {
+  recorded_at: string;
 }
 
 export type TestType = "snapshot" | "mapping";
 export type QuestionType = "likert" | "open_text";
-export type StepStatus = "completed" | "current" | "upcoming";
+export type StepStatus = "completed" | "current" | "in_progress" | "upcoming";
 
 export interface LikertOption {
   id: number;
@@ -87,11 +97,15 @@ export interface ComputedResult {
   matched_thresholds?: Record<string, number>;
 }
 
+export type TestSubmissionStatus = "draft" | "submitted";
+
 export interface TestSubmission {
   id: number;
   test_slug: string;
   test_type: TestType;
-  submitted_at: string;
+  status: TestSubmissionStatus;
+  // null while status is "draft" — only set once the test is finalized.
+  submitted_at: string | null;
   computed_result: ComputedResult;
   answers: AnswerRead[];
 }
@@ -123,6 +137,7 @@ export interface DiagnosticsSummary {
   journey_slug: string;
   opened_at: string;
   status: DiagnosticsStatus;
+  language: string;
 }
 
 export interface FeedbackRequest {
@@ -145,6 +160,7 @@ export interface DiagnosticsDetail {
   journey_slug: string;
   opened_at: string;
   status: DiagnosticsStatus;
+  language: string;
   all_tests_done: boolean;
   steps: JourneyStepStatus[];
   submissions: TestSubmission[];

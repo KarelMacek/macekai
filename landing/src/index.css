@@ -145,6 +145,17 @@
     color: var(--gold);
   }
 
+  /* Hides the scrollbar on a scrollable element while staying scrollable
+     (drag/swipe/wheel) — used where custom controls (arrows, dots) already
+     communicate scroll position, so the native bar is just visual noise. */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Grain overlay */
   .grain-overlay::after {
     content: "";
@@ -182,8 +193,34 @@
       filter: brightness(1.35);
     }
   }
+  /* A single 1s cycle, then stops — starts/ends at the rest state (0%/100%)
+     so it settles cleanly instead of freezing mid-glow. One blink is enough
+     to catch the eye; anything looping reads as noise, not an invitation. */
   .invite-glow {
-    animation: invite-glow 1s ease-in-out infinite;
+    animation-name: invite-glow;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 1;
+  }
+
+  /* Small entrance beat for the "you can leave this site" message after a
+     "no" answer — plays once on mount, not a distracting infinite loop. */
+  @keyframes cta-emphasis {
+    0% {
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+    }
+    60% {
+      opacity: 1;
+      transform: translateY(-1px) scale(1.01);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  .cta-emphasis {
+    animation: cta-emphasis 0.45s cubic-bezier(0.23, 1, 0.32, 1);
   }
 
   /* Problem card */

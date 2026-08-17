@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path("journey/", views.JourneyView.as_view(), name="assessments-journey"),
     path("tests/<slug:slug>/", views.TestDetailView.as_view(), name="assessments-test-detail"),
+    path("tests/<slug:slug>/draft/", views.TestDraftView.as_view(), name="assessments-test-draft"),
     path("tests/<slug:slug>/submit/", views.TestSubmitView.as_view(), name="assessments-test-submit"),
     path("submissions/", views.SubmissionListView.as_view(), name="assessments-submission-list"),
     path(
@@ -12,6 +13,7 @@ urlpatterns = [
         views.SubmissionDetailView.as_view(),
         name="assessments-submission-detail",
     ),
+    path("consent/", views.ConsentView.as_view(), name="assessments-consent"),
     path(
         "feedback-request/",
         views.FeedbackRequestView.as_view(),

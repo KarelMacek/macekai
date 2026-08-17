@@ -50,6 +50,68 @@ Hit **Save feedback**. You can come back and re-save as many times as you
 like (same form, pre-filled with whatever's already there) — saving again
 just updates the existing feedback rather than creating a second one.
 
+## Wiring up a new SimpleShop product (or a new language for an existing one)
+
+Each `Journey` maps to a SimpleShop product via `simpleshop_product_id_cs`
+and `simpleshop_product_id_en` — one field per checkout language, since
+SimpleShop needs a separate product/form per language but the underlying
+Journey/JourneySteps content is already bilingual (every `Test`/`Category`/
+`Question` string is a `{"en": ..., "cs": ...}` JSON field), so a new
+language variant is the *same* Journey, just its other `simpleshop_product_id_*`
+field filled in — not a new Journey. Do this once per new product/language
+(learned the hard way, live, on 2026-08-14 — SimpleShop's own settings UI
+silently dropped a saved value more than once, so the verification steps
+below are not optional):
+
+1. **Get the webhook URL.** The secret token lives in that environment's
+   Key Vault, never in the repo:
+   ```
+   az keyvault secret show --vault-name kv-macekai-prod --name simpleshop-webhook-secret --query value -o tsv
+   ```
+   Build the full URL with SimpleShop's own placeholder-token syntax (they
+   substitute these at call time — paste literally, including the curly
+   braces):
+   ```
+   https://app-macekai-prod.azurewebsites.net/api/webhooks/simpleshop/<token>/?mail={mail}&id={id}&number={number}&id_product={id_product}
+   ```
+   `dev`/`staging` follow the same pattern with their own vault name and
+   hostname.
+
+2. **Paste it into the product's "Webhook po zaplacení" (after payment)
+   field** in SimpleShop, not "Webhook po objednání" (after order) — an
+   order can exist unpaid (e.g. pending bank transfer), and you don't want
+   to grant a diagnostics slot before the money has actually arrived.
+
+3. **Reload the settings page and re-check the field before trusting it
+   saved.** This bit us live: the full URL (with token + query string) got
+   silently truncated down to just the bare path with nothing else. Don't
+   test until you've confirmed, on a fresh page load, that the field still
+   shows the complete string ending in `id_product={id_product}`.
+
+4. **Find the real `id_product`.** SimpleShop's own order/document history
+   doesn't log webhook delivery attempts, so don't rely on it. Instead tail
+   the target environment's logs and trigger one real purchase:
+   ```
+   az webapp log tail --name app-macekai-prod --resource-group macekai-prod
+   ```
+   Watch for a line containing `/api/webhooks/simpleshop/` — the
+   `id_product=` query param on that request is the real value (their
+   dispatcher shows up as `Vyfakturuj-Webhook`, not "SimpleShop", in the
+   user-agent — that's expected, it's their invoicing integration doing the
+   actual call).
+
+5. **Set the matching `Journey.simpleshop_product_id_cs` or
+   `simpleshop_product_id_en`** (whichever language this product is for) to
+   that value at `/admin/assessments/journey/<id>/change/` — clear the field
+   completely before typing the new value, save, then **reload the journey
+   list page and confirm the corresponding column actually shows the new
+   value** before moving on. Same silent-save risk as step 3.
+
+6. **Re-test.** Either repurchase for real, or (cheaper) resend the exact
+   webhook call captured in step 4 by hand — `_handle()` is idempotent per
+   `source_order_id`/`id`, so replaying the same request is safe. Confirm a
+   new row appears for that email in the admin console's diagnostics list.
+
 ## Other things you can do here
 
 Still in Django admin (`/admin/`), not the in-app console:
@@ -68,6 +130,7 @@ Still in Django admin (`/admin/`), not the in-app console:
 - **Editing test content** — `/admin/assessments/test/` (questions, Likert
   scales, category result copy) and `/admin/assessments/journey/` (which
   tests, in what order, and — for whichever `Journey` a SimpleShop product
-  should unlock — its `simpleshop_product_id`). See
+  should unlock — its `simpleshop_product_id_cs`/`simpleshop_product_id_en`).
+  See
   [`self-assessment-engine.md`](self-assessment-engine.md) for how editing a
   test that already has real answers against it behaves.

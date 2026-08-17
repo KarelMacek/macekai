@@ -4,7 +4,7 @@
  * Style: patent-diagram framing, blueprint lines, technical annotations
  * Bilingual: CS / EN via LangContext
  */
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/contexts/LangContext";
 import { t, tx, type Lang } from "@/lib/content";
@@ -14,12 +14,16 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { trackEvent } from "@/lib/analytics";
+import { useFunnelDeclined } from "@/contexts/FunnelDeclinedContext";
 import {
   QuickReflectionModal,
   isValidReflectionState,
   type Answers,
   type ResultKey,
 } from "@/components/QuickReflectionModal";
+import { DiagnosticsInfoModal } from "@/components/DiagnosticsInfoModal";
+import { CollaborationInfoModal } from "@/components/CollaborationInfoModal";
+import Footer from "@/components/Footer";
 
 // ── Fade-up hook ──────────────────────────────────────────────────────────────
 function useFadeUp(delay = 0) {
@@ -1368,23 +1372,75 @@ type PricingStep = {
   yesNo?: {
     yes: string;
     no: string;
-    yesResponse: string;
     noResponse: string;
   };
 };
 
+const CAROUSEL_CARD_WIDTH = "clamp(280px, 40%, 460px)";
+// Half the leftover track width once one card is centered — used as the
+// spacer width so the first/last cards have room to center too.
+const CAROUSEL_SPACER_WIDTH = `calc((100% - ${CAROUSEL_CARD_WIDTH}) / 2)`;
+
 function Pricing({
   onQuickCheckClick,
   quickCheckDone,
+  step1Answer,
+  onStep1AnswerChange,
+  onDiagnosticsInfoClick,
+  onCollaborationInfoClick,
 }: {
   onQuickCheckClick: () => void;
   quickCheckDone: boolean;
+  step1Answer: "yes" | "no" | null;
+  onStep1AnswerChange: (answer: "yes" | "no") => void;
+  onDiagnosticsInfoClick: () => void;
+  onCollaborationInfoClick: () => void;
 }) {
   const { lang } = useLang();
   const ref = useFadeUp();
   const steps = t.pricing.steps[lang] as readonly PricingStep[];
   const packages = t.method.packages[lang];
-  const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
+
+  // Carousel: the "current" step is always centered and fully visible, with
+  // its neighbours peeking ~30% in on either side — including step 01 at
+  // rest, so a newcomer's first prompt lands front and center rather than
+  // pinned to the left edge. Spacer elements at each end of the track (see
+  // CAROUSEL_CARD_WIDTH below) give the first/last cards room to actually
+  // center instead of clamping against the scroll boundary.
+  const trackRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const progressIndex = quickCheckDone ? 2 : step1Answer === "yes" ? 1 : 0;
+  const hasScrolledRef = useRef(false);
+
+  useEffect(() => {
+    setActiveIndex(progressIndex);
+  }, [progressIndex]);
+
+  useEffect(() => {
+    cardRefs.current[activeIndex]?.scrollIntoView({
+      // Center step 01 instantly on first render — no animated slide-in
+      // the visitor didn't ask for. Later moves (progress, arrows, dots)
+      // animate normally.
+      behavior: hasScrolledRef.current ? "smooth" : "auto",
+      inline: "center",
+      block: "nearest",
+    });
+    hasScrolledRef.current = true;
+  }, [activeIndex]);
+
+  function goToStep(delta: number) {
+    setActiveIndex(i => Math.min(steps.length - 1, Math.max(0, i + delta)));
+  }
+
+  const declined = step1Answer === "no";
+  const restOfPricingStyle: React.CSSProperties = {
+    transition: "opacity 300ms ease, filter 300ms ease",
+    opacity: declined ? 0.3 : undefined,
+    filter: declined ? "grayscale(1)" : undefined,
+    pointerEvents: declined ? "none" : undefined,
+  };
+
   return (
     <section
       id="jak-zacit"
@@ -1400,7 +1456,11 @@ function Pricing({
         }}
       />
       <div className="container relative z-10">
-        <div ref={ref} className="fade-up text-center mb-16">
+        <div
+          ref={ref}
+          className="fade-up text-center mb-16"
+          style={restOfPricingStyle}
+        >
           <SectionLabel>{tx(t.pricing.label, lang)}</SectionLabel>
           <GoldLine className="mx-auto mb-8" />
           <h2
@@ -1418,49 +1478,37 @@ function Pricing({
           </p>
         </div>
 
-        {/* Wide desktop: single horizontal row with connectors.
-            Cards and connectors are flattened into equal flex siblings —
-            nesting each connector inside its preceding card's wrapper made
-            the last card (with no trailing connector) render ~32px wider
-            than the rest. */}
-        <div className="hidden xl:flex items-stretch">
-          {steps.map((s, i) => (
-            <Fragment key={s.num}>
-              <div className="flex items-stretch flex-1 min-w-0">
-                <FunnelStepCard
-                  step={s}
-                  lang={lang}
-                  delay={i * 80}
-                  packages={s.num === "05" ? packages : undefined}
-                  onQuickCheckClick={onQuickCheckClick}
-                  quickCheckDone={quickCheckDone}
-                  highlightCta={
-                    s.num === "02" ? step1Answer === "yes" : undefined
-                  }
-                  muted={
-                    s.num === "02" || s.num === "03" || s.num === "04"
-                      ? step1Answer === "no"
-                      : undefined
-                  }
-                  onAnswerChange={
-                    s.num === "01" ? a => setStep1Answer(a) : undefined
-                  }
-                />
-              </div>
-              {i < steps.length - 1 && <ConnectorNode />}
-            </Fragment>
-          ))}
-        </div>
-
-        {/* Tablet / narrow desktop: same row-with-connectors layout as
-            desktop (keeps the 01→02→03→04→05 flow legible), but scrollable
-            with fixed-width cards instead of being squeezed via flex-1 */}
-        <div className="hidden md:block xl:hidden relative">
-          <div className="flex items-stretch overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-1 px-1">
+        {/* Tablet+: a peeking carousel. Cards are ~40% of the track width, so
+            at rest (index 0) exactly two and a half are visible; centering
+            any later card via scrollIntoView naturally leaves ~30% of its
+            neighbours showing on each side. */}
+        <div className="hidden md:block">
+          <div
+            ref={trackRef}
+            className="no-scrollbar flex items-stretch gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2"
+            style={{
+              // Fades card content (not just a painted rectangle) into
+              // the edges, so a peeking card's icon/title trail off
+              // smoothly instead of being sliced flush against the arrows.
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 64px, black calc(100% - 64px), transparent)",
+              maskImage:
+                "linear-gradient(to right, transparent, black 64px, black calc(100% - 64px), transparent)",
+            }}
+          >
+            <div
+              aria-hidden
+              className="shrink-0"
+              style={{ width: CAROUSEL_SPACER_WIDTH }}
+            />
             {steps.map((s, i) => (
               <div
                 key={s.num}
-                className="flex items-stretch shrink-0 w-72 snap-start"
+                ref={el => {
+                  cardRefs.current[i] = el;
+                }}
+                className="flex items-stretch shrink-0 snap-center"
+                style={{ width: CAROUSEL_CARD_WIDTH }}
               >
                 <FunnelStepCard
                   step={s}
@@ -1470,28 +1518,82 @@ function Pricing({
                   onQuickCheckClick={onQuickCheckClick}
                   quickCheckDone={quickCheckDone}
                   highlightCta={
-                    s.num === "02" ? step1Answer === "yes" : undefined
+                    s.num === "02"
+                      ? step1Answer === "yes"
+                      : s.num === "03"
+                        ? quickCheckDone
+                        : undefined
                   }
-                  muted={
-                    s.num === "02" || s.num === "03" || s.num === "04"
-                      ? step1Answer === "no"
-                      : undefined
-                  }
+                  muted={s.num === "01" ? undefined : step1Answer === "no"}
                   onAnswerChange={
-                    s.num === "01" ? a => setStep1Answer(a) : undefined
+                    s.num === "01" ? onStep1AnswerChange : undefined
+                  }
+                  onDiagnosticsInfoClick={
+                    s.num === "03" ? onDiagnosticsInfoClick : undefined
+                  }
+                  onCollaborationInfoClick={
+                    s.num === "05" ? onCollaborationInfoClick : undefined
                   }
                 />
-                {i < steps.length - 1 && <ConnectorNode />}
               </div>
             ))}
+            <div
+              aria-hidden
+              className="shrink-0"
+              style={{ width: CAROUSEL_SPACER_WIDTH }}
+            />
           </div>
+
+          {/* Nav controls live below the track, not on top of it — arrows
+              styled as plain chevrons (no circular border) so they read as
+              controls, not as more of the same gold icon-circles the cards
+              already use for their category icons. */}
           <div
-            className="pointer-events-none absolute right-0 top-0 bottom-4 w-16"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent, oklch(0.12 0.015 60))",
-            }}
-          />
+            className="mt-5 flex items-center justify-center gap-5"
+            style={restOfPricingStyle}
+          >
+            <button
+              type="button"
+              onClick={() => goToStep(-1)}
+              disabled={activeIndex === 0}
+              aria-label={tx(t.pricing.prevStep, lang)}
+              className={`text-2xl leading-none text-muted-foreground transition-all duration-200 hover:text-gold disabled:opacity-0 ${activeIndex === 0 ? "pointer-events-none" : ""}`}
+            >
+              ‹
+            </button>
+            <div className="flex items-center gap-2">
+              {steps.map((s, i) => (
+                <button
+                  key={s.num}
+                  type="button"
+                  onClick={() => setActiveIndex(i)}
+                  aria-label={`${tx(t.pricing.goToStep, lang)} ${i + 1}`}
+                  aria-current={activeIndex === i}
+                  className="p-1.5"
+                >
+                  <span
+                    className="block h-1.5 rounded-full transition-all duration-300"
+                    style={{
+                      width: activeIndex === i ? "1.5rem" : "0.375rem",
+                      background:
+                        activeIndex === i
+                          ? "oklch(0.78 0.12 85)"
+                          : "oklch(1 0 0 / 15%)",
+                    }}
+                  />
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => goToStep(1)}
+              disabled={activeIndex === steps.length - 1}
+              aria-label={tx(t.pricing.nextStep, lang)}
+              className={`text-2xl leading-none text-muted-foreground transition-all duration-200 hover:text-gold disabled:opacity-0 ${activeIndex === steps.length - 1 ? "pointer-events-none" : ""}`}
+            >
+              ›
+            </button>
+          </div>
         </div>
 
         <div className="flex md:hidden flex-col gap-6">
@@ -1505,21 +1607,27 @@ function Pricing({
               onQuickCheckClick={onQuickCheckClick}
               quickCheckDone={quickCheckDone}
               highlightCta={
-                s.num === "02" ? step1Answer === "yes" : undefined
+                s.num === "02"
+                  ? step1Answer === "yes"
+                  : s.num === "03"
+                    ? quickCheckDone
+                    : undefined
               }
-              muted={
-                s.num === "02" || s.num === "03" || s.num === "04"
-                  ? step1Answer === "no"
-                  : undefined
-              }
+              muted={s.num === "01" ? undefined : step1Answer === "no"}
               onAnswerChange={
-                s.num === "01" ? a => setStep1Answer(a) : undefined
+                s.num === "01" ? onStep1AnswerChange : undefined
+              }
+              onDiagnosticsInfoClick={
+                s.num === "03" ? onDiagnosticsInfoClick : undefined
+              }
+              onCollaborationInfoClick={
+                s.num === "05" ? onCollaborationInfoClick : undefined
               }
             />
           ))}
         </div>
 
-        <div className="mt-12 max-w-3xl mx-auto">
+        <div className="mt-12 max-w-3xl mx-auto" style={restOfPricingStyle}>
           <PatentCard className="text-center">
             <p
               className="text-sm text-[oklch(0.60_0.02_72)] leading-relaxed"
@@ -1534,16 +1642,6 @@ function Pricing({
   );
 }
 
-function ConnectorNode() {
-  return (
-    <div className="w-8 shrink-0 flex items-start justify-center">
-      <div className="w-6 h-6 mt-14 rounded-full border border-[oklch(0.78_0.12_85/0.4)] flex items-center justify-center text-gold shrink-0">
-        <span className="text-xs leading-none">›</span>
-      </div>
-    </div>
-  );
-}
-
 function FunnelStepCard({
   step,
   lang,
@@ -1554,6 +1652,8 @@ function FunnelStepCard({
   highlightCta,
   muted,
   onAnswerChange,
+  onDiagnosticsInfoClick,
+  onCollaborationInfoClick,
 }: {
   step: PricingStep;
   lang: Lang;
@@ -1569,62 +1669,93 @@ function FunnelStepCard({
   highlightCta?: boolean;
   muted?: boolean;
   onAnswerChange?: (answer: "yes" | "no") => void;
+  onDiagnosticsInfoClick?: () => void;
+  onCollaborationInfoClick?: () => void;
 }) {
   const ref = useFadeUp(delay);
   const [yesNoAnswer, setYesNoAnswer] = useState<"yes" | "no" | null>(null);
-  const ctaMeta: Record<string, { event: string; todo: string }> = {
-    "03": {
-      event: "diagnostics_click",
-      todo: "TODO(pricing-links): replace with real payment/booking URL for the 590 Kč diagnostics",
-    },
+  // Step "03" no longer lives here — it opens DiagnosticsInfoModal instead
+  // of linking straight out, so its CTA is handled as its own button below.
+  const ctaMeta: Record<string, { event: string; url?: { cs: string; en: string } }> = {
     "04": {
       event: "consult_click",
-      todo: "TODO(pricing-links): replace with real booking URL for the 3 600 Kč 360° consultation",
+      url: {
+        cs: "https://calendly.com/karel-macek/mapa-zmeny",
+        en: "https://calendly.com/karel-macek/change-map",
+      },
     },
   };
 
   return (
-    <div ref={ref} className="fade-up flex-1 min-w-0">
+    <div
+      ref={ref}
+      className="fade-up flex-1 min-w-0"
+      style={{
+        transition: "opacity 300ms ease, filter 300ms ease",
+        opacity: muted ? 0.4 : undefined,
+        filter: muted ? "grayscale(1)" : undefined,
+        pointerEvents: muted ? "none" : undefined,
+      }}
+    >
       <PatentCard className="h-full flex flex-col items-center text-center hover:border-[oklch(0.78_0.12_85/0.3)] transition-colors duration-200 group">
-        <span
-          className="absolute top-4 left-5 text-[oklch(0.78_0.12_85/0.55)]"
-          style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "0.7rem",
-            letterSpacing: "0.05em",
-          }}
-        >
-          {step.num}
-        </span>
-        <div className="w-11 h-11 rounded-full border border-[oklch(0.78_0.12_85/0.4)] text-gold flex items-center justify-center mb-4 group-hover:bg-[oklch(0.78_0.12_85/0.08)] transition-colors duration-200">
-          {icons[step.icon]}
-        </div>
-        <h3
-          className="text-sm font-semibold text-[oklch(0.88_0.02_80)] mb-2"
-          style={{ fontFamily: "'Playfair Display', serif" }}
-        >
-          {step.title}
-        </h3>
-        <p
-          className="text-xs text-[oklch(0.52_0.02_70)] leading-relaxed mb-4"
-          style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
-        >
-          {step.desc}
-        </p>
+        {(() => {
+          const declinedHere = yesNoAnswer === "no";
+          const dimStyle: React.CSSProperties = {
+            transition: "opacity 300ms ease, filter 300ms ease",
+            opacity: declinedHere ? 0.3 : undefined,
+            filter: declinedHere ? "grayscale(1)" : undefined,
+          };
+          return (
+            <>
+              <span
+                className="absolute top-4 left-5 text-[oklch(0.78_0.12_85/0.55)]"
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.05em",
+                  ...dimStyle,
+                }}
+              >
+                {step.num}
+              </span>
+              <div
+                className="w-11 h-11 rounded-full border border-[oklch(0.78_0.12_85/0.4)] text-gold flex items-center justify-center mb-4 group-hover:bg-[oklch(0.78_0.12_85/0.08)] transition-colors duration-200"
+                style={dimStyle}
+              >
+                {icons[step.icon]}
+              </div>
+              {/* Kept fully lit even when declined — the question itself is
+                  the context the "you can leave" message is answering, so it
+                  stays legible while everything decorative around it fades. */}
+              <h3
+                className="text-lg font-semibold text-[oklch(0.88_0.02_80)] mb-2"
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                {step.title}
+              </h3>
+              <p
+                className="text-sm text-[oklch(0.52_0.02_70)] leading-relaxed mb-4"
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 300,
+                  whiteSpace: "pre-line",
+                  ...dimStyle,
+                }}
+              >
+                {step.desc}
+              </p>
+            </>
+          );
+        })()}
 
         {step.yesNo && (
           <div className="mt-auto w-full">
-            {yesNoAnswer === "yes" && (
-              <p className="mb-3 text-xs text-gold leading-relaxed">
-                {step.yesNo.yesResponse} →
-              </p>
-            )}
             {yesNoAnswer === "no" && (
               <p
-                className="mb-3 text-xs text-[oklch(0.52_0.02_70)] leading-relaxed"
-                style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300 }}
+                className="cta-emphasis mb-3 text-base font-semibold text-[oklch(0.88_0.02_80)] leading-relaxed"
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                × {step.yesNo.noResponse}
+                {step.yesNo.noResponse}
               </p>
             )}
             <div className="flex items-center justify-center gap-3">
@@ -1649,6 +1780,10 @@ function FunnelStepCard({
                         border: "1px solid oklch(1 0 0 / 15%)",
                         fontFamily: "'DM Sans', sans-serif",
                         borderRadius: "2px",
+                        transition:
+                          "opacity 300ms ease, filter 300ms ease, transform 200ms",
+                        opacity: yesNoAnswer === "no" ? 0.3 : undefined,
+                        filter: yesNoAnswer === "no" ? "grayscale(1)" : undefined,
                       }
                 }
               >
@@ -1686,7 +1821,7 @@ function FunnelStepCard({
 
         {step.price && (
           <p
-            className="text-2xl font-bold text-gold mt-auto mb-1"
+            className="text-3xl font-bold text-gold mt-auto mb-1"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {step.price}
@@ -1703,7 +1838,7 @@ function FunnelStepCard({
               );
               onQuickCheckClick?.();
             }}
-            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta && !quickCheckDone ? "invite-glow" : ""} ${muted ? "opacity-40 grayscale" : ""}`}
+            className={`inline-flex items-center justify-center gap-1.5 px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta && !quickCheckDone ? "invite-glow" : ""}`}
             style={
               quickCheckDone
                 ? {
@@ -1725,10 +1860,29 @@ function FunnelStepCard({
             {quickCheckDone ? tx(t.pricing.checkDoneLabel, lang) : step.cta}
           </button>
         )}
-        {step.cta && step.num !== "02" && (
-          // TODO(pricing-links): href="#" is a placeholder — wire up ctaMeta[step.num].todo before launch
+        {step.cta && step.num === "03" && (
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent(lang, "diagnostics_info_click", {
+                location: "pricing",
+              });
+              onDiagnosticsInfoClick?.();
+            }}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta ? "invite-glow" : ""}`}
+            style={{
+              background: "oklch(0.78 0.12 85)",
+              color: "oklch(0.12 0.015 60)",
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: "2px",
+            }}
+          >
+            {step.cta}
+          </button>
+        )}
+        {step.cta && step.num !== "02" && step.num !== "03" && step.num !== "05" && (
           <a
-            href="#"
+            href={ctaMeta[step.num]?.url?.[lang] ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() =>
@@ -1738,7 +1892,7 @@ function FunnelStepCard({
                 { location: "pricing" }
               )
             }
-            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${muted ? "opacity-40 grayscale" : ""}`}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta ? "invite-glow" : ""}`}
             style={{
               background: "oklch(0.78 0.12 85)",
               color: "oklch(0.12 0.015 60)",
@@ -1751,47 +1905,60 @@ function FunnelStepCard({
         )}
 
         {packages && (
-          <ul className="mt-auto w-full text-left space-y-3">
+          <ul className="mt-auto w-full grid grid-cols-2 gap-3 text-left">
             {packages.map(pkg => (
-              <li key={pkg.label} className="flex items-start gap-2.5">
-                <span
-                  className="text-gold shrink-0 leading-none mt-0.5"
-                  aria-hidden
+              <li key={pkg.label}>
+                <p
+                  className="text-[oklch(0.88_0.02_80)] text-[10px] uppercase tracking-wider mb-0.5"
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 600,
+                  }}
                 >
-                  ›
-                </span>
-                <div>
-                  <p
-                    className="text-[oklch(0.88_0.02_80)] text-[10px] uppercase tracking-wider mb-0.5"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {pkg.tag}
-                  </p>
-                  <p
-                    className="text-[oklch(0.62_0.02_72)] text-xs leading-relaxed"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 300,
-                    }}
-                  >
-                    {pkg.label}
-                  </p>
-                  <p
-                    className="text-gold text-sm whitespace-nowrap"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 400,
-                    }}
-                  >
-                    {pkg.price}
-                  </p>
-                </div>
+                  {pkg.tag}
+                </p>
+                <p
+                  className="text-[oklch(0.62_0.02_72)] text-xs leading-relaxed"
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 300,
+                  }}
+                >
+                  {pkg.label}
+                </p>
+                <p
+                  className="text-gold text-sm"
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 400,
+                  }}
+                >
+                  {pkg.price}
+                </p>
               </li>
             ))}
           </ul>
+        )}
+        {step.cta && step.num === "05" && (
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent(lang, "collaboration_info_click", {
+                location: "pricing",
+              });
+              onCollaborationInfoClick?.();
+            }}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${packages ? "mt-4" : "mt-auto"}`}
+            style={{
+              background: "transparent",
+              color: "oklch(0.78 0.12 85)",
+              border: "1px solid oklch(0.78 0.12 85 / 0.4)",
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: "2px",
+            }}
+          >
+            {step.cta}
+          </button>
         )}
       </PatentCard>
     </div>
@@ -1881,44 +2048,6 @@ function Contact() {
   );
 }
 
-// ── Footer ────────────────────────────────────────────────────────────────────
-function Footer() {
-  const { lang } = useLang();
-  return (
-    <footer
-      className="py-8 border-t border-white/5"
-      style={{ background: "oklch(0.10 0.015 60)" }}
-    >
-      <div className="container flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-6 h-6 rounded-md flex items-center justify-center opacity-40"
-            style={{ background: "oklch(0.14 0.02 60)" }}
-          >
-            <img
-              src="/images/logo-icon.png"
-              alt=""
-              className="w-4 h-4 object-contain"
-            />
-          </div>
-          <span
-            className="text-sm text-[oklch(0.36_0.02_65)]"
-            style={{ fontFamily: "'DM Sans', sans-serif" }}
-          >
-            {tx(t.footer.tagline, lang)}
-          </span>
-        </div>
-        <p
-          className="text-xs text-[oklch(0.28_0.02_65)]"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          © {new Date().getFullYear()} Karel Macek
-        </p>
-      </div>
-    </footer>
-  );
-}
-
 // ── Main ──────────────────────────────────────────────────────────────────────
 const QUICK_REFLECTION_DONE_KEY = "quickReflectionDone";
 
@@ -1945,6 +2074,14 @@ export default function Home() {
   useScrollDepthTracking(lang);
   const [showReflection, setShowReflection] = useState(false);
   const [savedReflection, setSavedReflection] = useState(loadSavedReflection);
+  const [showDiagnosticsInfo, setShowDiagnosticsInfo] = useState(false);
+  const [showCollaborationInfo, setShowCollaborationInfo] = useState(false);
+  const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
+  const declined = step1Answer === "no";
+  const { setDeclined } = useFunnelDeclined();
+  useEffect(() => {
+    setDeclined(declined);
+  }, [declined, setDeclined]);
 
   // No dedicated "next step" page exists yet, so growth/change results scroll
   // the visitor to the pricing funnel (steps 03/04) rather than a hardcoded URL.
@@ -1955,25 +2092,39 @@ export default function Home() {
       ?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Once the visitor says "no" to step 01, the rest of the site (nav, every
+  // other section) dims out with it — not just the funnel steps below it —
+  // so the "you can leave" suggestion reads as the page's one clear message
+  // instead of competing with a fully-lit site around it.
+  const restOfSiteClass = `transition-[opacity,filter] duration-500 ${declined ? "pointer-events-none opacity-30 grayscale" : ""}`;
+
   return (
     <div
       className="min-h-screen"
       style={{ background: "oklch(0.12 0.015 60)" }}
     >
-      <Nav />
-      <Hero />
-      <About />
-      <Method />
-      <WhyMe />
-      <ClientProblems />
-      <Testimonials />
-      <SusitaDemo />
+      <div className={restOfSiteClass}>
+        <Nav />
+        <Hero />
+        <About />
+        <Method />
+        <WhyMe />
+        <ClientProblems />
+        <Testimonials />
+        <SusitaDemo />
+      </div>
       <Pricing
         onQuickCheckClick={() => setShowReflection(true)}
         quickCheckDone={!!savedReflection}
+        step1Answer={step1Answer}
+        onStep1AnswerChange={setStep1Answer}
+        onDiagnosticsInfoClick={() => setShowDiagnosticsInfo(true)}
+        onCollaborationInfoClick={() => setShowCollaborationInfo(true)}
       />
-      <Contact />
-      <Footer />
+      <div className={restOfSiteClass}>
+        <Contact />
+        <Footer />
+      </div>
       <QuickReflectionModal
         isOpen={showReflection}
         initialState={savedReflection ?? undefined}
@@ -1992,6 +2143,14 @@ export default function Home() {
           setSavedReflection(null);
           window.localStorage.removeItem(QUICK_REFLECTION_DONE_KEY);
         }}
+      />
+      <DiagnosticsInfoModal
+        isOpen={showDiagnosticsInfo}
+        onClose={() => setShowDiagnosticsInfo(false)}
+      />
+      <CollaborationInfoModal
+        isOpen={showCollaborationInfo}
+        onClose={() => setShowCollaborationInfo(false)}
       />
     </div>
   );

@@ -32,7 +32,7 @@ const translations = {
     linkedinLabel: "LinkedIn profile URL",
     feedbackRequestSubmitted: "Thanks — your request has been submitted. We'll be in touch once your feedback is ready.",
     feedbackPendingTitle: "Feedback is on its way",
-    feedbackPendingBody: "We've received your request and are reviewing your journey. Check back soon.",
+    feedbackPendingBody: "I've received your request and am reviewing your journey. Check back soon.",
     feedbackReadyTitle: "Your feedback is ready",
     downloadDocument: "Download feedback document",
     watchVideo: "Watch feedback video",
@@ -75,6 +75,54 @@ const translations = {
     commentLabel: "Comment",
     viewFeedback: "View your feedback",
     fillAgain: "Fill again",
+    // --- Test intro screen ---
+    introTimeEstimateSnapshot: "About 8–10 minutes",
+    introTimeEstimateMapping: "About 15 minutes",
+    introReassuranceNoWrongAnswers: "No wrong answers",
+    introReassuranceAutosave: "Saves automatically — stop anytime",
+    introReassuranceEditable: "You can change any answer later",
+    firstQuestionHint: "Go with your gut — first instinct is usually right.",
+    // --- Milestones / pacing ---
+    milestoneThirdDone: "A third down. The rest usually goes faster once you're in the groove.",
+    milestonePastHalfway: "Past halfway.",
+    milestoneAlmostThere: "Just a few more.",
+    seeResultsButton: "See your results",
+    // --- Save / resume / edit ---
+    saveAndExit: "Save & finish later",
+    savingIndicator: "Saving…",
+    savedIndicator: "Saved",
+    resumeBanner: "Welcome back — you're on question {current} of {total}.",
+    editAnswers: "Edit answers",
+    saveChanges: "Save changes",
+    editSummary: "Saved — you changed {count} answer(s).",
+    editSummaryNone: "Saved — nothing was changed.",
+    // --- Mapping test ---
+    mappingBrevityHint: "A sentence or two is plenty — you can always add more later.",
+    mappingAmbientProgress: "{current} down, {remaining} to go.",
+    reviewAllTitle: "Review everything",
+    reviewAllIntro: "Take a look before you submit — you can still edit anything here.",
+    outlineJumpAriaLabel: "Jump to question {n}",
+    nextButton: "Next",
+    // --- Dashboard / journey ---
+    stepInProgress: "In progress",
+    whatsNextHeading: "One down!",
+    whatsNextBody: "Next up: {step}, whenever you're ready.",
+    whatsNextLater: "Or head back to your dashboard and come back to it later.",
+    // --- Consent gate ---
+    consentRecapTitle: "Before we start",
+    consentRecapBody:
+      "This assessment walks you through a set of self-reflection questions. Once you submit your answers, I personally review them — you're guaranteed at least 20 minutes of careful, personal review from me, regardless of how you answer the two questions below.",
+    consentConfidentialityBody:
+      "Everything you share is strictly confidential under the International Coaching Federation (ICF) code of conduct.",
+    consentAiQuestionLabel: "Do you agree to have your answers processed by AI as well?",
+    consentAiFramingBody:
+      "Whatever you choose, you're guaranteed at least 20 minutes of my personal review. If you say no, that's fully respected — AI won't touch your answers at all. If you say yes, your feedback will likely be richer and better-informed. Only non-training models are used — Microsoft Copilot, Azure OpenAI API, or locally-run models — so your data is never used to train third-party models.",
+    consentResearchQuestionLabel:
+      "Do you agree to have your anonymized record processed statistically and with machine learning?",
+    consentResearchFramingBody:
+      "If not, that's completely fine and nothing further happens. If yes, you may later receive the results of related studies — including how you personally compare to others.",
+    consentYes: "Yes",
+    consentNo: "No",
   },
   cs: {
     signIn: "Přihlásit se přes Google",
@@ -103,7 +151,7 @@ const translations = {
     linkedinLabel: "Odkaz na LinkedIn profil",
     feedbackRequestSubmitted: "Díky — tvá žádost byla odeslána. Ozveme se, jakmile bude zpětná vazba připravená.",
     feedbackPendingTitle: "Zpětná vazba je na cestě",
-    feedbackPendingBody: "Tvou žádost jsme přijali a procházíme tvou cestu. Zkontroluj to brzy znovu.",
+    feedbackPendingBody: "Tvou žádost jsem přijal a procházím tvou cestu. Zkontroluj to brzy znovu.",
     feedbackReadyTitle: "Tvá zpětná vazba je připravená",
     downloadDocument: "Stáhnout dokument se zpětnou vazbou",
     watchVideo: "Zhlédnout video se zpětnou vazbou",
@@ -146,6 +194,54 @@ const translations = {
     commentLabel: "Komentář",
     viewFeedback: "Zobrazit svou zpětnou vazbu",
     fillAgain: "Vyplnit znovu",
+    // --- Test intro screen ---
+    introTimeEstimateSnapshot: "Asi 8–10 minut",
+    introTimeEstimateMapping: "Asi 15 minut",
+    introReassuranceNoWrongAnswers: "Neexistují špatné odpovědi",
+    introReassuranceAutosave: "Ukládá se automaticky — kdykoli můžeš přestat",
+    introReassuranceEditable: "Kteroukoli odpověď můžeš později změnit",
+    firstQuestionHint: "Jdi podle instinktu — první nápad bývá nejlepší.",
+    // --- Milestones / pacing ---
+    milestoneThirdDone: "Třetina za tebou. Zbytek už často jde rychleji — teď se do toho dostáváš.",
+    milestonePastHalfway: "Přes polovinu.",
+    milestoneAlmostThere: "Ještě pár otázek.",
+    seeResultsButton: "Zobrazit výsledky",
+    // --- Save / resume / edit ---
+    saveAndExit: "Uložit a pokračovat později",
+    savingIndicator: "Ukládám…",
+    savedIndicator: "Uloženo",
+    resumeBanner: "Vítej zpět — jsi u otázky {current} z {total}.",
+    editAnswers: "Upravit odpovědi",
+    saveChanges: "Uložit změny",
+    editSummary: "Uloženo — změnil/a jsi {count} odpověď(i).",
+    editSummaryNone: "Uloženo — nic se nezměnilo.",
+    // --- Mapping test ---
+    mappingBrevityHint: "Stačí i jedna nebo dvě věty — kdykoli můžeš doplnit víc.",
+    mappingAmbientProgress: "{current} hotovo, zbývá {remaining}.",
+    reviewAllTitle: "Zkontrolovat vše",
+    reviewAllIntro: "Než odešleš, mrkni na všechno znovu — cokoli tu ještě můžeš upravit.",
+    outlineJumpAriaLabel: "Přejít na otázku {n}",
+    nextButton: "Další",
+    // --- Dashboard / journey ---
+    stepInProgress: "Rozpracováno",
+    whatsNextHeading: "Jedna hotová!",
+    whatsNextBody: "Další na řadě: {step}, klidně až budeš mít čas.",
+    whatsNextLater: "Nebo se vrať na přehled a udělej to později.",
+    // --- Consent gate ---
+    consentRecapTitle: "Než začneme",
+    consentRecapBody:
+      "Čeká tě sada otázek k sebehodnocení. Jakmile odpovědi odešleš, budu se jim věnovat osobně — garantuji ti alespoň 20 minut pečlivé revize z mé strany, ať už na obě otázky níže odpovíš jakkoli.",
+    consentConfidentialityBody:
+      "Vše, co mi svěříš, je přísně důvěrné podle etického kodexu International Coaching Federation (ICF).",
+    consentAiQuestionLabel: "Souhlasíš, aby tvé odpovědi zpracovala i umělá inteligence?",
+    consentAiFramingBody:
+      "Ať odpovíš jakkoli, vždy dostaneš garantovaných alespoň 20 minut mé osobní revize. Když řekneš ne, plně to respektuji — AI se tvých odpovědí nedotkne. Když řekneš ano, zpětná vazba pro tebe bude pravděpodobně bohatší a informovanější. Použiji přitom pouze modely, které se na tvých datech nedoučují — Microsoft Copilot, Azure OpenAI API nebo lokálně běžící modely.",
+    consentResearchQuestionLabel:
+      "Souhlasíš, aby byl tvůj anonymizovaný záznam zpracován statisticky a pomocí strojového učení?",
+    consentResearchFramingBody:
+      "Pokud ne, je to zcela v pořádku a nic dalšího se neděje. Pokud ano, můžeš později dostat výsledky souvisejících studií — včetně toho, jak si v porovnání s ostatními vedeš ty sám/sama.",
+    consentYes: "Ano",
+    consentNo: "Ne",
   },
 } as const;
 

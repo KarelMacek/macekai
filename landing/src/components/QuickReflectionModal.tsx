@@ -85,14 +85,14 @@ const SCALE = Array.from({ length: 11 }, (_, i) => i);
 export type Answers = Partial<Record<number, number>>;
 
 // ── Scoring ──────────────────────────────────────────────────────────────────
-interface Scores {
+export interface Scores {
   S: number; // satisfaction
   A: number; // aspiration
   C: number; // capacity
   L: number; // load
 }
 
-function calculateScores(answers: Answers): Scores {
+export function calculateScores(answers: Answers): Scores {
   const q = (id: number) => answers[id] ?? 0;
   return {
     S: (q(1) + q(2) + q(3)) / 3,
@@ -125,21 +125,21 @@ export function isValidReflectionState(
 }
 
 // Order matters: support overrides everything, then ok, then growth, then change.
-function getResult({ S, A, C, L }: Scores): ResultKey {
+export function getResult({ S, A, C, L }: Scores): ResultKey {
   if (L >= 8 && C <= 4) return "support";
   if (S >= 7 && A < 6) return "ok";
   if (S >= 7 && A >= 6) return "growth";
   return "change";
 }
 
-function formatScore(value: number): string {
+export function formatScore(value: number): string {
   return (Math.round(value * 10) / 10).toString().replace(".", ",");
 }
 
 // Traces the same branches getResult() checks, in the same order, so the
 // explanation can never drift out of sync with the actual decision — each
 // step names the threshold, the measured value, and whether it passed.
-function explainRule(scores: Scores): string {
+export function explainRule(scores: Scores): string {
   const { S, A, C, L } = scores;
   const supportHolds = L >= 8 && C <= 4;
   const supportStep = `zátěž L = ${formatScore(L)} ${L >= 8 ? "≥" : "<"} 8 a kapacita C = ${formatScore(C)} ${C <= 4 ? "≤" : ">"} 4`;
@@ -204,7 +204,7 @@ const RESULT_CONTENT: Record<ResultKey, ResultCopy> = {
   support: {
     eyebrow: "Teď hlavně opatrně.",
     headline: "Možná teď nepotřebuješ další výkon.",
-    text: "Podle tvých odpovědí tě současná situace výrazně zatěžuje a zároveň máš málo energie na změnu. Koučink nemusí být v takové chvíli nejlepší první krok. Může být užitečnější obrátit se nejprve na psychologa, psychoterapeuta nebo lékaře.",
+    text: "Podle tvých odpovědí tě současná situace výrazně zatěžuje a zároveň máš málo energie na změnu. Koučování nemusí být v takové chvíli nejlepší první krok. Může být užitečnější obrátit se nejprve na psychologa, psychoterapeuta nebo lékaře.",
     primaryLabel: "Rozumím",
     primaryAction: "close",
     footnote:
@@ -246,7 +246,12 @@ export function QuickReflectionModal({
   const [answers, setAnswers] = useState<Answers>({});
   const [isCalculating, setIsCalculating] = useState(false);
   const [result, setResult] = useState<ResultKey | null>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<"idle" | "copied" | "error">(
+    "idle"
+  );
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const copyResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useLayoutEffect(() => {
     if (!isOpen) return;
@@ -255,6 +260,8 @@ export function QuickReflectionModal({
       setResult(initialState.result);
       setCurrentQuestion(QUESTIONS.length - 1);
       setIsCalculating(false);
+      setShowDetails(false);
+      setCopyStatus("idle");
       trackEvent(lang, "quick_reflection_open", { resumed: true });
     } else {
       if (initialState) onInvalidState?.();
@@ -262,6 +269,8 @@ export function QuickReflectionModal({
       setAnswers({});
       setIsCalculating(false);
       setResult(null);
+      setShowDetails(false);
+      setCopyStatus("idle");
       trackEvent(lang, "quick_reflection_open", { resumed: false });
     }
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -269,6 +278,7 @@ export function QuickReflectionModal({
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      if (copyResetRef.current) clearTimeout(copyResetRef.current);
     };
   }, []);
 
@@ -319,7 +329,37 @@ export function QuickReflectionModal({
     setAnswers({});
     setCurrentQuestion(0);
     setResult(null);
+    setShowDetails(false);
+    setCopyStatus("idle");
     trackEvent(lang, "quick_reflection_restart", {});
+  }
+
+  async function handleCopyResults() {
+    if (!result || !resultScores) return;
+    const payload = {
+      answers: QUESTIONS.map(q => ({
+        question: q.text,
+        value: answers[q.id] ?? 0,
+      })),
+      scores: {
+        satisfaction: resultScores.S,
+        aspiration: resultScores.A,
+        capacity: resultScores.C,
+        load: resultScores.L,
+      },
+      result,
+      explanation: explainRule(resultScores),
+    };
+
+    if (copyResetRef.current) clearTimeout(copyResetRef.current);
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      setCopyStatus("copied");
+      trackEvent(lang, "quick_reflection_copy", { result });
+    } catch {
+      setCopyStatus("error");
+    }
+    copyResetRef.current = setTimeout(() => setCopyStatus("idle"), 2000);
   }
 
   function handlePrimary() {
@@ -607,17 +647,46 @@ export function QuickReflectionModal({
                           );
                         })}
                       </div>
-                      <p
-                        className="mt-5 text-[0.7rem] leading-relaxed text-muted-foreground/80"
-                        style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                      >
-                        S {formatScore(resultScores.S)} · A{" "}
-                        {formatScore(resultScores.A)} · C{" "}
-                        {formatScore(resultScores.C)} · L{" "}
-                        {formatScore(resultScores.L)}
-                        {" — "}
-                        {explainRule(resultScores)}
-                      </p>
+                      <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowDetails(v => !v)}
+                          aria-expanded={showDetails}
+                          className="text-[0.7rem] text-muted-foreground/80 underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-gold"
+                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          {showDetails
+                            ? "Skrýt, jak jsme k tomu došli"
+                            : "Zobrazit, jak jsme k tomu došli"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCopyResults}
+                          className="text-[0.7rem] text-muted-foreground/80 underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-gold"
+                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          {copyStatus === "copied"
+                            ? "Zkopírováno ✓"
+                            : copyStatus === "error"
+                              ? "Kopírování selhalo"
+                              : "Kopírovat výsledek jako JSON"}
+                        </button>
+                      </div>
+
+                      {showDetails && (
+                        <div
+                          className="mt-3 space-y-2 text-[0.7rem] leading-relaxed text-muted-foreground/80"
+                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          <p>
+                            Spokojenost (S): {formatScore(resultScores.S)} ·
+                            Ambice (A): {formatScore(resultScores.A)} ·
+                            Kapacita (C): {formatScore(resultScores.C)} ·
+                            Zátěž (L): {formatScore(resultScores.L)}
+                          </p>
+                          <p>{explainRule(resultScores)}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

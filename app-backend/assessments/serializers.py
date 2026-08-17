@@ -11,6 +11,7 @@ from .models import (
     ResultThreshold,
     Test,
     TestSubmission,
+    UserConsent,
 )
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -129,10 +130,14 @@ class AnswerInputSerializer(serializers.Serializer):
 
 
 class TestSubmissionInputSerializer(serializers.Serializer):
-    """Validates the whole answer set's shape against the test being
-    submitted: exactly one answer per question, each shaped correctly for
-    its question_type. The DRF equivalent of a Pydantic
-    min_items=max_items=N, unique_items=True constraint."""
+    """Validates one batch of answers against the test being submitted:
+    each question_id must belong to the test, no duplicates within this
+    request, and each answer must be shaped correctly for its
+    question_type. Does NOT require every question in the test to be
+    present — a request may be a partial autosave batch. Completeness (all
+    questions answered) is a DB-truth check the view makes separately
+    against the full persisted draft, since that has to account for
+    answers saved by earlier requests too, not just this one."""
 
     answers = AnswerInputSerializer(many=True)
 
@@ -143,8 +148,8 @@ class TestSubmissionInputSerializer(serializers.Serializer):
 
         if len(submitted_ids) != len(set(submitted_ids)):
             raise serializers.ValidationError("Duplicate question_id in answers.")
-        if set(submitted_ids) != set(questions):
-            raise serializers.ValidationError("Must answer every question in this test exactly once.")
+        if not set(submitted_ids) <= set(questions):
+            raise serializers.ValidationError("One or more question_id values don't belong to this test.")
 
         for answer in data["answers"]:
             question = questions[answer["question_id"]]
@@ -191,13 +196,20 @@ class TestSubmissionReadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TestSubmission
-        fields = ["id", "test_slug", "test_type", "submitted_at", "computed_result", "answers"]
+        fields = ["id", "test_slug", "test_type", "status", "submitted_at", "computed_result", "answers"]
 
     def get_answers(self, obj):
         # Ordered to match the test's question order rather than insertion
         # order, so the UI can list them straight through without a lookup.
         answers = obj.answers.select_related("question", "selected_option").order_by("question__order")
         return AnswerReadSerializer(answers, many=True, context=self.context).data
+
+
+class ConsentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserConsent
+        fields = ["ai_processing_consent", "research_consent", "recorded_at"]
+        read_only_fields = ["recorded_at"]
 
 
 class FeedbackRequestSerializer(serializers.ModelSerializer):
@@ -240,7 +252,7 @@ class JourneyStepStatusSerializer(serializers.Serializer):
     test_slug = serializers.SlugField()
     test_type = serializers.CharField()
     title = serializers.CharField()
-    status = serializers.ChoiceField(choices=["completed", "current", "upcoming"])
+    status = serializers.ChoiceField(choices=["completed", "current", "in_progress", "upcoming"])
 
 
 class JourneyStatusSerializer(serializers.Serializer):
@@ -260,6 +272,7 @@ class DiagnosticsSummarySerializer(serializers.Serializer):
     journey_slug = serializers.CharField()
     opened_at = serializers.DateTimeField()
     status = serializers.CharField()
+    language = serializers.CharField()
 
 
 class DiagnosticsDetailSerializer(serializers.Serializer):
@@ -268,6 +281,7 @@ class DiagnosticsDetailSerializer(serializers.Serializer):
     journey_slug = serializers.CharField()
     opened_at = serializers.DateTimeField()
     status = serializers.CharField()
+    language = serializers.CharField()
     all_tests_done = serializers.BooleanField()
     steps = JourneyStepStatusSerializer(many=True)
     submissions = TestSubmissionReadSerializer(many=True)

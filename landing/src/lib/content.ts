@@ -706,6 +706,9 @@ export const t = {
       cs: "Jednoduchá cesta od rychlé sebereflexe k cílené spolupráci.",
       en: "A simple path from a quick self-check to focused collaboration.",
     },
+    prevStep: { cs: "Předchozí krok", en: "Previous step" },
+    nextStep: { cs: "Další krok", en: "Next step" },
+    goToStep: { cs: "Přejít na krok", en: "Go to step" },
     steps: {
       cs: [
         {
@@ -716,8 +719,7 @@ export const t = {
           yesNo: {
             yes: "Možná",
             no: "Ne",
-            yesResponse: "Můžeš na rychlý check",
-            noResponse: "Můžeš zavřít okno.",
+            noResponse: "Můžeš opustit tento web.",
           },
         },
         {
@@ -731,16 +733,16 @@ export const t = {
         {
           num: "03",
           icon: "search",
-          title: "Vstupní diagnostika",
+          title: "Pohled na situaci",
           desc: "Hlubší dotazník + moje stručné vyjádření do týdne",
           price: "590 Kč",
-          cta: "Koupit",
+          cta: "Zjistit více",
         },
         {
           num: "04",
           icon: "compass",
-          title: "Mapovací konzultace 360°",
-          desc: "Společně ujasníme situaci a směr během 90minutové konzultace.",
+          title: "Mapa změny",
+          desc: "Ujasníš si situaci a směr\nběhem 90 minutové konzultace se mnou.",
           price: "3 600 Kč",
           cta: "Rezervovat",
         },
@@ -748,7 +750,8 @@ export const t = {
           num: "05",
           icon: "handshake",
           title: "Další spolupráce",
-          desc: "Jen pokud to bude dávat smysl",
+          desc: "Jen pokud to bude dávat smysl — buď jako rychlý taktický zásah na konkrétní problém, nebo jako hlubší transformační program na systematickou práci na sobě.",
+          cta: "Kontaktovat pro více informací",
         },
       ],
       en: [
@@ -760,8 +763,7 @@ export const t = {
           yesNo: {
             yes: "Maybe",
             no: "No",
-            yesResponse: "You can take the quick check",
-            noResponse: "You can close this window.",
+            noResponse: "You can leave this website.",
           },
         },
         {
@@ -775,15 +777,15 @@ export const t = {
         {
           num: "03",
           icon: "search",
-          title: "Intake diagnostics",
+          title: "Situation Review",
           desc: "A deeper questionnaire + my brief take within a week",
           price: "11.99 EUR",
-          cta: "Buy",
+          cta: "Find out more",
         },
         {
           num: "04",
           icon: "compass",
-          title: "360° mapping consultation",
+          title: "Change map",
           desc: "Together we'll clarify the situation and direction during a 90-minute consultation.",
           price: "150 EUR",
           cta: "Book",
@@ -792,7 +794,8 @@ export const t = {
           num: "05",
           icon: "handshake",
           title: "Further collaboration",
-          desc: "Only if it makes sense",
+          desc: "Only if it makes sense — either as a quick tactical intervention on a specific problem, or as a deeper transformational program of systematic work on yourself.",
+          cta: "Contact for more info",
         },
       ],
     },
@@ -801,6 +804,55 @@ export const t = {
       en: "If you pay for a step, its price is deducted from the next one.",
     },
     checkDoneLabel: { cs: "Hotovo", en: "Done" },
+    diagnosticsModal: {
+      eyebrow: {
+        cs: "Pohled na situaci · 590 Kč",
+        en: "Situation Review · 590 CZK",
+      },
+      headline: {
+        cs: "Hlubší pohled na tvou situaci.",
+        en: "A deeper look at your situation.",
+      },
+      body: {
+        cs: "Vyplníš rozšířený dotazník. Já se na tvoje odpovědi podívám zvenčí a do týdne ti pošlu krátké písemné zrcadlo: co v nich vidím, co stojí za pozornost a jaké otázky má smysl otevřít dál.",
+        en: "You'll fill out an extended questionnaire. I'll look at your answers from the outside, and within a week I'll send you a short written reflection: what I see in them, what stands out, and what questions are worth opening up next.",
+      },
+      notes: {
+        cs: [
+          "Vše, co mi svěříš, je přísně důvěrné podle etického kodexu International Coaching Federation (ICF).",
+          "Můžeš přiložit CV nebo LinkedIn — pomůže mi lépe pochopit kontext.",
+          "Přihlášení probíhá přes Google účet.",
+          "Své odpovědi si můžeš kdykoli exportovat.",
+        ],
+        en: [
+          "Everything you share is strictly confidential under the International Coaching Federation (ICF) code of conduct.",
+          "You can attach your CV or LinkedIn — it helps me understand your context better.",
+          "Sign-in happens via your Google account.",
+          "You can export your answers anytime.",
+        ],
+      },
+      buyNow: { cs: "Chci hlubší pohled", en: "I want a deeper look" },
+      close: { cs: "Zavřít", en: "Close" },
+    },
+    collaborationModal: {
+      eyebrow: {
+        cs: "Taktické i transformační koučování",
+        en: "Tactical and transformational coaching",
+      },
+      headline: {
+        cs: "To je to samotné vynalézání sebe sama.",
+        en: "This is the very act of inventing yourself.",
+      },
+      body: {
+        cs: "Rychlý taktický zásah řeší jeden jasně definovaný problém v řádu týdnů. Transformační program jde hlouběji — systematicky pracuješ na sobě po dobu několika měsíců a vynalézáš svou verzi 2.0. Napiš mi, kde jsi teď a kam se chceš posunout, a společně najdeme formát, který dává smysl.",
+        en: "A quick tactical intervention solves one clearly defined problem over a matter of weeks. A transformational program goes deeper — systematic work on yourself over several months, inventing your version 2.0. Tell me where you are now and where you want to go, and together we'll find the format that makes sense.",
+      },
+      contactIntro: {
+        cs: "Napiš mi, nebo si rovnou rezervuj 30minutový hovor zdarma:",
+        en: "Write to me, or book a free 30-minute call directly:",
+      },
+      close: { cs: "Zavřít", en: "Close" },
+    },
   },
 
   // ── Contact ───────────────────────────────────────────────────────────────
@@ -834,6 +886,79 @@ export const t = {
     tagline: {
       cs: "Karel Macek — Kouč pro AI & tech experty",
       en: "Karel Macek — Coach for AI & tech experts",
+    },
+    privacyLink: { cs: "Ochrana soukromí", en: "Privacy Policy" },
+    managePreferences: { cs: "Nastavení cookies", en: "Cookie preferences" },
+  },
+
+  // ── Cookie consent banner ────────────────────────────────────────────────
+  cookieConsent: {
+    message: {
+      cs: "Používám Google Analytics, abych pochopil, jak lidé používají tento web. Spustí se až s tvým souhlasem.",
+      en: "I use Google Analytics to understand how people use this site. It only runs with your consent.",
+    },
+    policyLinkLabel: { cs: "Zásady ochrany soukromí", en: "Privacy policy" },
+    accept: { cs: "Přijmout", en: "Accept" },
+    reject: { cs: "Odmítnout", en: "Reject" },
+    ariaLabel: {
+      cs: "Nastavení souhlasu s cookies",
+      en: "Cookie consent settings",
+    },
+  },
+
+  // ── Privacy policy page ──────────────────────────────────────────────────
+  privacy: {
+    title: { cs: "Zásady ochrany soukromí", en: "Privacy Policy" },
+    draftNotice: {
+      cs: "Toto je základní návrh dokumentu, který by měl být před zveřejněním zkontrolován právníkem.",
+      en: "This is a starting-point draft and should be reviewed by a lawyer before being treated as final.",
+    },
+    lastUpdated: {
+      cs: "Naposledy aktualizováno: 15. srpna 2026",
+      en: "Last updated: August 15, 2026",
+    },
+    intro: {
+      cs: "Tento dokument popisuje, jaké údaje o návštěvnících tohoto webu shromažďuji, proč, a jaká máš práva.",
+      en: "This document describes what data I collect about visitors to this site, why, and what rights you have.",
+    },
+    controllerHeading: { cs: "Správce údajů", en: "Data Controller" },
+    controllerBody: {
+      cs: "Karel Macek, Praha, Česká republika. E-mail: karel@macek.ai.",
+      en: "Karel Macek, Prague, Czech Republic. Email: karel@macek.ai.",
+    },
+    dataCollectedHeading: { cs: "Jaké údaje sbírám", en: "What data I collect" },
+    dataCollectedGa: {
+      cs: "Google Analytics — anonymizovaná statistika návštěvnosti (např. které stránky navštěvuješ, odkud přicházíš, typ zařízení) pomocí cookies (_ga, _ga_*). Spouští se pouze poté, co s tím souhlasíš přes banner na webu.",
+      en: "Google Analytics — anonymized traffic statistics (e.g. which pages you visit, where you come from, device type) using cookies (_ga, _ga_*). Only runs after you consent via the on-site banner.",
+    },
+    dataCollectedUmami: {
+      cs: "Umami — soukromí respektující, bezcookie analytika běžící na vlastním serveru. Nepoužívá cookies ani jiné trvalé úložiště v prohlížeči a neshromažďuje osobní údaje, proto běží vždy, bez ohledu na souhlas s Google Analytics.",
+      en: "Umami — a privacy-respecting, cookie-free analytics tool running on my own server. It doesn't use cookies or other persistent browser storage and doesn't collect personal data, so it always runs regardless of your Google Analytics consent choice.",
+    },
+    legalBasisHeading: { cs: "Právní základ", en: "Legal basis" },
+    legalBasisBody: {
+      cs: "Google Analytics: tvůj souhlas (čl. 6 odst. 1 písm. a) GDPR), který můžeš kdykoli odvolat. Umami: oprávněný zájem (čl. 6 odst. 1 písm. f) GDPR) na základní, anonymní statistice provozu webu.",
+      en: "Google Analytics: your consent (GDPR Art. 6(1)(a)), which you can withdraw at any time. Umami: legitimate interest (GDPR Art. 6(1)(f)) in basic, anonymous website traffic statistics.",
+    },
+    rightsHeading: { cs: "Tvá práva", en: "Your rights" },
+    rightsBody: {
+      cs: "Máš právo na přístup ke svým údajům, jejich opravu, výmaz, omezení zpracování, přenositelnost, vznesení námitky a kdykoli odvolat souhlas se zpracováním.",
+      en: "You have the right to access, correct, or delete your data, restrict or object to processing, request data portability, and withdraw consent at any time.",
+    },
+    withdrawHeading: { cs: "Jak odvolat souhlas", en: "How to withdraw consent" },
+    withdrawBody: {
+      cs: "Souhlas s Google Analytics můžeš kdykoli změnit pomocí odkazu „Nastavení cookies\" v patičce webu.",
+      en: "You can change your Google Analytics consent at any time using the \"Cookie preferences\" link in the site footer.",
+    },
+    thirdPartyHeading: { cs: "Třetí strany", en: "Third parties" },
+    thirdPartyBody: {
+      cs: "Google Analytics provozuje Google Ireland Limited. Více informací najdeš v zásadách ochrany soukromí Google.",
+      en: "Google Analytics is operated by Google Ireland Limited. More information is available in Google's privacy policy.",
+    },
+    contactHeading: { cs: "Kontakt", en: "Contact" },
+    contactBody: {
+      cs: "S dotazy ohledně ochrany osobních údajů mě kontaktuj na karel@macek.ai.",
+      en: "For any questions about data protection, contact me at karel@macek.ai.",
     },
   },
 } as const;

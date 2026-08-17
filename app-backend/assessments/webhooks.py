@@ -3,6 +3,7 @@ since these aren't part of the app's own authenticated API surface."""
 import logging
 
 from django.conf import settings
+from django.db.models import Q
 from django.utils.crypto import constant_time_compare
 from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import AllowAny
@@ -46,7 +47,8 @@ class SimpleShopWebhookView(APIView):
 
         product_id = params.get("id_product")
         journey = Journey.objects.filter(
-            simpleshop_product_id=product_id, is_active=True
+            Q(simpleshop_product_id_cs=product_id) | Q(simpleshop_product_id_en=product_id),
+            is_active=True,
         ).first() if product_id else None
         if not journey:
             # Not our diagnostics product (or an unmapped one) — ack without
@@ -59,6 +61,10 @@ class SimpleShopWebhookView(APIView):
             logger.warning("SimpleShop webhook missing mail/id: %r", dict(params))
             return Response(status=200)
 
+        # Which of the two product ids matched *is* the purchased language —
+        # no separate signal needed from SimpleShop.
+        language = "cs" if journey.simpleshop_product_id_cs == product_id else "en"
+
         open_diagnostics(
             email=email,
             journey=journey,
@@ -67,5 +73,6 @@ class SimpleShopWebhookView(APIView):
             source_product_id=str(product_id),
             opened_via=Diagnostics.OPENED_VIA_WEBHOOK,
             raw_payload=dict(params),
+            language=language,
         )
         return Response(status=200)

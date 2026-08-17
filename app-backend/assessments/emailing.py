@@ -65,10 +65,13 @@ _COPY = {
         "you'll be notified once it's ready.",
     },
     "support": {
-        "cs": "Pokud narazíte na jakýkoli problém, napište mi rovnou na "
+        "cs": "Tento e-mail se odesílá automaticky, ale chodí do mé skutečné schránky — "
+        "pokud narazíte na jakýkoli problém nebo budete mít otázku, klidně mi na něj "
+        "rovnou odpovězte, nebo napište na "
         "<a href=\"mailto:karel@macek.ai\">karel@macek.ai</a>.",
-        "en": 'If you run into any trouble, just email me directly at '
-        '<a href="mailto:karel@macek.ai">karel@macek.ai</a>.',
+        "en": "This email is sent automatically, but it lands in my real inbox — if you "
+        "run into any trouble or have a question, feel free to just reply directly, or "
+        'email me at <a href="mailto:karel@macek.ai">karel@macek.ai</a>.',
     },
     "sign_off": {
         "cs": "Karel",

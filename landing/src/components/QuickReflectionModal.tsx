@@ -3,12 +3,10 @@
  * Fullscreen 7-question self-check. No API, no LLM — result is computed
  * locally and deterministically from the answers (see calculateScores / getResult).
  *
- * Copy is Czech-only for now (the site's language toggle affects the rest of
- * the page, not this component) since the result texts — especially the
- * "support" outcome, which nudges toward a psychologist/doctor rather than
- * coaching — are sensitive enough that they shouldn't be machine-translated
- * without review. Add an `en` variant to RESULT_CONTENT / QUESTIONS once
- * reviewed copy exists.
+ * Copy lives in content.ts's `quickReflection` section (cs/en), same
+ * convention as the rest of the site, and is selected by the page's own
+ * language toggle via useLang() — this used to be Czech-only regardless of
+ * that toggle, which is exactly the mismatch that got reported live.
  */
 import {
   Fragment,
@@ -20,7 +18,8 @@ import {
 } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { useLang } from "@/contexts/LangContext";
+import { useLang, type Lang } from "@/contexts/LangContext";
+import { t, tx } from "@/lib/content";
 import { trackEvent } from "@/lib/analytics";
 
 // ── Timing ───────────────────────────────────────────────────────────────────
@@ -35,50 +34,17 @@ interface Question {
   maxLabel: string;
 }
 
-const QUESTIONS: Question[] = [
-  {
-    id: 1,
-    text: "Jak moc tě teď baví to, co děláš?",
-    minLabel: "Vůbec",
-    maxLabel: "Hodně",
-  },
-  {
-    id: 2,
-    text: "Jak dobře jsi za svou práci odměněný/á?",
-    minLabel: "Vůbec ne",
-    maxLabel: "Skvěle",
-  },
-  {
-    id: 3,
-    text: "Jak moc ti současný život dává smysl tak, jak je?",
-    minLabel: "Vůbec",
-    maxLabel: "Hodně",
-  },
-  {
-    id: 4,
-    text: "Jak moc se chceš během příštího roku někam posunout?",
-    minLabel: "Jsem spokojený/á tam, kde jsem",
-    maxLabel: "Velmi",
-  },
-  {
-    id: 5,
-    text: "Jak jasně vidíš svůj další krok?",
-    minLabel: "Vůbec",
-    maxLabel: "Úplně jasně",
-  },
-  {
-    id: 6,
-    text: "Kolik máš teď síly něco skutečně měnit?",
-    minLabel: "Skoro žádnou",
-    maxLabel: "Dost",
-  },
-  {
-    id: 7,
-    text: "Jak moc tě to, co teď řešíš, zatěžuje i mimo práci?",
-    minLabel: "Vůbec",
-    maxLabel: "Hodně",
-  },
-];
+// Question count/order is language-independent — cs and en arrays in
+// content.ts are kept the same length/order by construction, so either can
+// be used to derive the count.
+const QUESTION_COUNT = t.quickReflection.questions.cs.length;
+
+function getQuestions(lang: Lang): Question[] {
+  return t.quickReflection.questions[lang].map((q, i) => ({
+    id: i + 1,
+    ...q,
+  }));
+}
 
 const SCALE = Array.from({ length: 11 }, (_, i) => i);
 
@@ -106,8 +72,8 @@ export type ResultKey = "support" | "ok" | "growth" | "change";
 const RESULT_KEYS: readonly ResultKey[] = ["support", "ok", "growth", "change"];
 
 /** Guards against stale/incompatible data from a previous version of this
- * quiz (e.g. localStorage written before a QUESTIONS/ResultKey change) —
- * without this, `RESULT_CONTENT[result]` crashes on an unrecognized key. */
+ * quiz (e.g. localStorage written before a question count/ResultKey change) —
+ * without this, a result lookup crashes on an unrecognized key. */
 export function isValidReflectionState(
   value: unknown
 ): value is { answers: Answers; result: ResultKey } {
@@ -117,7 +83,8 @@ export function isValidReflectionState(
   if (!v.answers || typeof v.answers !== "object") return false;
   return Object.entries(v.answers as Record<string, unknown>).every(
     ([id, val]) =>
-      QUESTIONS.some(q => q.id === Number(id)) &&
+      Number(id) >= 1 &&
+      Number(id) <= QUESTION_COUNT &&
       typeof val === "number" &&
       val >= 0 &&
       val <= 10
@@ -132,29 +99,49 @@ export function getResult({ S, A, C, L }: Scores): ResultKey {
   return "change";
 }
 
-export function formatScore(value: number): string {
-  return (Math.round(value * 10) / 10).toString().replace(".", ",");
+export function formatScore(value: number, lang: Lang = "cs"): string {
+  const rounded = (Math.round(value * 10) / 10).toString();
+  return lang === "cs" ? rounded.replace(".", ",") : rounded;
 }
 
 // Traces the same branches getResult() checks, in the same order, so the
 // explanation can never drift out of sync with the actual decision — each
 // step names the threshold, the measured value, and whether it passed.
-export function explainRule(scores: Scores): string {
+// Composed dynamically from live numbers, so — unlike the rest of this
+// file's copy — it isn't a content.ts lookup, just two parallel phrasings.
+export function explainRule(scores: Scores, lang: Lang = "cs"): string {
   const { S, A, C, L } = scores;
   const supportHolds = L >= 8 && C <= 4;
-  const supportStep = `zátěž L = ${formatScore(L)} ${L >= 8 ? "≥" : "<"} 8 a kapacita C = ${formatScore(C)} ${C <= 4 ? "≤" : ">"} 4`;
+
+  if (lang === "en") {
+    const supportStep = `load L = ${formatScore(L, lang)} ${L >= 8 ? "≥" : "<"} 8 and capacity C = ${formatScore(C, lang)} ${C <= 4 ? "≤" : ">"} 4`;
+    if (supportHolds) {
+      return `${supportStep} → the support rule applies and takes priority over the others.`;
+    }
+    const satisfactionStep = `satisfaction S = ${formatScore(S, lang)} ${S >= 7 ? "≥" : "<"} 7`;
+    if (S < 7) {
+      return `${supportStep} → doesn't apply. ${satisfactionStep}, so it's neither OK nor growth → change remains.`;
+    }
+    const ambitionStep = `ambition A = ${formatScore(A, lang)} ${A >= 6 ? "≥" : "<"} 6`;
+    if (A < 6) {
+      return `${supportStep} → doesn't apply. ${satisfactionStep} and ${ambitionStep} → OK.`;
+    }
+    return `${supportStep} → doesn't apply. ${satisfactionStep} and ${ambitionStep} → growth.`;
+  }
+
+  const supportStep = `zátěž L = ${formatScore(L, lang)} ${L >= 8 ? "≥" : "<"} 8 a kapacita C = ${formatScore(C, lang)} ${C <= 4 ? "≤" : ">"} 4`;
 
   if (supportHolds) {
     return `${supportStep} → pravidlo pro podporu platí a má přednost před ostatními pravidly.`;
   }
 
-  const satisfactionStep = `spokojenost S = ${formatScore(S)} ${S >= 7 ? "≥" : "<"} 7`;
+  const satisfactionStep = `spokojenost S = ${formatScore(S, lang)} ${S >= 7 ? "≥" : "<"} 7`;
 
   if (S < 7) {
     return `${supportStep} → neplatí. ${satisfactionStep}, takže nejde o OK ani růst → zbývá změna.`;
   }
 
-  const ambitionStep = `ambice A = ${formatScore(A)} ${A >= 6 ? "≥" : "<"} 6`;
+  const ambitionStep = `ambice A = ${formatScore(A, lang)} ${A >= 6 ? "≥" : "<"} 6`;
 
   if (A < 6) {
     return `${supportStep} → neplatí. ${satisfactionStep} a ${ambitionStep} → OK.`;
@@ -164,52 +151,16 @@ export function explainRule(scores: Scores): string {
 }
 
 // ── Result copy ──────────────────────────────────────────────────────────────
+// Structural, not translatable copy — which button does what per result.
+// The actual eyebrow/headline/text/labels live in content.ts's
+// `quickReflection.results`, keyed [resultKey][lang].
 type PrimaryAction = "close" | "growth" | "change";
 
-interface ResultCopy {
-  eyebrow: string;
-  headline: string;
-  text: string;
-  primaryLabel: string;
-  primaryAction: PrimaryAction;
-  secondaryLabel?: string;
-  footnote?: string;
-}
-
-const RESULT_CONTENT: Record<ResultKey, ResultCopy> = {
-  ok: {
-    eyebrow: "Vypadá to dobře.",
-    headline: "Teď možná není potřeba nic opravovat.",
-    text: "To, co děláš, ti v zásadě funguje a zároveň necítíš velkou potřebu něco měnit. To je úplně legitimní výsledek.",
-    primaryLabel: "Zavřít",
-    primaryAction: "close",
-    secondaryLabel: "Projít si odpovědi znovu",
-  },
-  growth: {
-    eyebrow: "Dobrá výchozí pozice.",
-    headline: "Funguje ti to. A něco tě táhne dál.",
-    text: "Nejde nutně o problém, který je potřeba řešit. Spíš se před tebou otevírá otázka, kam svou energii, zkušenosti a možnosti nasměrovat dál.",
-    primaryLabel: "Podívat se, co by mohl být další krok",
-    primaryAction: "growth",
-    secondaryLabel: "Zavřít",
-  },
-  change: {
-    eyebrow: "Něco stojí za pozornost.",
-    headline: "Nemusíš všechno převrátit. Ale něco si zaslouží změnu.",
-    text: "Některá část současné situace ti zřejmě úplně nesedí. Zároveň podle odpovědí vypadá, že má smysl podívat se na ni prakticky a hledat další krok.",
-    primaryLabel: "Podívat se na další krok",
-    primaryAction: "change",
-    secondaryLabel: "Zavřít",
-  },
-  support: {
-    eyebrow: "Teď hlavně opatrně.",
-    headline: "Možná teď nepotřebuješ další výkon.",
-    text: "Podle tvých odpovědí tě současná situace výrazně zatěžuje a zároveň máš málo energie na změnu. Koučování nemusí být v takové chvíli nejlepší první krok. Může být užitečnější obrátit se nejprve na psychologa, psychoterapeuta nebo lékaře.",
-    primaryLabel: "Rozumím",
-    primaryAction: "close",
-    footnote:
-      "Tato krátká reflexe není zdravotní ani psychologická diagnostika.",
-  },
+const RESULT_ACTIONS: Record<ResultKey, PrimaryAction> = {
+  ok: "close",
+  growth: "growth",
+  change: "change",
+  support: "close",
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -258,7 +209,7 @@ export function QuickReflectionModal({
     if (initialState && isValidReflectionState(initialState)) {
       setAnswers(initialState.answers);
       setResult(initialState.result);
-      setCurrentQuestion(QUESTIONS.length - 1);
+      setCurrentQuestion(QUESTION_COUNT - 1);
       setIsCalculating(false);
       setShowDetails(false);
       setCopyStatus("idle");
@@ -287,9 +238,11 @@ export function QuickReflectionModal({
     : isCalculating
       ? "calculating"
       : "question";
-  const question = QUESTIONS[currentQuestion];
+  const questions = getQuestions(lang);
+  const question = questions[currentQuestion];
   const currentAnswer = answers[question.id];
   const resultScores = result ? calculateScores(answers) : null;
+  const resultCopy = result ? t.quickReflection.results[result][lang] : null;
 
   function handleSelect(value: number) {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -301,7 +254,7 @@ export function QuickReflectionModal({
     });
 
     timerRef.current = setTimeout(() => {
-      if (currentQuestion < QUESTIONS.length - 1) {
+      if (currentQuestion < QUESTION_COUNT - 1) {
         setCurrentQuestion(i => i + 1);
       } else {
         finishQuiz(nextAnswers);
@@ -337,7 +290,7 @@ export function QuickReflectionModal({
   async function handleCopyResults() {
     if (!result || !resultScores) return;
     const payload = {
-      answers: QUESTIONS.map(q => ({
+      answers: questions.map(q => ({
         question: q.text,
         value: answers[q.id] ?? 0,
       })),
@@ -348,7 +301,7 @@ export function QuickReflectionModal({
         load: resultScores.L,
       },
       result,
-      explanation: explainRule(resultScores),
+      explanation: explainRule(resultScores, lang),
     };
 
     if (copyResetRef.current) clearTimeout(copyResetRef.current);
@@ -364,14 +317,11 @@ export function QuickReflectionModal({
 
   function handlePrimary() {
     if (!result) return;
-    const content = RESULT_CONTENT[result];
-    trackEvent(lang, "quick_reflection_cta", {
-      result,
-      action: content.primaryAction,
-    });
+    const action = RESULT_ACTIONS[result];
+    trackEvent(lang, "quick_reflection_cta", { result, action });
     onClose();
-    if (content.primaryAction === "growth") onGrowthCTA?.();
-    if (content.primaryAction === "change") onChangeCTA?.();
+    if (action === "growth") onGrowthCTA?.();
+    if (action === "change") onChangeCTA?.();
   }
 
   function handleSecondary() {
@@ -386,11 +336,11 @@ export function QuickReflectionModal({
 
   const srDescription =
     phase === "question"
-      ? `Otázka ${currentQuestion + 1} z ${QUESTIONS.length}. ${question.text}`
+      ? `${tx(t.quickReflection.questionWord, lang)} ${currentQuestion + 1} ${tx(t.quickReflection.ofWord, lang)} ${QUESTION_COUNT}. ${question.text}`
       : phase === "calculating"
-        ? "Vyhodnocuji tvé odpovědi."
-        : result
-          ? `${RESULT_CONTENT[result].eyebrow} ${RESULT_CONTENT[result].headline}`
+        ? tx(t.quickReflection.calculatingSr, lang)
+        : resultCopy
+          ? `${resultCopy.eyebrow} ${resultCopy.headline}`
           : "";
 
   return (
@@ -417,7 +367,7 @@ export function QuickReflectionModal({
             }}
           >
             <DialogPrimitive.Close
-              aria-label="Zavřít"
+              aria-label={tx(t.quickReflection.closeAriaLabel, lang)}
               className="absolute top-4 right-4 p-1.5 text-muted-foreground transition-colors duration-150 hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:top-6 sm:right-6"
               style={{ borderRadius: "2px" }}
             >
@@ -428,7 +378,7 @@ export function QuickReflectionModal({
               className="mb-6 pr-8 text-sm font-semibold text-gold"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Rychlá reflexe
+              {tx(t.quickReflection.title, lang)}
             </DialogPrimitive.Title>
             <DialogPrimitive.Description className="sr-only">
               {srDescription}
@@ -445,9 +395,9 @@ export function QuickReflectionModal({
                       letterSpacing: "0.05em",
                     }}
                   >
-                    <span>7 otázek · asi minuta</span>
+                    <span>{tx(t.quickReflection.questionsCount, lang)}</span>
                     <span>
-                      {currentQuestion + 1} / {QUESTIONS.length}
+                      {currentQuestion + 1} / {QUESTION_COUNT}
                     </span>
                   </div>
                   <div
@@ -457,7 +407,7 @@ export function QuickReflectionModal({
                     <div
                       className="h-full bg-primary transition-[width] duration-300 motion-reduce:transition-none"
                       style={{
-                        width: `${((currentQuestion + 1) / QUESTIONS.length) * 100}%`,
+                        width: `${((currentQuestion + 1) / QUESTION_COUNT) * 100}%`,
                       }}
                     />
                   </div>
@@ -473,7 +423,7 @@ export function QuickReflectionModal({
                   <div
                     role="group"
                     aria-labelledby={headingId}
-                    className="mb-4 grid grid-cols-6 gap-2 sm:grid-cols-11"
+                    className="mb-4 grid grid-cols-11 gap-1 sm:gap-2"
                   >
                     {SCALE.map(value => {
                       const active = currentAnswer === value;
@@ -483,7 +433,7 @@ export function QuickReflectionModal({
                           type="button"
                           aria-pressed={active}
                           onClick={() => handleSelect(value)}
-                          className={`aspect-square flex items-center justify-center text-sm font-medium border transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+                          className={`aspect-square flex items-center justify-center text-[0.65rem] font-medium border transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:text-sm ${
                             active
                               ? "border-primary bg-primary text-primary-foreground"
                               : "border-white/15 text-muted-foreground hover:border-primary/50 hover:text-gold"
@@ -512,7 +462,7 @@ export function QuickReflectionModal({
                         className="text-xs text-muted-foreground transition-colors duration-150 hover:text-gold"
                         style={{ fontFamily: "'DM Sans', sans-serif" }}
                       >
-                        ← Zpět
+                        ← {tx(t.quickReflection.back, lang)}
                       </button>
                     )}
                   </div>
@@ -533,12 +483,12 @@ export function QuickReflectionModal({
                     className="text-sm text-muted-foreground"
                     style={{ fontFamily: "'DM Sans', sans-serif" }}
                   >
-                    Dávám to dohromady…
+                    {tx(t.quickReflection.calculating, lang)}
                   </p>
                 </div>
               )}
 
-              {phase === "result" && result && (
+              {phase === "result" && result && resultCopy && (
                 <div>
                   <p
                     className="mb-3 text-xs text-gold uppercase"
@@ -547,13 +497,13 @@ export function QuickReflectionModal({
                       letterSpacing: "0.15em",
                     }}
                   >
-                    {RESULT_CONTENT[result].eyebrow}
+                    {resultCopy.eyebrow}
                   </p>
                   <h2
                     className="mb-4 text-2xl font-bold text-foreground sm:text-3xl"
                     style={{ fontFamily: "'Playfair Display', serif" }}
                   >
-                    {RESULT_CONTENT[result].headline}
+                    {resultCopy.headline}
                   </h2>
                   <p
                     className="mb-8 text-sm leading-relaxed text-muted-foreground sm:text-base"
@@ -562,7 +512,7 @@ export function QuickReflectionModal({
                       fontWeight: 300,
                     }}
                   >
-                    {RESULT_CONTENT[result].text}
+                    {resultCopy.text}
                   </p>
 
                   <div className="flex flex-col gap-3 sm:flex-row">
@@ -577,26 +527,26 @@ export function QuickReflectionModal({
                         borderRadius: "2px",
                       }}
                     >
-                      {RESULT_CONTENT[result].primaryLabel}
+                      {resultCopy.primaryLabel}
                     </button>
-                    {RESULT_CONTENT[result].secondaryLabel && (
+                    {resultCopy.secondaryLabel && (
                       <button
                         type="button"
                         onClick={handleSecondary}
                         className="inline-flex items-center justify-center px-6 py-3 text-sm text-muted-foreground transition-colors duration-150 hover:text-gold"
                         style={{ fontFamily: "'DM Sans', sans-serif" }}
                       >
-                        {RESULT_CONTENT[result].secondaryLabel}
+                        {resultCopy.secondaryLabel}
                       </button>
                     )}
                   </div>
 
-                  {RESULT_CONTENT[result].footnote && (
+                  {resultCopy.footnote && (
                     <p
                       className="mt-6 text-xs leading-relaxed text-muted-foreground/70"
                       style={{ fontFamily: "'DM Sans', sans-serif" }}
                     >
-                      {RESULT_CONTENT[result].footnote}
+                      {resultCopy.footnote}
                     </p>
                   )}
 
@@ -612,10 +562,10 @@ export function QuickReflectionModal({
                           letterSpacing: "0.2em",
                         }}
                       >
-                        Tvé odpovědi
+                        {tx(t.quickReflection.yourAnswers, lang)}
                       </p>
                       <div className="grid grid-cols-[minmax(0,8rem)_1fr_1.5rem] items-center gap-x-3 gap-y-2 sm:grid-cols-[minmax(0,18rem)_1fr_1.5rem]">
-                        {QUESTIONS.map(q => {
+                        {questions.map(q => {
                           const value = answers[q.id] ?? 0;
                           return (
                             <Fragment key={q.id}>
@@ -656,8 +606,8 @@ export function QuickReflectionModal({
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
                           {showDetails
-                            ? "Skrýt, jak jsme k tomu došli"
-                            : "Zobrazit, jak jsme k tomu došli"}
+                            ? tx(t.quickReflection.hideDetails, lang)
+                            : tx(t.quickReflection.showDetails, lang)}
                         </button>
                         <button
                           type="button"
@@ -666,10 +616,10 @@ export function QuickReflectionModal({
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
                           {copyStatus === "copied"
-                            ? "Zkopírováno ✓"
+                            ? tx(t.quickReflection.copied, lang)
                             : copyStatus === "error"
-                              ? "Kopírování selhalo"
-                              : "Kopírovat výsledek jako JSON"}
+                              ? tx(t.quickReflection.copyFailed, lang)
+                              : tx(t.quickReflection.copyResult, lang)}
                         </button>
                       </div>
 
@@ -679,12 +629,12 @@ export function QuickReflectionModal({
                           style={{ fontFamily: "'JetBrains Mono', monospace" }}
                         >
                           <p>
-                            Spokojenost (S): {formatScore(resultScores.S)} ·
-                            Ambice (A): {formatScore(resultScores.A)} ·
-                            Kapacita (C): {formatScore(resultScores.C)} ·
-                            Zátěž (L): {formatScore(resultScores.L)}
+                            {t.quickReflection.scoreLabels[lang].S} (S): {formatScore(resultScores.S, lang)} ·{" "}
+                            {t.quickReflection.scoreLabels[lang].A} (A): {formatScore(resultScores.A, lang)} ·{" "}
+                            {t.quickReflection.scoreLabels[lang].C} (C): {formatScore(resultScores.C, lang)} ·{" "}
+                            {t.quickReflection.scoreLabels[lang].L} (L): {formatScore(resultScores.L, lang)}
                           </p>
-                          <p>{explainRule(resultScores)}</p>
+                          <p>{explainRule(resultScores, lang)}</p>
                         </div>
                       )}
                     </div>

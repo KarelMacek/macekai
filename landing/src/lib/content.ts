@@ -1,5 +1,19 @@
 export type Lang = "cs" | "en";
 
+// Single source of truth for every price shown anywhere on the site — a
+// price living only inline in a translated string is exactly how the
+// "Situation review" modal ended up showing 590 CZK on its English side
+// (drifted from the funnel step card's own 11.99 EUR). Every place a price
+// appears — funnel step cards, the buy modal, the collaboration packages —
+// reads from here instead of hardcoding its own copy of the figure.
+export const PRICES = {
+  quickCheck: { cs: "0 Kč", en: "0 EUR" },
+  situationReview: { cs: "590 Kč", en: "11.99 EUR" },
+  changeMap: { cs: "3 600 Kč", en: "150 EUR" },
+  tacticalSprint: { cs: "10 800 Kč", en: "450 EUR" },
+  fullProgram: { cs: "43 200 Kč", en: "1 800 EUR" },
+} as const;
+
 export const t = {
   // ── Nav ──────────────────────────────────────────────────────────────────
   nav: {
@@ -121,13 +135,13 @@ export const t = {
         {
           label: "2–5 týdnů · 3 sezení",
           tag: "RYCHLÝ ZÁSAH",
-          price: "10 800 Kč",
+          price: PRICES.tacticalSprint.cs,
           desc: "Rychlý taktický zásah. Konkrétní problém, konkrétní posun. Ideální pro jasně definovanou výzvu.",
         },
         {
           label: "3–6 měsíců · 12 sezení",
           tag: "PLNÝ PROGRAM",
-          price: "43 200 Kč",
+          price: PRICES.fullProgram.cs,
           desc: "Hloubková transformace, systematická práce na sobě. Vynalezni verzi 2.0.",
         },
       ],
@@ -135,13 +149,13 @@ export const t = {
         {
           label: "2–5 weeks · 3 sessions",
           tag: "QUICK SPRINT",
-          price: "450 EUR",
+          price: PRICES.tacticalSprint.en,
           desc: "A fast tactical intervention. One concrete problem, one concrete shift. Ideal for a clearly defined challenge.",
         },
         {
           label: "3–6 months · 12 sessions",
           tag: "FULL PROGRAM",
-          price: "1 800 EUR",
+          price: PRICES.fullProgram.en,
           desc: "Deep transformation, systematic work on yourself. Invent your version 2.0.",
         },
       ],
@@ -727,7 +741,7 @@ export const t = {
           icon: "clipboardCheck",
           title: "Rychlý check zdarma",
           desc: "7 otázek · 2 minuty",
-          price: "0 Kč",
+          price: PRICES.quickCheck.cs,
           cta: "Spustit",
         },
         {
@@ -735,7 +749,7 @@ export const t = {
           icon: "search",
           title: "Pohled na situaci",
           desc: "Hlubší dotazník + moje stručné vyjádření do týdne",
-          price: "590 Kč",
+          price: PRICES.situationReview.cs,
           cta: "Zjistit více",
         },
         {
@@ -743,7 +757,7 @@ export const t = {
           icon: "compass",
           title: "Mapa změny",
           desc: "Ujasníš si situaci a směr\nběhem 90 minutové konzultace se mnou.",
-          price: "3 600 Kč",
+          price: PRICES.changeMap.cs,
           cta: "Rezervovat",
         },
         {
@@ -771,15 +785,15 @@ export const t = {
           icon: "clipboardCheck",
           title: "Free quick check",
           desc: "7 questions · 2 minutes",
-          price: "0 EUR",
+          price: PRICES.quickCheck.en,
           cta: "Start the check",
         },
         {
           num: "03",
           icon: "search",
-          title: "Situation Review",
+          title: "Situation review",
           desc: "A deeper questionnaire + my brief take within a week",
-          price: "11.99 EUR",
+          price: PRICES.situationReview.en,
           cta: "Find out more",
         },
         {
@@ -787,7 +801,7 @@ export const t = {
           icon: "compass",
           title: "Change map",
           desc: "Together we'll clarify the situation and direction during a 90-minute consultation.",
-          price: "150 EUR",
+          price: PRICES.changeMap.en,
           cta: "Book",
         },
         {
@@ -806,8 +820,8 @@ export const t = {
     checkDoneLabel: { cs: "Hotovo", en: "Done" },
     diagnosticsModal: {
       eyebrow: {
-        cs: "Pohled na situaci · 590 Kč",
-        en: "Situation Review · 590 CZK",
+        cs: `Pohled na situaci · ${PRICES.situationReview.cs}`,
+        en: `Situation review · ${PRICES.situationReview.en}`,
       },
       headline: {
         cs: "Hlubší pohled na tvou situaci.",
@@ -831,7 +845,11 @@ export const t = {
           "You can export your answers anytime.",
         ],
       },
-      buyNow: { cs: "Chci hlubší pohled", en: "I want a deeper look" },
+      buyNow: { cs: "Chci svůj pohled na situaci", en: "I want my Situation review" },
+      buyOtherLang: {
+        cs: "Chci to raději anglicky",
+        en: "I'd rather have it in Czech",
+      },
       close: { cs: "Zavřít", en: "Close" },
     },
     collaborationModal: {
@@ -852,6 +870,195 @@ export const t = {
         en: "Write to me, or book a free 30-minute call directly:",
       },
       close: { cs: "Zavřít", en: "Close" },
+    },
+  },
+
+  // ── Quick reflection ("Rychlá reflexe") ─────────────────────────────────────
+  quickReflection: {
+    title: { cs: "Rychlá reflexe", en: "Quick Reflection" },
+    questionsCount: {
+      cs: "7 otázek · asi minuta",
+      en: "7 questions · about a minute",
+    },
+    back: { cs: "Zpět", en: "Back" },
+    calculating: { cs: "Dávám to dohromady…", en: "Putting it together…" },
+    calculatingSr: {
+      cs: "Vyhodnocuji tvé odpovědi.",
+      en: "Evaluating your answers.",
+    },
+    closeAriaLabel: { cs: "Zavřít", en: "Close" },
+    yourAnswers: { cs: "Tvé odpovědi", en: "Your answers" },
+    showDetails: {
+      cs: "Zobrazit, jak jsme k tomu došli",
+      en: "Show how we got here",
+    },
+    hideDetails: {
+      cs: "Skrýt, jak jsme k tomu došli",
+      en: "Hide how we got here",
+    },
+    copyResult: {
+      cs: "Kopírovat výsledek jako JSON",
+      en: "Copy result as JSON",
+    },
+    copied: { cs: "Zkopírováno ✓", en: "Copied ✓" },
+    copyFailed: { cs: "Kopírování selhalo", en: "Copy failed" },
+    questionWord: { cs: "Otázka", en: "Question" },
+    ofWord: { cs: "z", en: "of" },
+    scoreLabels: {
+      cs: { S: "Spokojenost", A: "Ambice", C: "Kapacita", L: "Zátěž" },
+      en: { S: "Satisfaction", A: "Ambition", C: "Capacity", L: "Load" },
+    },
+    questions: {
+      cs: [
+        {
+          text: "Jak moc tě teď baví to, co děláš?",
+          minLabel: "Vůbec",
+          maxLabel: "Hodně",
+        },
+        {
+          text: "Jak dobře jsi za svou práci odměněný/á?",
+          minLabel: "Vůbec ne",
+          maxLabel: "Skvěle",
+        },
+        {
+          text: "Jak moc ti současný život dává smysl tak, jak je?",
+          minLabel: "Vůbec",
+          maxLabel: "Hodně",
+        },
+        {
+          text: "Jak moc se chceš během příštího roku někam posunout?",
+          minLabel: "Jsem spokojený/á tam, kde jsem",
+          maxLabel: "Velmi",
+        },
+        {
+          text: "Jak jasně vidíš svůj další krok?",
+          minLabel: "Vůbec",
+          maxLabel: "Úplně jasně",
+        },
+        {
+          text: "Kolik máš teď síly něco skutečně měnit?",
+          minLabel: "Skoro žádnou",
+          maxLabel: "Dost",
+        },
+        {
+          text: "Jak moc tě to, co teď řešíš, zatěžuje i mimo práci?",
+          minLabel: "Vůbec",
+          maxLabel: "Hodně",
+        },
+      ],
+      en: [
+        {
+          text: "How much are you enjoying what you do right now?",
+          minLabel: "Not at all",
+          maxLabel: "A lot",
+        },
+        {
+          text: "How well are you compensated for your work?",
+          minLabel: "Not at all",
+          maxLabel: "Great",
+        },
+        {
+          text: "How much does your current life make sense to you as it is?",
+          minLabel: "Not at all",
+          maxLabel: "A lot",
+        },
+        {
+          text: "How much do you want to move forward over the next year?",
+          minLabel: "I'm content where I am",
+          maxLabel: "Very much",
+        },
+        {
+          text: "How clearly do you see your next step?",
+          minLabel: "Not at all",
+          maxLabel: "Completely clearly",
+        },
+        {
+          text: "How much energy do you have right now to actually change something?",
+          minLabel: "Almost none",
+          maxLabel: "Plenty",
+        },
+        {
+          text: "How much does what you're dealing with weigh on you outside of work too?",
+          minLabel: "Not at all",
+          maxLabel: "A lot",
+        },
+      ],
+    },
+    // Keyed by result, each with a cs/en pair — the modal indexes
+    // results[key][lang], mirroring RESULT_CONTENT's shape 1:1.
+    results: {
+      ok: {
+        cs: {
+          eyebrow: "Vypadá to dobře.",
+          headline: "Teď možná není potřeba nic opravovat.",
+          text: "To, co děláš, ti v zásadě funguje a zároveň necítíš velkou potřebu něco měnit. To je úplně legitimní výsledek.",
+          primaryLabel: "Zavřít",
+          secondaryLabel: "Projít si odpovědi znovu" as string | undefined,
+          footnote: undefined as string | undefined,
+        },
+        en: {
+          eyebrow: "Looks good.",
+          headline: "There's probably nothing that needs fixing right now.",
+          text: "What you're doing is basically working for you, and you don't feel a strong need to change anything. That's a completely legitimate result.",
+          primaryLabel: "Close",
+          secondaryLabel: "Go through your answers again" as string | undefined,
+          footnote: undefined as string | undefined,
+        },
+      },
+      growth: {
+        cs: {
+          eyebrow: "Dobrá výchozí pozice.",
+          headline: "Funguje ti to. A něco tě táhne dál.",
+          text: "Nejde nutně o problém, který je potřeba řešit. Spíš se před tebou otevírá otázka, kam svou energii, zkušenosti a možnosti nasměrovat dál.",
+          primaryLabel: "Podívat se, co by mohl být další krok",
+          secondaryLabel: "Zavřít" as string | undefined,
+          footnote: undefined as string | undefined,
+        },
+        en: {
+          eyebrow: "A good starting position.",
+          headline: "It's working for you. And something is pulling you forward.",
+          text: "It's not necessarily a problem that needs solving. It's more that a question is opening up in front of you — where to direct your energy, experience, and options next.",
+          primaryLabel: "See what the next step could be",
+          secondaryLabel: "Close" as string | undefined,
+          footnote: undefined as string | undefined,
+        },
+      },
+      change: {
+        cs: {
+          eyebrow: "Něco stojí za pozornost.",
+          headline: "Nemusíš všechno převrátit. Ale něco si zaslouží změnu.",
+          text: "Některá část současné situace ti zřejmě úplně nesedí. Zároveň podle odpovědí vypadá, že má smysl podívat se na ni prakticky a hledat další krok.",
+          primaryLabel: "Podívat se na další krok",
+          secondaryLabel: "Zavřít" as string | undefined,
+          footnote: undefined as string | undefined,
+        },
+        en: {
+          eyebrow: "Something's worth your attention.",
+          headline: "You don't have to turn everything upside down. But something deserves to change.",
+          text: "Some part of your current situation clearly doesn't quite fit you. At the same time, your answers suggest it's worth looking at practically and finding the next step.",
+          primaryLabel: "See the next step",
+          secondaryLabel: "Close" as string | undefined,
+          footnote: undefined as string | undefined,
+        },
+      },
+      support: {
+        cs: {
+          eyebrow: "Teď hlavně opatrně.",
+          headline: "Možná teď nepotřebuješ další výkon.",
+          text: "Podle tvých odpovědí tě současná situace výrazně zatěžuje a zároveň máš málo energie na změnu. Koučování nemusí být v takové chvíli nejlepší první krok. Může být užitečnější obrátit se nejprve na psychologa, psychoterapeuta nebo lékaře.",
+          primaryLabel: "Rozumím",
+          secondaryLabel: undefined as string | undefined,
+          footnote: "Tato krátká reflexe není zdravotní ani psychologická diagnostika." as string | undefined,
+        },
+        en: {
+          eyebrow: "Go easy on yourself right now.",
+          headline: "You might not need more performance right now.",
+          text: "Based on your answers, your current situation is weighing on you significantly, and you have little energy for change right now. Coaching might not be the best first step in a moment like this. It may be more useful to reach out to a psychologist, psychotherapist, or doctor first.",
+          primaryLabel: "I understand",
+          secondaryLabel: undefined as string | undefined,
+          footnote: "This short reflection is not a medical or psychological diagnosis." as string | undefined,
+        },
+      },
     },
   },
 

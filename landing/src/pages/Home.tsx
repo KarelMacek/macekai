@@ -1429,6 +1429,25 @@ function Pricing({
     hasScrolledRef.current = true;
   }, [activeIndex]);
 
+  // Mobile has no horizontal carousel to re-center — it's a plain stacked
+  // column — but it still needs to auto-advance the viewport to the next
+  // step (e.g. after answering "Možná" on step 01), otherwise the visitor
+  // is stuck looking at the step they just answered with no indication
+  // anything happened. Separate ref array/effect from the desktop carousel
+  // above since both card sets are mounted simultaneously (shown/hidden via
+  // CSS breakpoints, not conditional rendering) — sharing one array would
+  // let one overwrite the other.
+  const mobileCardRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const hasScrolledMobileRef = useRef(false);
+
+  useEffect(() => {
+    mobileCardRefs.current[activeIndex]?.scrollIntoView({
+      behavior: hasScrolledMobileRef.current ? "smooth" : "auto",
+      block: "center",
+    });
+    hasScrolledMobileRef.current = true;
+  }, [activeIndex]);
+
   function goToStep(delta: number) {
     setActiveIndex(i => Math.min(steps.length - 1, Math.max(0, i + delta)));
   }
@@ -1598,32 +1617,38 @@ function Pricing({
 
         <div className="flex md:hidden flex-col gap-6">
           {steps.map((s, i) => (
-            <FunnelStepCard
+            <div
               key={s.num}
-              step={s}
-              lang={lang}
-              delay={i * 80}
-              packages={s.num === "05" ? packages : undefined}
-              onQuickCheckClick={onQuickCheckClick}
-              quickCheckDone={quickCheckDone}
-              highlightCta={
-                s.num === "02"
-                  ? step1Answer === "yes"
-                  : s.num === "03"
-                    ? quickCheckDone
-                    : undefined
-              }
-              muted={s.num === "01" ? undefined : step1Answer === "no"}
-              onAnswerChange={
-                s.num === "01" ? onStep1AnswerChange : undefined
-              }
-              onDiagnosticsInfoClick={
-                s.num === "03" ? onDiagnosticsInfoClick : undefined
-              }
-              onCollaborationInfoClick={
-                s.num === "05" ? onCollaborationInfoClick : undefined
-              }
-            />
+              ref={el => {
+                mobileCardRefs.current[i] = el;
+              }}
+            >
+              <FunnelStepCard
+                step={s}
+                lang={lang}
+                delay={i * 80}
+                packages={s.num === "05" ? packages : undefined}
+                onQuickCheckClick={onQuickCheckClick}
+                quickCheckDone={quickCheckDone}
+                highlightCta={
+                  s.num === "02"
+                    ? step1Answer === "yes"
+                    : s.num === "03"
+                      ? quickCheckDone
+                      : undefined
+                }
+                muted={s.num === "01" ? undefined : step1Answer === "no"}
+                onAnswerChange={
+                  s.num === "01" ? onStep1AnswerChange : undefined
+                }
+                onDiagnosticsInfoClick={
+                  s.num === "03" ? onDiagnosticsInfoClick : undefined
+                }
+                onCollaborationInfoClick={
+                  s.num === "05" ? onCollaborationInfoClick : undefined
+                }
+              />
+            </div>
           ))}
         </div>
 

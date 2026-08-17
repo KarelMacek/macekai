@@ -129,6 +129,25 @@ describe("explainRule", () => {
     const explanation = explainRule({ S: 0, A: 0, C: 4, L: 8 });
     expect(explanation).toContain("zátěž L = 8 ≥ 8 a kapacita C = 4 ≤ 4");
   });
+
+  it("switches to English phrasing when lang='en'", () => {
+    const explanation = explainRule({ S: 0, A: 0, C: 4, L: 8 }, "en");
+    expect(explanation).toContain("load L = 8 ≥ 8 and capacity C = 4 ≤ 4");
+    expect(explanation).toContain("the support rule applies");
+  });
+
+  it.each(cases)("$name: English explainRule() still agrees with getResult()", ({ scores, expected }) => {
+    const explanation = explainRule(scores, "en");
+    if (expected === "support") {
+      expect(explanation).toContain("the support rule applies");
+    } else if (expected === "ok") {
+      expect(explanation).toMatch(/→ OK\.$/);
+    } else if (expected === "growth") {
+      expect(explanation).toMatch(/→ growth\.$/);
+    } else {
+      expect(explanation).toContain("change remains");
+    }
+  });
 });
 
 // ── formatScore ───────────────────────────────────────────────────────────────
@@ -148,6 +167,10 @@ describe("formatScore", () => {
 
   it("formats zero as a plain 0", () => {
     expect(formatScore(0)).toBe("0");
+  });
+
+  it("uses a period separator for English instead of a comma", () => {
+    expect(formatScore(5.25, "en")).toBe("5.3");
   });
 });
 

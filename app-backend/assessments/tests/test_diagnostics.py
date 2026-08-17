@@ -167,6 +167,22 @@ def test_whoami_has_diagnostics_true_after_open(journey, user):
     assert resp.json()["has_diagnostics"] is True
 
 
+def test_whoami_purchased_language_empty_without_diagnostics(user):
+    client = APIClient()
+    client.force_login(user)
+    resp = client.get("/api/whoami/")
+    assert resp.json()["purchased_language"] == ""
+
+
+def test_whoami_purchased_language_reflects_latest_diagnostics(journey, user):
+    open_diagnostics(email=user.email, journey=journey, source_order_id="A", language="cs")
+    open_diagnostics(email=user.email, journey=journey, source_order_id="B", language="en")
+    client = APIClient()
+    client.force_login(user)
+    resp = client.get("/api/whoami/")
+    assert resp.json()["purchased_language"] == "en"
+
+
 # --- SimpleShop webhook -------------------------------------------------------
 
 @pytest.fixture(autouse=True)

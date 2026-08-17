@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model, login, logout
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.views.decorators.http import require_GET
 
-from assessments.services import has_any_diagnostics, has_recorded_consent
+from assessments.services import current_diagnostics, has_any_diagnostics, has_recorded_consent
 
 
 def healthz_view(request):
@@ -41,6 +41,7 @@ def config_view(request):
 @require_GET
 def whoami_view(request):
     if request.user.is_authenticated:
+        diag = current_diagnostics(request.user)
         return JsonResponse({
             "is_authenticated": True,
             "username": request.user.username,
@@ -48,6 +49,10 @@ def whoami_view(request):
             "has_diagnostics": request.user.is_staff or has_any_diagnostics(request.user),
             "consent_recorded": has_recorded_consent(request.user),
             "is_staff": request.user.is_staff,
+            # Which language the most recent purchase was made under (see
+            # Diagnostics.language) — used by app-frontend's LanguageGate to
+            # pre-highlight a default, not to silently pick for the visitor.
+            "purchased_language": diag.language if diag else "",
         })
     return JsonResponse({"is_authenticated": False}, status=401)
 

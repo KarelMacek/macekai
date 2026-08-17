@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Route, Switch } from "wouter";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LangProvider } from "@/contexts/LangContext";
+import { getStoredLang, LangProvider } from "@/contexts/LangContext";
 import { LangSwitcher } from "@/components/LangSwitcher";
 import { useTranslation } from "@/lib/i18n";
 import { ConsentGate } from "@/features/onboarding/ConsentGate";
+import { LanguageGate } from "@/features/onboarding/LanguageGate";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminDiagnosticsDetailPage } from "@/pages/admin/AdminDiagnosticsDetailPage";
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -141,12 +142,23 @@ function SignedOutLanding() {
 function AppShell() {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
+  // Asked once per browser (see LangProvider/storeLang) — a returning
+  // visitor who's already chosen never sees this screen again.
+  const [langChosen, setLangChosen] = useState(() => getStoredLang() !== null);
 
   const isSignedOut = window.location.pathname === "/signed-out";
   if (isSignedOut) return <SignedOutPage />;
   if (loading) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
   if (!user) return <SignedOutLanding />;
   if (!user.has_diagnostics) return <NoDiagnosticsGate />;
+  if (!langChosen) {
+    return (
+      <LanguageGate
+        suggestedLang={user.purchased_language}
+        onChosen={() => setLangChosen(true)}
+      />
+    );
+  }
   if (!user.consent_recorded) return <ConsentGate />;
   return <SignedInApp />;
 }

@@ -31,10 +31,18 @@ export function DiagnosticsInfoModal({
   onClose,
 }: DiagnosticsInfoModalProps) {
   const { lang } = useLang();
+  const otherLang: Lang = lang === "cs" ? "en" : "cs";
   const copy = t.pricing.diagnosticsModal;
 
   function handleBuyNow() {
     trackEvent(lang, "diagnostics_buy_click", { location: "pricing_modal" });
+  }
+
+  function handleBuyOtherLang() {
+    trackEvent(lang, "diagnostics_buy_click", {
+      location: "pricing_modal",
+      otherLang: true,
+    });
   }
 
   return (
@@ -132,6 +140,18 @@ export function DiagnosticsInfoModal({
                 {tx(copy.close, lang)}
               </button>
             </div>
+
+            <p className="mt-4 text-xs text-muted-foreground/70">
+              <a
+                href={SIMPLESHOP_BUY_URLS[otherLang]}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleBuyOtherLang}
+                className="underline decoration-dotted underline-offset-2 transition-colors duration-150 hover:text-gold"
+              >
+                {tx(copy.buyOtherLang, lang)}
+              </a>
+            </p>
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>

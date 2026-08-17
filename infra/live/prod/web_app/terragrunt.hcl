@@ -77,6 +77,9 @@ inputs = {
   google_client_id = local.common.google_client_id
   admin_email      = local.common.admin_email
 
+  ms_graph_tenant_id = local.common.tenant_id
+  ms_graph_client_id = local.common.ms_graph_client_id
+
   postgres_fqdn                = dependency.postgres.outputs.fqdn
   postgres_database_name       = dependency.postgres.outputs.database_name
   postgres_administrator_login = dependency.postgres.outputs.administrator_login

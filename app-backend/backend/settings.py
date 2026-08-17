@@ -173,6 +173,15 @@ ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')
 SIMPLESHOP_WEBHOOK_SECRET = os.environ.get('SIMPLESHOP_WEBHOOK_SECRET', '')
 DIAGNOSTICS_PURCHASE_URL = os.environ.get('DIAGNOSTICS_PURCHASE_URL', '')
 
+# Microsoft Graph sendMail (app-only/client-credentials) — see
+# backend/graph_mail.py. Used by assessments/emailing.py to send the buyer a
+# post-purchase instructions email right after the SimpleShop webhook fires.
+# Blank locally is fine; nothing calls graph_mail in local dev/tests.
+MS_GRAPH_TENANT_ID = os.environ.get('MS_GRAPH_TENANT_ID', '')
+MS_GRAPH_CLIENT_ID = os.environ.get('MS_GRAPH_CLIENT_ID', '')
+MS_GRAPH_CLIENT_SECRET = os.environ.get('MS_GRAPH_CLIENT_SECRET', '')
+EMAIL_FROM_ADDRESS = os.environ.get('EMAIL_FROM_ADDRESS', 'karel@macek.ai')
+
 # Session security
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'

@@ -1,0 +1,40 @@
+name: Deploy landing to swa-landing-prod (manual)
+
+# Manual-only on purpose: swa-landing-prod is a Terraform-provisioned SWA
+# resource not yet wired to a domain (see infra/live/prod/landing_swa —
+# the real live site, macek.ai, is served by the separate icy-beach SWA and
+# its own auto-deploying workflow). This lets us push a build to it on
+# demand without doubling up deploys on every push to main until the
+# domain/Terraform-import decision is made.
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy_job:
+    runs-on: ubuntu-latest
+    name: Build and Deploy Job
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+          lfs: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build landing
+        run: pnpm --filter landing build
+      - name: Build And Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_SWA_LANDING_PROD }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "landing/dist/public"
+          api_location: ""
+          output_location: ""
+          skip_app_build: true

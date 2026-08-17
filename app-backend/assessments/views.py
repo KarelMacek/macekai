@@ -17,11 +17,13 @@ from .models import (
     FileBlob,
     Test,
     TestSubmission,
+    UserConsent,
 )
 from .serializers import (
     AdminDiagnosticsSummarySerializer,
     AdminFeedbackReadSerializer,
     AdminFeedbackWriteSerializer,
+    ConsentSerializer,
     DiagnosticsDetailSerializer,
     DiagnosticsSummarySerializer,
     FeedbackRequestSerializer,
@@ -67,6 +69,7 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
         "journey_slug": diagnostics.journey.slug,
         "opened_at": diagnostics.opened_at,
         "status": diagnostics_status(diagnostics),
+        "language": diagnostics.language,
         "all_tests_done": all_tests_done,
         "steps": steps,
         "submissions": TestSubmissionReadSerializer(
@@ -230,6 +233,22 @@ class SubmissionDetailView(APIView):
         return Response(serializer.data)
 
 
+class ConsentView(APIView):
+    """One-time write: records the account-level AI-processing/research
+    consent answers asked by ConsentGate on the frontend before a user ever
+    reaches the dashboard. Both booleans are required and written together —
+    see UserConsent's docstring for why there's no PATCH/GET here."""
+
+    @extend_schema(request=ConsentSerializer, responses=ConsentSerializer)
+    def post(self, request):
+        if UserConsent.objects.filter(user=request.user).exists():
+            return Response({"detail": "Consent already recorded."}, status=status.HTTP_409_CONFLICT)
+        serializer = ConsentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 class FeedbackRequestView(APIView):
     @extend_schema(responses=FeedbackRequestSerializer)
     def get(self, request):
@@ -288,6 +307,7 @@ class DiagnosticsListView(APIView):
                 "journey_slug": d.journey.slug,
                 "opened_at": d.opened_at,
                 "status": diagnostics_status(d),
+                "language": d.language,
             }
             for d in diagnostics_qs
         ]
@@ -337,6 +357,7 @@ class AdminDiagnosticsListView(APIView):
                     "journey_slug": d.journey.slug,
                     "opened_at": d.opened_at,
                     "status": row_status,
+                    "language": d.language,
                 }
             )
         return Response(AdminDiagnosticsSummarySerializer(data, many=True).data)

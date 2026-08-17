@@ -13,6 +13,7 @@ urlpatterns = [
         views.SubmissionDetailView.as_view(),
         name="assessments-submission-detail",
     ),
+    path("consent/", views.ConsentView.as_view(), name="assessments-consent"),
     path(
         "feedback-request/",
         views.FeedbackRequestView.as_view(),

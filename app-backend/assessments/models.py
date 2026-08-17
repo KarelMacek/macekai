@@ -212,14 +212,17 @@ class Journey(models.Model):
     """A named, ordered sequence of required tests. Modeled as data (not a
     hardcoded list) so a second journey variant is a content change, not a
     code change. Doubles as "the diagnostics type/product": each purchasable
-    diagnostics maps 1:1 to a Journey via simpleshop_product_id, so adding a
-    second diagnostics product later is a new Journey + JourneySteps in
-    admin, not a code change either."""
+    diagnostics maps to a Journey via simpleshop_product_id_{cs,en} — one
+    per checkout language, since SimpleShop needs a separate product/form
+    per language but the underlying Journey/JourneySteps content is already
+    bilingual and shared. A genuinely different diagnostics product later is
+    still a new Journey + JourneySteps in admin, not a code change."""
 
     slug = models.SlugField(unique=True)
     name = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
-    simpleshop_product_id = models.CharField(max_length=64, blank=True, default="")
+    simpleshop_product_id_cs = models.CharField(max_length=64, blank=True, default="")
+    simpleshop_product_id_en = models.CharField(max_length=64, blank=True, default="")
 
     def __str__(self):
         return self.slug
@@ -281,6 +284,11 @@ class Diagnostics(models.Model):
     opened_via = models.CharField(max_length=32, choices=OPENED_VIA_CHOICES, default=OPENED_VIA_ADMIN)
     opened_at = models.DateTimeField(auto_now_add=True)
     notes = models.TextField(blank=True, default="")
+    # Which SimpleShop product language this was bought under (derived from
+    # which of Journey.simpleshop_product_id_{cs,en} matched the webhook's
+    # id_product) — lets the frontend default to the purchased language
+    # instead of only guessing from the browser. Blank for admin-opened rows.
+    language = models.CharField(max_length=8, blank=True, default="")
 
     class Meta:
         ordering = ["-opened_at"]
@@ -333,6 +341,24 @@ class AdminFeedback(models.Model):
 
     def __str__(self):
         return f"Feedback for {self.feedback_request.diagnostics}"
+
+
+class UserConsent(models.Model):
+    """Account-level, asked exactly once, before first dashboard/test access
+    (see ConsentGate on the frontend). Row existence *is* "has this user been
+    asked" — see services.has_recorded_consent — so there's no third
+    nullable tri-state to model; both booleans are only ever written once,
+    together, atomically, from ConsentView.post()."""
+
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="consent"
+    )
+    ai_processing_consent = models.BooleanField()
+    research_consent = models.BooleanField()
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} consent @ {self.recorded_at:%Y-%m-%d}"
 
 
 class FileBlob(models.Model):

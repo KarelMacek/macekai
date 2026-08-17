@@ -21,6 +21,8 @@ import {
   type Answers,
   type ResultKey,
 } from "@/components/QuickReflectionModal";
+import { DiagnosticsInfoModal } from "@/components/DiagnosticsInfoModal";
+import { CollaborationInfoModal } from "@/components/CollaborationInfoModal";
 import Footer from "@/components/Footer";
 
 // ── Fade-up hook ──────────────────────────────────────────────────────────────
@@ -1384,11 +1386,15 @@ function Pricing({
   quickCheckDone,
   step1Answer,
   onStep1AnswerChange,
+  onDiagnosticsInfoClick,
+  onCollaborationInfoClick,
 }: {
   onQuickCheckClick: () => void;
   quickCheckDone: boolean;
   step1Answer: "yes" | "no" | null;
   onStep1AnswerChange: (answer: "yes" | "no") => void;
+  onDiagnosticsInfoClick: () => void;
+  onCollaborationInfoClick: () => void;
 }) {
   const { lang } = useLang();
   const ref = useFadeUp();
@@ -1522,6 +1528,12 @@ function Pricing({
                   onAnswerChange={
                     s.num === "01" ? onStep1AnswerChange : undefined
                   }
+                  onDiagnosticsInfoClick={
+                    s.num === "03" ? onDiagnosticsInfoClick : undefined
+                  }
+                  onCollaborationInfoClick={
+                    s.num === "05" ? onCollaborationInfoClick : undefined
+                  }
                 />
               </div>
             ))}
@@ -1605,6 +1617,12 @@ function Pricing({
               onAnswerChange={
                 s.num === "01" ? onStep1AnswerChange : undefined
               }
+              onDiagnosticsInfoClick={
+                s.num === "03" ? onDiagnosticsInfoClick : undefined
+              }
+              onCollaborationInfoClick={
+                s.num === "05" ? onCollaborationInfoClick : undefined
+              }
             />
           ))}
         </div>
@@ -1634,6 +1652,8 @@ function FunnelStepCard({
   highlightCta,
   muted,
   onAnswerChange,
+  onDiagnosticsInfoClick,
+  onCollaborationInfoClick,
 }: {
   step: PricingStep;
   lang: Lang;
@@ -1649,17 +1669,14 @@ function FunnelStepCard({
   highlightCta?: boolean;
   muted?: boolean;
   onAnswerChange?: (answer: "yes" | "no") => void;
+  onDiagnosticsInfoClick?: () => void;
+  onCollaborationInfoClick?: () => void;
 }) {
   const ref = useFadeUp(delay);
   const [yesNoAnswer, setYesNoAnswer] = useState<"yes" | "no" | null>(null);
-  const ctaMeta: Record<
-    string,
-    { event: string; todo?: string; url?: { cs: string; en: string } }
-  > = {
-    "03": {
-      event: "diagnostics_click",
-      todo: "TODO(pricing-links): replace with real payment/booking URL for the 590 Kč diagnostics",
-    },
+  // Step "03" no longer lives here — it opens DiagnosticsInfoModal instead
+  // of linking straight out, so its CTA is handled as its own button below.
+  const ctaMeta: Record<string, { event: string; url?: { cs: string; en: string } }> = {
     "04": {
       event: "consult_click",
       url: {
@@ -1843,8 +1860,27 @@ function FunnelStepCard({
             {quickCheckDone ? tx(t.pricing.checkDoneLabel, lang) : step.cta}
           </button>
         )}
-        {step.cta && step.num !== "02" && (
-          // TODO(pricing-links): step "03" still points to "#" — wire up ctaMeta["03"].todo before launch
+        {step.cta && step.num === "03" && (
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent(lang, "diagnostics_info_click", {
+                location: "pricing",
+              });
+              onDiagnosticsInfoClick?.();
+            }}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta ? "invite-glow" : ""}`}
+            style={{
+              background: "oklch(0.78 0.12 85)",
+              color: "oklch(0.12 0.015 60)",
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: "2px",
+            }}
+          >
+            {step.cta}
+          </button>
+        )}
+        {step.cta && step.num !== "02" && step.num !== "03" && step.num !== "05" && (
           <a
             href={ctaMeta[step.num]?.url?.[lang] ?? "#"}
             target="_blank"
@@ -1869,47 +1905,60 @@ function FunnelStepCard({
         )}
 
         {packages && (
-          <ul className="mt-auto w-full text-left space-y-3">
+          <ul className="mt-auto w-full grid grid-cols-2 gap-3 text-left">
             {packages.map(pkg => (
-              <li key={pkg.label} className="flex items-start gap-2.5">
-                <span
-                  className="text-gold shrink-0 leading-none mt-0.5"
-                  aria-hidden
+              <li key={pkg.label}>
+                <p
+                  className="text-[oklch(0.88_0.02_80)] text-[10px] uppercase tracking-wider mb-0.5"
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 600,
+                  }}
                 >
-                  ›
-                </span>
-                <div>
-                  <p
-                    className="text-[oklch(0.88_0.02_80)] text-[10px] uppercase tracking-wider mb-0.5"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {pkg.tag}
-                  </p>
-                  <p
-                    className="text-[oklch(0.62_0.02_72)] text-xs leading-relaxed"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 300,
-                    }}
-                  >
-                    {pkg.label}
-                  </p>
-                  <p
-                    className="text-gold text-sm whitespace-nowrap"
-                    style={{
-                      fontFamily: "'DM Sans', sans-serif",
-                      fontWeight: 400,
-                    }}
-                  >
-                    {pkg.price}
-                  </p>
-                </div>
+                  {pkg.tag}
+                </p>
+                <p
+                  className="text-[oklch(0.62_0.02_72)] text-xs leading-relaxed"
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 300,
+                  }}
+                >
+                  {pkg.label}
+                </p>
+                <p
+                  className="text-gold text-sm"
+                  style={{
+                    fontFamily: "'DM Sans', sans-serif",
+                    fontWeight: 400,
+                  }}
+                >
+                  {pkg.price}
+                </p>
               </li>
             ))}
           </ul>
+        )}
+        {step.cta && step.num === "05" && (
+          <button
+            type="button"
+            onClick={() => {
+              trackEvent(lang, "collaboration_info_click", {
+                location: "pricing",
+              });
+              onCollaborationInfoClick?.();
+            }}
+            className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${packages ? "mt-4" : "mt-auto"}`}
+            style={{
+              background: "transparent",
+              color: "oklch(0.78 0.12 85)",
+              border: "1px solid oklch(0.78 0.12 85 / 0.4)",
+              fontFamily: "'DM Sans', sans-serif",
+              borderRadius: "2px",
+            }}
+          >
+            {step.cta}
+          </button>
         )}
       </PatentCard>
     </div>
@@ -2025,6 +2074,8 @@ export default function Home() {
   useScrollDepthTracking(lang);
   const [showReflection, setShowReflection] = useState(false);
   const [savedReflection, setSavedReflection] = useState(loadSavedReflection);
+  const [showDiagnosticsInfo, setShowDiagnosticsInfo] = useState(false);
+  const [showCollaborationInfo, setShowCollaborationInfo] = useState(false);
   const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
   const declined = step1Answer === "no";
   const { setDeclined } = useFunnelDeclined();
@@ -2067,6 +2118,8 @@ export default function Home() {
         quickCheckDone={!!savedReflection}
         step1Answer={step1Answer}
         onStep1AnswerChange={setStep1Answer}
+        onDiagnosticsInfoClick={() => setShowDiagnosticsInfo(true)}
+        onCollaborationInfoClick={() => setShowCollaborationInfo(true)}
       />
       <div className={restOfSiteClass}>
         <Contact />
@@ -2090,6 +2143,14 @@ export default function Home() {
           setSavedReflection(null);
           window.localStorage.removeItem(QUICK_REFLECTION_DONE_KEY);
         }}
+      />
+      <DiagnosticsInfoModal
+        isOpen={showDiagnosticsInfo}
+        onClose={() => setShowDiagnosticsInfo(false)}
+      />
+      <CollaborationInfoModal
+        isOpen={showCollaborationInfo}
+        onClose={() => setShowCollaborationInfo(false)}
       />
     </div>
   );

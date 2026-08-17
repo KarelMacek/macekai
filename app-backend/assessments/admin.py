@@ -20,6 +20,7 @@ from .models import (
     ResultThreshold,
     Test,
     TestSubmission,
+    UserConsent,
 )
 from .services import diagnostics_status, open_diagnostics
 
@@ -137,7 +138,7 @@ class JourneyStepInline(admin.TabularInline):
 
 @admin.register(Journey)
 class JourneyAdmin(admin.ModelAdmin):
-    list_display = ("slug", "is_active", "simpleshop_product_id")
+    list_display = ("slug", "is_active", "simpleshop_product_id_cs", "simpleshop_product_id_en")
     inlines = [JourneyStepInline]
 
 
@@ -222,16 +223,17 @@ class TestSubmissionSummaryInline(admin.TabularInline):
 @admin.register(Diagnostics)
 class DiagnosticsAdmin(admin.ModelAdmin):
     list_display = (
-        "email", "user", "journey", "status_display", "opened_via", "opened_at", "source_order_id",
+        "email", "user", "journey", "language", "status_display", "opened_via", "opened_at",
+        "source_order_id",
     )
-    list_filter = ("journey", "opened_via")
+    list_filter = ("journey", "opened_via", "language")
     search_fields = ("email", "user__username", "user__email", "source_order_id", "source_order_number")
     readonly_fields = (
         "source_order_id", "source_order_number", "source_product_id", "raw_payload", "opened_at",
         "feedback_request_link",
     )
     fields = (
-        "email", "user", "journey", "opened_via", "opened_at",
+        "email", "user", "journey", "language", "opened_via", "opened_at",
         "source_order_id", "source_order_number", "source_product_id", "raw_payload",
         "notes", "feedback_request_link",
     )
@@ -264,6 +266,17 @@ class DiagnosticsAdmin(admin.ModelAdmin):
         for diagnostics in queryset:
             open_diagnostics(email=diagnostics.email, journey=diagnostics.journey)
         self.message_user(request, f"Opened {queryset.count()} new cycle(s).")
+
+
+@admin.register(UserConsent)
+class UserConsentAdmin(admin.ModelAdmin):
+    list_display = ("user", "ai_processing_consent", "research_consent", "recorded_at")
+    list_filter = ("ai_processing_consent", "research_consent")
+    search_fields = ("user__username", "user__email")
+    readonly_fields = ("user", "ai_processing_consent", "research_consent", "recorded_at")
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(FileBlob)

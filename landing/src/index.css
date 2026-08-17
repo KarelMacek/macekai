@@ -193,15 +193,14 @@
       filter: brightness(1.35);
     }
   }
-  /* 15 iterations of a 1s cycle = 15s, then stops — each cycle starts/ends
-     at the rest state (0%/100%), so it settles cleanly instead of freezing
-     mid-glow. Not `infinite`: a CTA that never stops blinking stops reading
-     as an invitation and just becomes noise. */
+  /* A single 1s cycle, then stops — starts/ends at the rest state (0%/100%)
+     so it settles cleanly instead of freezing mid-glow. One blink is enough
+     to catch the eye; anything looping reads as noise, not an invitation. */
   .invite-glow {
     animation-name: invite-glow;
     animation-duration: 1s;
     animation-timing-function: ease-in-out;
-    animation-iteration-count: 15;
+    animation-iteration-count: 1;
   }
 
   /* Small entrance beat for the "you can leave this site" message after a

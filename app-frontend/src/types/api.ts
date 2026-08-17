@@ -13,7 +13,17 @@ export interface WhoAmI {
   username?: string;
   email?: string;
   has_diagnostics?: boolean;
+  consent_recorded?: boolean;
   is_staff?: boolean;
+}
+
+export interface ConsentPayload {
+  ai_processing_consent: boolean;
+  research_consent: boolean;
+}
+
+export interface ConsentRecord extends ConsentPayload {
+  recorded_at: string;
 }
 
 export type TestType = "snapshot" | "mapping";
@@ -127,6 +137,7 @@ export interface DiagnosticsSummary {
   journey_slug: string;
   opened_at: string;
   status: DiagnosticsStatus;
+  language: string;
 }
 
 export interface FeedbackRequest {
@@ -149,6 +160,7 @@ export interface DiagnosticsDetail {
   journey_slug: string;
   opened_at: string;
   status: DiagnosticsStatus;
+  language: string;
   all_tests_done: boolean;
   steps: JourneyStepStatus[];
   submissions: TestSubmission[];

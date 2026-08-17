@@ -7,7 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .i18n import resolve_locale
-from .models import AdminFeedback, Answer, Diagnostics, FeedbackRequest, TestSubmission
+from .models import AdminFeedback, Answer, Diagnostics, FeedbackRequest, TestSubmission, UserConsent
 
 STATUS_TESTS_IN_PROGRESS = "tests_in_progress"
 STATUS_AWAITING_FEEDBACK_REQUEST = "awaiting_feedback_request"
@@ -56,6 +56,7 @@ def open_diagnostics(
     source_product_id: str = "",
     opened_via: str = Diagnostics.OPENED_VIA_ADMIN,
     raw_payload: dict | None = None,
+    language: str = "",
 ) -> Diagnostics:
     """Single entry point for "a diagnostics gets opened" — called by the
     SimpleShop webhook, the admin action, and the management command alike.
@@ -71,6 +72,7 @@ def open_diagnostics(
                 "source_product_id": source_product_id,
                 "opened_via": opened_via,
                 "raw_payload": raw_payload or {},
+                "language": language,
                 "user": get_user_model().objects.filter(email__iexact=email).first(),
             },
         )
@@ -83,6 +85,7 @@ def open_diagnostics(
         source_product_id=source_product_id,
         opened_via=opened_via,
         raw_payload=raw_payload or {},
+        language=language,
         user=get_user_model().objects.filter(email__iexact=email).first(),
     )
 
@@ -146,6 +149,12 @@ def has_any_diagnostics(user) -> bool:
     if not user or not user.is_authenticated:
         return False
     return Diagnostics.objects.filter(user=user).exists()
+
+
+def has_recorded_consent(user) -> bool:
+    if not user or not user.is_authenticated:
+        return False
+    return UserConsent.objects.filter(user=user).exists()
 
 
 def get_or_create_draft(*, test, diagnostics, user) -> TestSubmission:

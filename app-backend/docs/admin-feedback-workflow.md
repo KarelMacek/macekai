@@ -50,13 +50,18 @@ Hit **Save feedback**. You can come back and re-save as many times as you
 like (same form, pre-filled with whatever's already there) — saving again
 just updates the existing feedback rather than creating a second one.
 
-## Wiring up a new SimpleShop product
+## Wiring up a new SimpleShop product (or a new language for an existing one)
 
-Each `Journey` maps 1:1 to a SimpleShop product via its
-`simpleshop_product_id` field. Do this once per new product (learned the
-hard way, live, on 2026-08-14 — SimpleShop's own settings UI silently
-dropped a saved value more than once, so the verification steps below are
-not optional):
+Each `Journey` maps to a SimpleShop product via `simpleshop_product_id_cs`
+and `simpleshop_product_id_en` — one field per checkout language, since
+SimpleShop needs a separate product/form per language but the underlying
+Journey/JourneySteps content is already bilingual (every `Test`/`Category`/
+`Question` string is a `{"en": ..., "cs": ...}` JSON field), so a new
+language variant is the *same* Journey, just its other `simpleshop_product_id_*`
+field filled in — not a new Journey. Do this once per new product/language
+(learned the hard way, live, on 2026-08-14 — SimpleShop's own settings UI
+silently dropped a saved value more than once, so the verification steps
+below are not optional):
 
 1. **Get the webhook URL.** The secret token lives in that environment's
    Key Vault, never in the repo:
@@ -95,10 +100,11 @@ not optional):
    user-agent — that's expected, it's their invoicing integration doing the
    actual call).
 
-5. **Set `Journey.simpleshop_product_id`** to that value at
-   `/admin/assessments/journey/<id>/change/` — clear the field completely
-   before typing the new value, save, then **reload the journey list page
-   and confirm the `SIMPLESHOP PRODUCT ID` column actually shows the new
+5. **Set the matching `Journey.simpleshop_product_id_cs` or
+   `simpleshop_product_id_en`** (whichever language this product is for) to
+   that value at `/admin/assessments/journey/<id>/change/` — clear the field
+   completely before typing the new value, save, then **reload the journey
+   list page and confirm the corresponding column actually shows the new
    value** before moving on. Same silent-save risk as step 3.
 
 6. **Re-test.** Either repurchase for real, or (cheaper) resend the exact
@@ -124,6 +130,7 @@ Still in Django admin (`/admin/`), not the in-app console:
 - **Editing test content** — `/admin/assessments/test/` (questions, Likert
   scales, category result copy) and `/admin/assessments/journey/` (which
   tests, in what order, and — for whichever `Journey` a SimpleShop product
-  should unlock — its `simpleshop_product_id`). See
+  should unlock — its `simpleshop_product_id_cs`/`simpleshop_product_id_en`).
+  See
   [`self-assessment-engine.md`](self-assessment-engine.md) for how editing a
   test that already has real answers against it behaves.

@@ -11,6 +11,7 @@ from .models import (
     ResultThreshold,
     Test,
     TestSubmission,
+    UserConsent,
 )
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
@@ -204,6 +205,13 @@ class TestSubmissionReadSerializer(serializers.ModelSerializer):
         return AnswerReadSerializer(answers, many=True, context=self.context).data
 
 
+class ConsentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserConsent
+        fields = ["ai_processing_consent", "research_consent", "recorded_at"]
+        read_only_fields = ["recorded_at"]
+
+
 class FeedbackRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = FeedbackRequest
@@ -264,6 +272,7 @@ class DiagnosticsSummarySerializer(serializers.Serializer):
     journey_slug = serializers.CharField()
     opened_at = serializers.DateTimeField()
     status = serializers.CharField()
+    language = serializers.CharField()
 
 
 class DiagnosticsDetailSerializer(serializers.Serializer):
@@ -272,6 +281,7 @@ class DiagnosticsDetailSerializer(serializers.Serializer):
     journey_slug = serializers.CharField()
     opened_at = serializers.DateTimeField()
     status = serializers.CharField()
+    language = serializers.CharField()
     all_tests_done = serializers.BooleanField()
     steps = JourneyStepStatusSerializer(many=True)
     submissions = TestSubmissionReadSerializer(many=True)

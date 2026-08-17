@@ -6,6 +6,8 @@ import type {
   AdminFeedbackWritePayload,
   AnswerInput,
   Config,
+  ConsentPayload,
+  ConsentRecord,
   DiagnosticsDetail,
   DiagnosticsSummary,
   FeedbackRequest,
@@ -90,6 +92,11 @@ export async function patchDraft(slug: string, answers: AnswerInput[]): Promise<
 
 export async function getSubmissions(): Promise<TestSubmission[]> {
   const { data } = await client.get<TestSubmission[]>("/api/assessments/submissions/");
+  return data;
+}
+
+export async function submitConsent(payload: ConsentPayload): Promise<ConsentRecord> {
+  const { data } = await client.post<ConsentRecord>("/api/assessments/consent/", payload);
   return data;
 }
 

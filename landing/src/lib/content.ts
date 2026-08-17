@@ -733,10 +733,10 @@ export const t = {
         {
           num: "03",
           icon: "search",
-          title: "Vstupní diagnostika",
+          title: "Pohled na situaci",
           desc: "Hlubší dotazník + moje stručné vyjádření do týdne",
           price: "590 Kč",
-          cta: "Koupit",
+          cta: "Zjistit více",
         },
         {
           num: "04",
@@ -750,7 +750,8 @@ export const t = {
           num: "05",
           icon: "handshake",
           title: "Další spolupráce",
-          desc: "Jen pokud to bude dávat smysl",
+          desc: "Jen pokud to bude dávat smysl — buď jako rychlý taktický zásah na konkrétní problém, nebo jako hlubší transformační program na systematickou práci na sobě.",
+          cta: "Kontaktovat pro více informací",
         },
       ],
       en: [
@@ -776,10 +777,10 @@ export const t = {
         {
           num: "03",
           icon: "search",
-          title: "Intake diagnostics",
+          title: "Situation Review",
           desc: "A deeper questionnaire + my brief take within a week",
           price: "11.99 EUR",
-          cta: "Buy",
+          cta: "Find out more",
         },
         {
           num: "04",
@@ -793,7 +794,8 @@ export const t = {
           num: "05",
           icon: "handshake",
           title: "Further collaboration",
-          desc: "Only if it makes sense",
+          desc: "Only if it makes sense — either as a quick tactical intervention on a specific problem, or as a deeper transformational program of systematic work on yourself.",
+          cta: "Contact for more info",
         },
       ],
     },
@@ -802,6 +804,55 @@ export const t = {
       en: "If you pay for a step, its price is deducted from the next one.",
     },
     checkDoneLabel: { cs: "Hotovo", en: "Done" },
+    diagnosticsModal: {
+      eyebrow: {
+        cs: "Pohled na situaci · 590 Kč",
+        en: "Situation Review · 590 CZK",
+      },
+      headline: {
+        cs: "Hlubší pohled na tvou situaci.",
+        en: "A deeper look at your situation.",
+      },
+      body: {
+        cs: "Vyplníš rozšířený dotazník. Já se na tvoje odpovědi podívám zvenčí a do týdne ti pošlu krátké písemné zrcadlo: co v nich vidím, co stojí za pozornost a jaké otázky má smysl otevřít dál.",
+        en: "You'll fill out an extended questionnaire. I'll look at your answers from the outside, and within a week I'll send you a short written reflection: what I see in them, what stands out, and what questions are worth opening up next.",
+      },
+      notes: {
+        cs: [
+          "Vše, co mi svěříš, je přísně důvěrné podle etického kodexu International Coaching Federation (ICF).",
+          "Můžeš přiložit CV nebo LinkedIn — pomůže mi lépe pochopit kontext.",
+          "Přihlášení probíhá přes Google účet.",
+          "Své odpovědi si můžeš kdykoli exportovat.",
+        ],
+        en: [
+          "Everything you share is strictly confidential under the International Coaching Federation (ICF) code of conduct.",
+          "You can attach your CV or LinkedIn — it helps me understand your context better.",
+          "Sign-in happens via your Google account.",
+          "You can export your answers anytime.",
+        ],
+      },
+      buyNow: { cs: "Chci hlubší pohled", en: "I want a deeper look" },
+      close: { cs: "Zavřít", en: "Close" },
+    },
+    collaborationModal: {
+      eyebrow: {
+        cs: "Taktické i transformační koučování",
+        en: "Tactical and transformational coaching",
+      },
+      headline: {
+        cs: "To je to samotné vynalézání sebe sama.",
+        en: "This is the very act of inventing yourself.",
+      },
+      body: {
+        cs: "Rychlý taktický zásah řeší jeden jasně definovaný problém v řádu týdnů. Transformační program jde hlouběji — systematicky pracuješ na sobě po dobu několika měsíců a vynalézáš svou verzi 2.0. Napiš mi, kde jsi teď a kam se chceš posunout, a společně najdeme formát, který dává smysl.",
+        en: "A quick tactical intervention solves one clearly defined problem over a matter of weeks. A transformational program goes deeper — systematic work on yourself over several months, inventing your version 2.0. Tell me where you are now and where you want to go, and together we'll find the format that makes sense.",
+      },
+      contactIntro: {
+        cs: "Napiš mi, nebo si rovnou rezervuj 30minutový hovor zdarma:",
+        en: "Write to me, or book a free 30-minute call directly:",
+      },
+      close: { cs: "Zavřít", en: "Close" },
+    },
   },
 
   // ── Contact ───────────────────────────────────────────────────────────────

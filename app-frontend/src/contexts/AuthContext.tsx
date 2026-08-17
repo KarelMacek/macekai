@@ -8,6 +8,7 @@ interface AuthContextType {
   devLoginAvailable: boolean;
   diagnosticsPurchaseUrl: string;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
   devLoginAvailable: false,
   diagnosticsPurchaseUrl: "",
   loading: true,
+  refreshUser: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -32,8 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  async function refreshUser() {
+    const whoami = await getWhoAmI();
+    setUser(whoami?.is_authenticated ? whoami : null);
+  }
+
   return (
-    <AuthContext.Provider value={{ user, devLoginAvailable, diagnosticsPurchaseUrl, loading }}>
+    <AuthContext.Provider value={{ user, devLoginAvailable, diagnosticsPurchaseUrl, loading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

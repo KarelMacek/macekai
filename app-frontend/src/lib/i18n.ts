@@ -108,6 +108,21 @@ const translations = {
     whatsNextHeading: "One down!",
     whatsNextBody: "Next up: {step}, whenever you're ready.",
     whatsNextLater: "Or head back to your dashboard and come back to it later.",
+    // --- Consent gate ---
+    consentRecapTitle: "Before we start",
+    consentRecapBody:
+      "This assessment walks you through a set of self-reflection questions. Once you submit your answers, I personally review them — you're guaranteed at least 20 minutes of careful, personal review from me, regardless of how you answer the two questions below.",
+    consentConfidentialityBody:
+      "Everything you share is strictly confidential under the International Coaching Federation (ICF) code of conduct.",
+    consentAiQuestionLabel: "Do you agree to have your answers processed by AI as well?",
+    consentAiFramingBody:
+      "Whatever you choose, you're guaranteed at least 20 minutes of my personal review. If you say no, that's fully respected — AI won't touch your answers at all. If you say yes, your feedback will likely be richer and better-informed. Only non-training models are used — Microsoft Copilot, Azure OpenAI API, or locally-run models — so your data is never used to train third-party models.",
+    consentResearchQuestionLabel:
+      "Do you agree to have your anonymized record processed statistically and with machine learning?",
+    consentResearchFramingBody:
+      "If not, that's completely fine and nothing further happens. If yes, you may later receive the results of related studies — including how you personally compare to others.",
+    consentYes: "Yes",
+    consentNo: "No",
   },
   cs: {
     signIn: "Přihlásit se přes Google",
@@ -212,6 +227,21 @@ const translations = {
     whatsNextHeading: "Jedna hotová!",
     whatsNextBody: "Další na řadě: {step}, klidně až budeš mít čas.",
     whatsNextLater: "Nebo se vrať na přehled a udělej to později.",
+    // --- Consent gate ---
+    consentRecapTitle: "Než začneme",
+    consentRecapBody:
+      "Čeká tě sada otázek k sebehodnocení. Jakmile odpovědi odešleš, budu se jim věnovat osobně — garantuji ti alespoň 20 minut pečlivé revize z mé strany, ať už na obě otázky níže odpovíš jakkoli.",
+    consentConfidentialityBody:
+      "Vše, co mi svěříš, je přísně důvěrné podle etického kodexu International Coaching Federation (ICF).",
+    consentAiQuestionLabel: "Souhlasíš, aby tvé odpovědi zpracovala i umělá inteligence?",
+    consentAiFramingBody:
+      "Ať odpovíš jakkoli, vždy dostaneš garantovaných alespoň 20 minut mé osobní revize. Když řekneš ne, plně to respektuji — AI se tvých odpovědí nedotkne. Když řekneš ano, zpětná vazba pro tebe bude pravděpodobně bohatší a informovanější. Použiji přitom pouze modely, které se na tvých datech nedoučují — Microsoft Copilot, Azure OpenAI API nebo lokálně běžící modely.",
+    consentResearchQuestionLabel:
+      "Souhlasíš, aby byl tvůj anonymizovaný záznam zpracován statisticky a pomocí strojového učení?",
+    consentResearchFramingBody:
+      "Pokud ne, je to zcela v pořádku a nic dalšího se neděje. Pokud ano, můžeš později dostat výsledky souvisejících studií — včetně toho, jak si v porovnání s ostatními vedeš ty sám/sama.",
+    consentYes: "Ano",
+    consentNo: "Ne",
   },
 } as const;
 

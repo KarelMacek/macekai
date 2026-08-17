@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Route, Switch } from "wouter";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LangProvider, useLang } from "@/contexts/LangContext";
+import { LangProvider } from "@/contexts/LangContext";
+import { LangSwitcher } from "@/components/LangSwitcher";
 import { useTranslation } from "@/lib/i18n";
+import { ConsentGate } from "@/features/onboarding/ConsentGate";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminDiagnosticsDetailPage } from "@/pages/admin/AdminDiagnosticsDetailPage";
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -51,29 +53,6 @@ function ViewModeToggle({ viewMode, setMode }: { viewMode: ViewMode; setMode: (m
         className={viewMode === "admin" ? "text-gold" : "text-muted-foreground"}
       >
         {t("viewModeAdmin")}
-      </button>
-    </div>
-  );
-}
-
-function LangSwitcher() {
-  const { lang, setLang } = useLang();
-  return (
-    <div className="section-label flex gap-1">
-      <button
-        type="button"
-        onClick={() => setLang("en")}
-        className={lang === "en" ? "text-gold" : "text-muted-foreground"}
-      >
-        EN
-      </button>
-      <span className="text-muted-foreground">/</span>
-      <button
-        type="button"
-        onClick={() => setLang("cs")}
-        className={lang === "cs" ? "text-gold" : "text-muted-foreground"}
-      >
-        CS
       </button>
     </div>
   );
@@ -168,6 +147,7 @@ function AppShell() {
   if (loading) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
   if (!user) return <SignedOutLanding />;
   if (!user.has_diagnostics) return <NoDiagnosticsGate />;
+  if (!user.consent_recorded) return <ConsentGate />;
   return <SignedInApp />;
 }
 

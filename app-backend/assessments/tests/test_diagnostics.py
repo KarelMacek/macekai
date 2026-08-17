@@ -21,7 +21,10 @@ from assessments.services import (
 
 @pytest.fixture
 def journey(db):
-    journey = Journey.objects.create(slug="test-journey", is_active=True, simpleshop_product_id="PROD1")
+    journey = Journey.objects.create(
+        slug="test-journey", is_active=True,
+        simpleshop_product_id_cs="PROD1", simpleshop_product_id_en="PROD1-EN",
+    )
     test = Test.objects.create(slug="snap", test_type=Test.TYPE_SNAPSHOT, title={"en": "Snap"})
     question = Question.objects.create(test=test, question_type=Question.QUESTION_TYPE_LIKERT, text={"en": "Q"})
     LikertOption.objects.create(question=question, value=1.0, label={"en": "Yes"})
@@ -191,6 +194,17 @@ def test_webhook_opens_diagnostics_on_matching_product(journey):
     assert diagnostics.source_order_id == "ORDER1"
     assert diagnostics.user_id is None
     assert diagnostics.journey_id == journey.id
+    assert diagnostics.language == "cs"
+
+
+def test_webhook_opens_diagnostics_on_matching_en_product(journey):
+    resp = APIClient().get(
+        _webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1-EN"}
+    )
+    assert resp.status_code == 200
+    diagnostics = Diagnostics.objects.get()
+    assert diagnostics.journey_id == journey.id
+    assert diagnostics.language == "en"
 
 
 def test_webhook_idempotent_on_repeat_order(journey):

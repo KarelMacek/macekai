@@ -1384,6 +1384,7 @@ const CAROUSEL_SPACER_WIDTH = `calc((100% - ${CAROUSEL_CARD_WIDTH}) / 2)`;
 function Pricing({
   onQuickCheckClick,
   quickCheckDone,
+  quickReflectionOpen,
   step1Answer,
   onStep1AnswerChange,
   onDiagnosticsInfoClick,
@@ -1391,6 +1392,7 @@ function Pricing({
 }: {
   onQuickCheckClick: () => void;
   quickCheckDone: boolean;
+  quickReflectionOpen: boolean;
   step1Answer: "yes" | "no" | null;
   onStep1AnswerChange: (answer: "yes" | "no") => void;
   onDiagnosticsInfoClick: () => void;
@@ -1437,16 +1439,34 @@ function Pricing({
   // above since both card sets are mounted simultaneously (shown/hidden via
   // CSS breakpoints, not conditional rendering) — sharing one array would
   // let one overwrite the other.
+  //
+  // Skip the very first run: unlike the desktop effect (which uses
+  // block: "nearest", a no-op if already visible), block: "center" here
+  // always moves the page — firing it on mount would yank a fresh visitor
+  // straight down to this section before they've done anything.
+  //
+  // Also skip while the quick-check modal is open: completing it sets
+  // quickCheckDone (and so activeIndex) while the visitor is still reading
+  // their result inside the still-open dialog. Radix locks page scroll
+  // while it's open, so a scrollIntoView fired at that moment is a no-op —
+  // the visitor closes the modal and lands back exactly where they started,
+  // with no jump to step 03. Deferring to the reflectionOpen→closed
+  // transition (same activeIndex, dependency array below) fires the scroll
+  // once it can actually move the page.
   const mobileCardRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const hasScrolledMobileRef = useRef(false);
+  const isFirstMobileScrollRef = useRef(true);
 
   useEffect(() => {
+    if (isFirstMobileScrollRef.current) {
+      isFirstMobileScrollRef.current = false;
+      return;
+    }
+    if (quickReflectionOpen) return;
     mobileCardRefs.current[activeIndex]?.scrollIntoView({
-      behavior: hasScrolledMobileRef.current ? "smooth" : "auto",
+      behavior: "smooth",
       block: "center",
     });
-    hasScrolledMobileRef.current = true;
-  }, [activeIndex]);
+  }, [activeIndex, quickReflectionOpen]);
 
   function goToStep(delta: number) {
     setActiveIndex(i => Math.min(steps.length - 1, Math.max(0, i + delta)));
@@ -2141,6 +2161,7 @@ export default function Home() {
       <Pricing
         onQuickCheckClick={() => setShowReflection(true)}
         quickCheckDone={!!savedReflection}
+        quickReflectionOpen={showReflection}
         step1Answer={step1Answer}
         onStep1AnswerChange={setStep1Answer}
         onDiagnosticsInfoClick={() => setShowDiagnosticsInfo(true)}

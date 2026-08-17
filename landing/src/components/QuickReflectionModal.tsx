@@ -23,7 +23,7 @@ import { t, tx } from "@/lib/content";
 import { trackEvent } from "@/lib/analytics";
 
 // ── Timing ───────────────────────────────────────────────────────────────────
-const ANSWER_ADVANCE_DELAY_MS = 200;
+const ANSWER_ADVANCE_DELAY_MS = 350;
 const CALCULATING_DELAY_MS = 550;
 
 // ── Questions ────────────────────────────────────────────────────────────────
@@ -423,7 +423,7 @@ export function QuickReflectionModal({
                   <div
                     role="group"
                     aria-labelledby={headingId}
-                    className="mb-4 grid grid-cols-11 gap-1 sm:gap-2"
+                    className="mb-4 -mx-2 grid h-12 grid-cols-11 divide-x divide-white/15 overflow-hidden border border-white/15 sm:mx-0 sm:h-auto sm:gap-2 sm:divide-x-0 sm:border-0"
                   >
                     {SCALE.map(value => {
                       const active = currentAnswer === value;
@@ -433,12 +433,11 @@ export function QuickReflectionModal({
                           type="button"
                           aria-pressed={active}
                           onClick={() => handleSelect(value)}
-                          className={`aspect-square flex items-center justify-center text-[0.65rem] font-medium border transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:text-sm ${
+                          className={`flex items-center justify-center text-xs font-medium transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:aspect-square sm:rounded-[2px] sm:border sm:text-sm ${
                             active
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-white/15 text-muted-foreground hover:border-primary/50 hover:text-gold"
+                              ? "bg-primary text-primary-foreground sm:border-primary"
+                              : "text-muted-foreground hover:text-gold sm:border-white/15 sm:hover:border-primary/50"
                           }`}
-                          style={{ borderRadius: "2px" }}
                         >
                           {value}
                         </button>

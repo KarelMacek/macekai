@@ -70,6 +70,12 @@ inputs = {
   sku_name            = local.env.web_app_sku
   image_tag           = local.env.image_tag
 
+  # app.macek.ai's DNS CNAME + custom-domain binding + TLS cert already exist
+  # on this Web App (added manually in Azure, not via Terraform — see the
+  # custom_domain variable's comment in infra/modules/web_app/main.tf). This
+  # only adds it to ALLOWED_HOSTS so Django stops 400ing DisallowedHost.
+  custom_domain = "app.macek.ai"
+
   acr_login_server   = dependency.acr.outputs.login_server
   acr_admin_username = dependency.acr.outputs.admin_username
   acr_admin_password = dependency.acr.outputs.admin_password

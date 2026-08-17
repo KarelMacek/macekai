@@ -8,11 +8,40 @@ export type Lang = "cs" | "en";
 // reads from here instead of hardcoding its own copy of the figure.
 export const PRICES = {
   quickCheck: { cs: "0 Kč", en: "0 EUR" },
-  situationReview: { cs: "590 Kč", en: "11.99 EUR" },
+  situationReview: { cs: "590 Kč", en: "23.99 EUR" },
   changeMap: { cs: "3 600 Kč", en: "150 EUR" },
   tacticalSprint: { cs: "10 800 Kč", en: "450 EUR" },
   fullProgram: { cs: "43 200 Kč", en: "1 800 EUR" },
 } as const;
+
+// Temporary end-of-August discount on "Situation review" (step 03) — reverts
+// to PRICES.situationReview automatically once `until` passes, so no
+// follow-up edit is needed on 1 Sept. situationReviewDiscountActive() is
+// evaluated fresh wherever it's called (not baked once at module load),
+// since the funnel step card needs to keep showing the original price
+// struck through alongside it, not just swap the figure.
+// IMPORTANT: this only changes displayed copy. The actual charge happens on
+// SimpleShop's own hosted checkout (SIMPLESHOP_BUY_URLS in
+// DiagnosticsInfoModal.tsx), which has its own price configured outside
+// this repo — the discounted price must also be set there manually, for
+// both products (CZ zQNb5, EN eo50B), or the site will advertise 290 Kč
+// while checkout still charges 590 Kč.
+export const SITUATION_REVIEW_DISCOUNT = {
+  price: { cs: "290 Kč", en: "11.79 EUR" },
+  until: new Date("2026-09-01T00:00:00+02:00"),
+};
+
+export function situationReviewDiscountActive(now: Date = new Date()): boolean {
+  return now < SITUATION_REVIEW_DISCOUNT.until;
+}
+
+// Effective single-figure price for spots that don't have room to show both
+// (e.g. the buy modal's eyebrow) — the funnel step card shows
+// PRICES.situationReview struck through next to SITUATION_REVIEW_DISCOUNT.price
+// instead of collapsing to just this.
+const situationReviewPrice = situationReviewDiscountActive()
+  ? SITUATION_REVIEW_DISCOUNT.price
+  : PRICES.situationReview;
 
 export const t = {
   // ── Nav ──────────────────────────────────────────────────────────────────
@@ -820,8 +849,8 @@ export const t = {
     checkDoneLabel: { cs: "Hotovo", en: "Done" },
     diagnosticsModal: {
       eyebrow: {
-        cs: `Pohled na situaci · ${PRICES.situationReview.cs}`,
-        en: `Situation review · ${PRICES.situationReview.en}`,
+        cs: `Pohled na situaci · ${situationReviewPrice.cs}`,
+        en: `Situation review · ${situationReviewPrice.en}`,
       },
       headline: {
         cs: "Hlubší pohled na tvou situaci.",

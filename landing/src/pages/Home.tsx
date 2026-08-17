@@ -7,7 +7,13 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/contexts/LangContext";
-import { t, tx, type Lang } from "@/lib/content";
+import {
+  SITUATION_REVIEW_DISCOUNT,
+  situationReviewDiscountActive,
+  t,
+  tx,
+  type Lang,
+} from "@/lib/content";
 import {
   Tooltip,
   TooltipContent,
@@ -1420,13 +1426,27 @@ function Pricing({
   }, [progressIndex]);
 
   useEffect(() => {
-    cardRefs.current[activeIndex]?.scrollIntoView({
+    const track = trackRef.current;
+    const card = cardRefs.current[activeIndex];
+    if (!track || !card) return;
+    // Scroll the track's own scrollLeft directly instead of
+    // card.scrollIntoView({block: "nearest", ...}) — scrollIntoView also
+    // walks up to the window to satisfy the block (vertical) axis, and
+    // since this section sits well below the fold, a returning visitor
+    // with quickCheckDone already true (progressIndex=2 on mount, before
+    // they've scrolled anywhere) would have the whole page yanked down to
+    // this carousel on load instead of opening on the hero. Setting
+    // scrollLeft only ever moves this horizontal track, never the page.
+    const trackRect = track.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const centerDelta =
+      cardRect.left - trackRect.left - (track.clientWidth - card.clientWidth) / 2;
+    track.scrollTo({
       // Center step 01 instantly on first render — no animated slide-in
       // the visitor didn't ask for. Later moves (progress, arrows, dots)
       // animate normally.
+      left: track.scrollLeft + centerDelta,
       behavior: hasScrolledRef.current ? "smooth" : "auto",
-      inline: "center",
-      block: "nearest",
     });
     hasScrolledRef.current = true;
   }, [activeIndex]);
@@ -1560,7 +1580,14 @@ function Pricing({
                     s.num === "02"
                       ? step1Answer === "yes"
                       : s.num === "03"
-                        ? quickCheckDone
+                        ? // quickCheckDone flips true the instant the quiz
+                          // completes, while the result is still showing
+                          // inside the still-open modal — invite-glow is a
+                          // single 1s blink, so gating on !quickReflectionOpen
+                          // too keeps it from firing (and finishing) behind
+                          // the modal, unseen, before the visitor ever
+                          // reaches this card.
+                          quickCheckDone && !quickReflectionOpen
                         : undefined
                   }
                   muted={s.num === "01" ? undefined : step1Answer === "no"}
@@ -1654,7 +1681,7 @@ function Pricing({
                   s.num === "02"
                     ? step1Answer === "yes"
                     : s.num === "03"
-                      ? quickCheckDone
+                      ? quickCheckDone && !quickReflectionOpen
                       : undefined
                 }
                 muted={s.num === "01" ? undefined : step1Answer === "no"}
@@ -1864,13 +1891,30 @@ function FunnelStepCard({
           </div>
         )}
 
-        {step.price && (
-          <p
-            className="text-3xl font-bold text-gold mt-auto mb-1"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            {step.price}
-          </p>
+        {step.price && step.num === "03" && situationReviewDiscountActive() ? (
+          <div className="mt-auto mb-1 flex flex-col items-center gap-0.5">
+            <p
+              className="text-base font-semibold text-muted-foreground line-through"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              {step.price}
+            </p>
+            <p
+              className="text-3xl font-bold text-gold"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              {SITUATION_REVIEW_DISCOUNT.price[lang]}
+            </p>
+          </div>
+        ) : (
+          step.price && (
+            <p
+              className="text-3xl font-bold text-gold mt-auto mb-1"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              {step.price}
+            </p>
+          )
         )}
         {step.cta && step.num === "02" && (
           <button

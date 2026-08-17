@@ -15,8 +15,8 @@
       "cs": "Kontrolní seznam napříč šesti oblastmi tvého života — označ, co je pro tebe teď pravda."
     },
     "instructions": {
-      "en": "For each statement, answer Yes or No — whichever currently feels true. There are no right answers.",
-      "cs": "U každého tvrzení odpověz Ano nebo Ne — podle toho, co teď platí. Neexistují správné odpovědi."
+      "en": "This is a snapshot for your own orientation, not a verdict. Answer Yes or No — whichever feels true right now. If a question doesn't sit right or you want to add context, use the comment field — just keep it short.",
+      "cs": "Toto je orientační přehled pro tebe, ne rozsudek. U každého tvrzení odpověz Ano nebo Ne — podle toho, co teď platí. Pokud ti nějaká otázka nesedí nebo chceš přidat kontext, použij pole pro komentář — stačí stručně."
     },
     "is_active": true,
     "created_at": "2026-08-10T18:09:36.807Z"
@@ -148,8 +148,8 @@
     "category": 1,
     "question_type": "likert",
     "text": {
-      "en": "My partner and I respect each other mutually and are equals",
-      "cs": "S mým partnerem se vzájemně respektujeme a jsme rovnocenní"
+      "en": "My partner and I respect each other as equals",
+      "cs": "S mým partnerem se respektujeme jako rovný s rovným"
     },
     "help_text": {},
     "order": 1,
@@ -182,8 +182,8 @@
     "category": 1,
     "question_type": "likert",
     "text": {
-      "en": "I easily reach agreement with people I have had conflicts with",
-      "cs": "Snadno se dohodnu s lidmi, se kterými jsem měl(a) konflikty"
+      "en": "When conflicts come up, I'm able to resolve them without much difficulty",
+      "cs": "Když nastanou konflikty, dokážu je vyřešit bez větších potíží"
     },
     "help_text": {},
     "order": 3,
@@ -318,8 +318,8 @@
     "category": 2,
     "question_type": "likert",
     "text": {
-      "en": "I have celebrated my birthday in the last 2 years",
-      "cs": "V posledních 2 letech jsem slavil(a) své narozeniny"
+      "en": "I make a point of celebrating my own birthday and milestones",
+      "cs": "Záleží mi na tom, abych slavil(a) své narozeniny a další milníky"
     },
     "help_text": {},
     "order": 1,
@@ -386,8 +386,8 @@
     "category": 2,
     "question_type": "likert",
     "text": {
-      "en": "I do not lie or exaggerate",
-      "cs": "Nelžu ani nepřeháním"
+      "en": "I am honest and straightforward with people",
+      "cs": "K lidem jsem upřímný(á) a otevřený(á)"
     },
     "help_text": {},
     "order": 5,
@@ -420,8 +420,8 @@
     "category": 2,
     "question_type": "likert",
     "text": {
-      "en": "People know they can count on me and that I do what I say",
-      "cs": "Lidé vědí, že se mnou mohou počítat a že udělám, co řeknu"
+      "en": "People know they can count on me to do what I say",
+      "cs": "Lidé vědí, že se na mě mohou spolehnout, že udělám, co řeknu"
     },
     "help_text": {},
     "order": 7,
@@ -522,8 +522,8 @@
     "category": 3,
     "question_type": "likert",
     "text": {
-      "en": "I do not clutter my space with 'dust catchers' (odds and ends)",
-      "cs": "Nezanáším se „lapači prachu“ (věcmi a věcičkami)"
+      "en": "I keep my space free of clutter and things I don't use",
+      "cs": "Svůj prostor udržuji bez nepořádku a věcí, které nepoužívám"
     },
     "help_text": {},
     "order": 3,
@@ -590,8 +590,8 @@
     "category": 3,
     "question_type": "likert",
     "text": {
-      "en": "My bed is always properly made",
-      "cs": "Má postel je vždy řádně ustlaná"
+      "en": "I usually make my bed",
+      "cs": "Svou postel si obvykle stelu"
     },
     "help_text": {},
     "order": 7,
@@ -692,8 +692,8 @@
     "category": 4,
     "question_type": "likert",
     "text": {
-      "en": "I do not smoke excessively or drink too much alcohol",
-      "cs": "Přehnaně nekouřím a nepiji alkohol"
+      "en": "I'm comfortable with how much I smoke and drink",
+      "cs": "Jsem v pohodě s tím, kolik kouřím a piju"
     },
     "help_text": {},
     "order": 3,
@@ -760,8 +760,8 @@
     "category": 4,
     "question_type": "likert",
     "text": {
-      "en": "I have suitable clothing for work and leisure",
-      "cs": "Mám vhodné oblečení pro práci i volný čas"
+      "en": "I have appropriate clothing for the different parts of my life (work, leisure, etc.)",
+      "cs": "Mám vhodné oblečení pro různé oblasti svého života (práci, volný čas atd.)"
     },
     "help_text": {},
     "order": 7,
@@ -777,8 +777,8 @@
     "category": 4,
     "question_type": "likert",
     "text": {
-      "en": "I do not worry about my stress level",
-      "cs": "Nedělám si starosti s úrovní svého stresu"
+      "en": "My stress level currently feels manageable",
+      "cs": "Moje aktuální úroveň stresu je pro mě zvládnutelná"
     },
     "help_text": {},
     "order": 8,
@@ -913,8 +913,8 @@
     "category": 5,
     "question_type": "likert",
     "text": {
-      "en": "I do not let paperwork pile up",
-      "cs": "Nenechávám narůstat nevyřízené papírování"
+      "en": "I keep on top of my paperwork",
+      "cs": "Papírování zvládám průběžně, nenechávám ho hromadit se"
     },
     "help_text": {},
     "order": 6,
@@ -1117,8 +1117,8 @@
     "category": 6,
     "question_type": "likert",
     "text": {
-      "en": "My wallet is not stuffed with unprocessed receipts",
-      "cs": "Moje peněženka není zanesena nevyřízenými účtenkami"
+      "en": "I keep my receipts and financial paperwork organized",
+      "cs": "Své účtenky a finanční doklady mám v pořádku"
     },
     "help_text": {},
     "order": 8,

@@ -222,6 +222,7 @@ export function SnapshotTest({ test, onComplete, isEditing = false }: Props) {
         testType="snapshot"
         title={test.title}
         description={test.description}
+        instructions={test.instructions}
         onStart={() => setPhase("question")}
       />
     );

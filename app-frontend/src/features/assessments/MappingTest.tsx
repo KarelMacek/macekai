@@ -134,6 +134,7 @@ export function MappingTest({ test, onComplete, isEditing = false }: Props) {
         testType="mapping"
         title={test.title}
         description={test.description}
+        instructions={test.instructions}
         onStart={() => setPhase("question")}
       />
     );

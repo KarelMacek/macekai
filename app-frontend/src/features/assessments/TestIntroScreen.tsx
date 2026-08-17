@@ -8,6 +8,7 @@ interface Props {
   testType: TestType;
   title: string;
   description: string;
+  instructions: string;
   onStart: () => void;
 }
 
@@ -15,7 +16,7 @@ interface Props {
 // what happens if I stop" before a single question is shown — a 60-question
 // (or 20-open-text) test with no orientation up front is what makes it feel
 // like a wall rather than a short, resumable exercise.
-export function TestIntroScreen({ testType, title, description, onStart }: Props) {
+export function TestIntroScreen({ testType, title, description, instructions, onStart }: Props) {
   const { t } = useTranslation();
 
   const timeEstimate =
@@ -32,6 +33,8 @@ export function TestIntroScreen({ testType, title, description, onStart }: Props
         <h1 className="mb-2 text-xl font-semibold">{title}</h1>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}
       </div>
+
+      {instructions && <p className="text-sm text-muted-foreground">{instructions}</p>}
 
       <p className="section-label">{timeEstimate}</p>
 

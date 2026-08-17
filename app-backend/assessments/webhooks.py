@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .emailing import send_purchase_instructions_email
 from .models import Diagnostics, Journey
 from .services import open_diagnostics
 
@@ -65,7 +66,12 @@ class SimpleShopWebhookView(APIView):
         # no separate signal needed from SimpleShop.
         language = "cs" if journey.simpleshop_product_id_cs == product_id else "en"
 
-        open_diagnostics(
+        # open_diagnostics() is idempotent (get_or_create on source_order_id) so
+        # SimpleShop retrying this same call is safe — but the instructions email
+        # below must only ever go out once per order, so check *before* calling it.
+        is_new_order = not Diagnostics.objects.filter(source_order_id=str(order_id)).exists()
+
+        diagnostics = open_diagnostics(
             email=email,
             journey=journey,
             source_order_id=str(order_id),
@@ -75,4 +81,16 @@ class SimpleShopWebhookView(APIView):
             raw_payload=dict(params),
             language=language,
         )
+
+        if is_new_order:
+            try:
+                send_purchase_instructions_email(diagnostics)
+            except Exception:
+                # The Diagnostics row is the important side effect and it's already
+                # saved — don't fail the webhook (and trigger a SimpleShop retry-storm)
+                # just because the email failed to send.
+                logger.exception(
+                    "Failed to send purchase instructions email for order %s", order_id
+                )
+
         return Response(status=200)

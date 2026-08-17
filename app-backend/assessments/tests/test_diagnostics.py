@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -190,6 +192,14 @@ def webhook_secret(settings):
     settings.SIMPLESHOP_WEBHOOK_SECRET = "test-secret"
 
 
+@pytest.fixture(autouse=True)
+def mock_send_mail():
+    # No real Graph credentials in tests — every webhook test in this file
+    # runs against a mocked graph_mail.send_mail rather than the network.
+    with patch("assessments.emailing.graph_mail.send_mail") as mock:
+        yield mock
+
+
 def _webhook_url(token="test-secret"):
     return f"/api/webhooks/simpleshop/{token}/"
 
@@ -250,3 +260,43 @@ def test_webhook_accepts_post(journey):
     )
     assert resp.status_code == 200
     assert Diagnostics.objects.filter(source_order_id="ORDER2").exists()
+
+
+# --- webhook -> purchase instructions email ----------------------------------
+
+def test_webhook_sends_purchase_instructions_email_on_new_order(journey, mock_send_mail):
+    resp = APIClient().get(
+        _webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"}
+    )
+    assert resp.status_code == 200
+    mock_send_mail.assert_called_once()
+    assert mock_send_mail.call_args.kwargs["to"] == "buyer@example.com"
+
+
+def test_webhook_does_not_resend_email_on_repeat_order(journey, mock_send_mail):
+    params = {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"}
+    APIClient().get(_webhook_url(), params)
+    APIClient().get(_webhook_url(), params)
+    mock_send_mail.assert_called_once()
+
+
+def test_webhook_email_language_matches_purchased_product(journey, mock_send_mail):
+    APIClient().get(_webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"})
+    assert "připravena" in mock_send_mail.call_args.kwargs["subject"]
+
+    APIClient().get(_webhook_url(), {"mail": "buyer2@example.com", "id": "ORDER2", "id_product": "PROD1-EN"})
+    assert "ready" in mock_send_mail.call_args.kwargs["subject"]
+
+
+def test_webhook_email_failure_does_not_break_webhook(journey, mock_send_mail):
+    mock_send_mail.side_effect = Exception("Graph is down")
+    resp = APIClient().get(
+        _webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"}
+    )
+    assert resp.status_code == 200
+    assert Diagnostics.objects.filter(source_order_id="ORDER1").exists()
+
+
+def test_webhook_no_email_when_product_unmatched(journey, mock_send_mail):
+    APIClient().get(_webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "OTHER"})
+    mock_send_mail.assert_not_called()

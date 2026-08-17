@@ -92,6 +92,25 @@ variable "diagnostics_purchase_url" {
   default = ""
 }
 
+# Microsoft Graph sendMail (app-only auth) — see backend/graph_mail.py.
+# tenant_id/client_id aren't secret (an Entra tenant/app id, not a
+# credential); the client secret comes from Key Vault (kv_ref below), same
+# split as google_client_id/GOOGLE_PROVIDER_AUTHENTICATION_SECRET.
+variable "ms_graph_tenant_id" {
+  type    = string
+  default = ""
+}
+
+variable "ms_graph_client_id" {
+  type    = string
+  default = ""
+}
+
+variable "email_from_address" {
+  type    = string
+  default = "karel@macek.ai"
+}
+
 locals {
   web_app_name = "app-${var.project_name}-${var.environment_name}"
 
@@ -111,6 +130,7 @@ locals {
       "azure-openai-api-key",
       "tavily-api-key",
       "simpleshop-webhook-secret",
+      "ms-graph-client-secret",
     ] : secret_name => "@Microsoft.KeyVault(VaultName=${local.key_vault_name};SecretName=${secret_name})"
   }
 }
@@ -187,6 +207,11 @@ resource "azurerm_linux_web_app" "app" {
 
     "SIMPLESHOP_WEBHOOK_SECRET" = local.kv_ref["simpleshop-webhook-secret"]
     "DIAGNOSTICS_PURCHASE_URL"  = var.diagnostics_purchase_url
+
+    "MS_GRAPH_TENANT_ID"     = var.ms_graph_tenant_id
+    "MS_GRAPH_CLIENT_ID"     = var.ms_graph_client_id
+    "MS_GRAPH_CLIENT_SECRET" = local.kv_ref["ms-graph-client-secret"]
+    "EMAIL_FROM_ADDRESS"     = var.email_from_address
   }
 
   auth_settings_v2 {

@@ -57,6 +57,17 @@ variable "tavily_api_key" {
   default   = ""
 }
 
+# Microsoft Graph app-only client secret (sendMail) — see
+# infra/modules/web_app and app-backend/backend/graph_mail.py. Flows purely
+# via a TF_VAR_ms_graph_client_secret env var at apply time, same as
+# google_client_secret/tavily_api_key above — see the comment at the top of
+# infra/live/*/key_vault/terragrunt.hcl.
+variable "ms_graph_client_secret" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
 resource "random_password" "django_secret_key" {
   length  = 50
   special = true
@@ -91,6 +102,7 @@ locals {
     "storage-connection-string" = var.storage_connection_string
     "azure-openai-api-key"      = var.azure_openai_api_key
     "tavily-api-key"            = var.tavily_api_key
+    "ms-graph-client-secret"    = var.ms_graph_client_secret
   }
 }
 

@@ -111,8 +111,24 @@ variable "email_from_address" {
   default = "karel@macek.ai"
 }
 
+# Extra hostname to add to ALLOWED_HOSTS, e.g. "app.macek.ai". The actual
+# custom-domain binding + TLS certificate on the App Service are NOT managed
+# here — same pattern as prod's landing_swa (see infra/README.md): if a
+# custom domain already exists on this Web App outside Terraform, this
+# variable only makes Django accept the Host header, it doesn't create or
+# touch the binding/cert. Bind the domain in Azure first, then set this.
+variable "custom_domain" {
+  type    = string
+  default = ""
+}
+
 locals {
   web_app_name = "app-${var.project_name}-${var.environment_name}"
+
+  allowed_hosts = join(",", compact([
+    "${local.web_app_name}.azurewebsites.net",
+    var.custom_domain,
+  ]))
 
   # This module never receives raw secret values — only this vault's name
   # (pure naming convention, no Terraform dependency needed) to build Key
@@ -183,7 +199,7 @@ resource "azurerm_linux_web_app" "app" {
     # macekai's own code).
     "SECRET_KEY"        = local.kv_ref["secret-key"]
     "DEBUG"             = "False"
-    "ALLOWED_HOSTS"     = "${local.web_app_name}.azurewebsites.net"
+    "ALLOWED_HOSTS"     = local.allowed_hosts
     "EASY_AUTH_ENABLED" = "True"
 
     "GOOGLE_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["google-client-secret"]

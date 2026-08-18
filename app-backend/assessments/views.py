@@ -1,4 +1,5 @@
 import io
+import logging
 
 from django.shortcuts import get_object_or_404
 from drf_spectacular.types import OpenApiTypes
@@ -9,6 +10,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .emailing import send_feedback_published_email
 from .i18n import get_lang
 from .models import (
     AdminFeedback,
@@ -43,6 +45,8 @@ from .services import (
     upsert_draft_answers,
 )
 from .services import STATUS_COMPLETED
+
+logger = logging.getLogger(__name__)
 
 
 def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedback=False):
@@ -416,10 +420,23 @@ class AdminFeedbackWriteView(APIView):
     def post(self, request, pk):
         feedback_request = get_object_or_404(FeedbackRequest, pk=pk)
         instance = AdminFeedback.objects.filter(feedback_request=feedback_request).first()
+        was_published = instance.is_published if instance else False
 
         serializer = AdminFeedbackWriteSerializer(instance=instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         feedback = serializer.save(feedback_request=feedback_request)
+
+        if feedback.is_published and not was_published:
+            try:
+                send_feedback_published_email(feedback_request.diagnostics, feedback)
+            except Exception:
+                # The AdminFeedback row is the important side effect and it's
+                # already saved — don't fail the publish action just because
+                # the notification email failed to send.
+                logger.exception(
+                    "Failed to send feedback published email for feedback_request %s",
+                    feedback_request.pk,
+                )
 
         return Response(
             AdminFeedbackReadSerializer(feedback, context={"request": request}).data,

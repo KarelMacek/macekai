@@ -1,15 +1,18 @@
-"""Post-purchase instructions email — the one email this app sends, fired
+"""Transactional emails this app sends: post-purchase instructions, fired
 once by the SimpleShop webhook right after a new Diagnostics is opened (see
-webhooks.py). SimpleShop's own post-payment browser redirect isn't reliable
-enough to be the only channel telling a buyer where to go next, so this is
-the durable fallback: an explicit login link/instructions and a walkthrough
+webhooks.py); and the feedback-published notice, fired once when an admin
+flips AdminFeedback.is_published (see views.AdminFeedbackWriteView).
+SimpleShop's own post-payment browser redirect isn't reliable enough to be
+the only channel telling a buyer where to go next, so the purchase email is
+a durable fallback: an explicit login link/instructions and a walkthrough
 of the rest of the journey, sent to the email address SimpleShop reported."""
 from django.conf import settings
+from django.utils.html import linebreaks
 
 from backend import graph_mail
 
 from .i18n import resolve_locale
-from .models import Diagnostics
+from .models import AdminFeedback, Diagnostics
 
 _COPY = {
     "subject": {
@@ -77,6 +80,26 @@ _COPY = {
         "cs": "Karel",
         "en": "Karel",
     },
+    "feedback_subject": {
+        "cs": 'Vaše zpětná vazba k diagnostice „{journey_name}“ je hotová',
+        "en": 'Your feedback on "{journey_name}" is ready',
+    },
+    "feedback_intro": {
+        "cs": "vaše zpětná vazba k diagnostice „{journey_name}“ je hotová:",
+        "en": 'your feedback on "{journey_name}" is ready:',
+    },
+    "feedback_link_body": {
+        "cs": "Celou zpětnou vazbu (včetně dokumentu{video_note}) najdete po přihlášení na "
+        '<a href="{link}">{link}</a>. Přihlaste se prosím <strong>stejnou e-mailovou '
+        "adresou, na kterou proběhl nákup</strong>: <strong>{email}</strong>.",
+        "en": "You'll find the full feedback (including the document{video_note}) after "
+        'signing in at <a href="{link}">{link}</a>. Please use <strong>the same email '
+        "address the purchase was made under</strong>: <strong>{email}</strong>.",
+    },
+    "feedback_video_note": {
+        "cs": " a video",
+        "en": " and video",
+    },
 }
 
 
@@ -111,6 +134,34 @@ def send_purchase_instructions_email(diagnostics: Diagnostics) -> None:
         f"<li>{_copy('next_feedback_request', lang)}</li>"
         f"<li>{_copy('next_review', lang)}</li>"
         "</ul>",
+        f"<p>{_copy('support', lang)}</p>",
+        f"<p>{_copy('sign_off', lang)}</p>",
+    ]
+
+    graph_mail.send_mail(to=diagnostics.email, subject=subject, html_body="".join(body_parts))
+
+
+def send_feedback_published_email(diagnostics: Diagnostics, feedback: AdminFeedback) -> None:
+    """Fired once, when an admin flips AdminFeedback.is_published (see
+    views.AdminFeedbackWriteView) — never on later edits of an already-
+    published feedback. The email's substance is feedback.notes itself (the
+    same text FeedbackViewPage shows the client), not a generic canned
+    paragraph — only the greeting/link/sign-off around it are boilerplate."""
+    lang = diagnostics.language or "en"
+    journey_name = resolve_locale(diagnostics.journey.name, lang) or diagnostics.journey.slug
+
+    subject = _copy("feedback_subject", lang, journey_name=journey_name)
+    video_note = _copy("feedback_video_note", lang) if feedback.video_url else ""
+    link = f"{_app_url()}feedback"
+
+    body_parts = [
+        f"<p>{_copy('greeting', lang)}</p>",
+        f"<p>{_copy('feedback_intro', lang, journey_name=journey_name)}</p>",
+    ]
+    if feedback.notes:
+        body_parts.append(linebreaks(feedback.notes))
+    body_parts += [
+        f"<p>{_copy('feedback_link_body', lang, link=link, email=diagnostics.email, video_note=video_note)}</p>",
         f"<p>{_copy('support', lang)}</p>",
         f"<p>{_copy('sign_off', lang)}</p>",
     ]

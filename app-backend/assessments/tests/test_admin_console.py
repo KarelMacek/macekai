@@ -1,9 +1,19 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
 from assessments.models import AdminFeedback, Diagnostics, FeedbackRequest, Journey, JourneyStep, Test, TestSubmission
 from assessments.services import open_diagnostics
+
+
+@pytest.fixture(autouse=True)
+def mock_send_mail():
+    # No real Graph credentials in tests — publishing feedback below would
+    # otherwise try to hit the real Microsoft Graph API.
+    with patch("assessments.emailing.graph_mail.send_mail") as mock:
+        yield mock
 
 
 @pytest.fixture
@@ -160,7 +170,7 @@ def test_admin_detail_includes_unpublished_feedback(staff_client, diagnostics):
 
 # --- feedback write ------------------------------------------------------------------
 
-def test_admin_can_create_then_update_feedback(staff_client, diagnostics):
+def test_admin_can_create_then_update_feedback(staff_client, diagnostics, mock_send_mail):
     feedback_request = FeedbackRequest.objects.create(diagnostics=diagnostics, linkedin_url="https://x")
 
     resp = staff_client.post(
@@ -169,6 +179,7 @@ def test_admin_can_create_then_update_feedback(staff_client, diagnostics):
     )
     assert resp.status_code == 201
     assert AdminFeedback.objects.filter(feedback_request=feedback_request).count() == 1
+    mock_send_mail.assert_not_called()
 
     resp = staff_client.post(
         f"/api/assessments/admin/feedback-requests/{feedback_request.id}/feedback/",
@@ -179,6 +190,17 @@ def test_admin_can_create_then_update_feedback(staff_client, diagnostics):
     feedback = AdminFeedback.objects.get(feedback_request=feedback_request)
     assert feedback.video_url == "https://example.com/v2"
     assert feedback.is_published is True
+    mock_send_mail.assert_called_once()
+    assert mock_send_mail.call_args.kwargs["to"] == diagnostics.email
+    assert "revised" in mock_send_mail.call_args.kwargs["html_body"]
+
+    # Editing an already-published feedback must not resend the email.
+    resp = staff_client.post(
+        f"/api/assessments/admin/feedback-requests/{feedback_request.id}/feedback/",
+        {"notes": "revised again", "is_published": "true"},
+    )
+    assert resp.status_code == 200
+    mock_send_mail.assert_called_once()
 
 
 def test_admin_published_feedback_visible_to_customer(staff_client, customer_client, diagnostics):

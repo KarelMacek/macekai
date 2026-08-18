@@ -2,12 +2,17 @@
 views/admin/webhooks/management commands so there's exactly one place each
 of these behaviors is implemented, per this codebase's existing convention
 (see scoring.py for the same pattern applied to result computation)."""
+import logging
+import uuid
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.utils import timezone
 
 from .i18n import resolve_locale
-from .models import AdminFeedback, Answer, Diagnostics, FeedbackRequest, TestSubmission, UserConsent
+from .models import AdminFeedback, Answer, Diagnostics, FeedbackRequest, Journey, TestSubmission, UserConsent
+
+logger = logging.getLogger(__name__)
 
 STATUS_TESTS_IN_PROGRESS = "tests_in_progress"
 STATUS_AWAITING_FEEDBACK_REQUEST = "awaiting_feedback_request"
@@ -115,6 +120,33 @@ def open_diagnostics(
         language=language,
         user=get_user_model().objects.filter(email__iexact=email).first(),
     )
+
+
+def grant_diagnostics_access(*, email: str, journey: Journey, language: str = "") -> Diagnostics:
+    """Opens a diagnostics and sends the same purchase-instructions email a
+    real SimpleShop purchase triggers, without requiring a payment — backs
+    both the admin console's "grant access" action and
+    scripts/simulate_simpleshop_webhook.py's effect. source_order_id is a
+    synthetic uuid, never a real SimpleShop order id, so open_diagnostics()
+    always treats this as a brand-new order and the email always sends
+    exactly once per call."""
+    from .emailing import send_purchase_instructions_email
+
+    order_id = f"admin-grant-{uuid.uuid4().hex[:12]}"
+    diagnostics = open_diagnostics(
+        email=email,
+        journey=journey,
+        source_order_id=order_id,
+        opened_via=Diagnostics.OPENED_VIA_ADMIN,
+        language=language,
+    )
+    try:
+        send_purchase_instructions_email(diagnostics)
+    except Exception:
+        # The Diagnostics row is the important side effect and it's already
+        # saved — don't fail the grant just because the email failed to send.
+        logger.exception("Failed to send purchase instructions email for admin grant %s", diagnostics.pk)
+    return diagnostics
 
 
 def link_unlinked_diagnostics(user) -> None:

@@ -32,7 +32,12 @@ export function AdminDashboardPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 p-8">
-      <h1 className="text-xl font-semibold">{t("adminDashboardTitle")}</h1>
+      <div className="flex items-center gap-4">
+        <h1 className="text-xl font-semibold">{t("adminDashboardTitle")}</h1>
+        <Link href="/admin/users" className="text-sm text-primary underline underline-offset-4">
+          {t("adminNavUsers")}
+        </Link>
+      </div>
 
       {stats && (
         <Card>

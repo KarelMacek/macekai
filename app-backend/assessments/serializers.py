@@ -388,3 +388,30 @@ class MyDataExportSerializer(serializers.Serializer):
     profile = ExportProfileSerializer(allow_null=True)
     consent = ConsentSerializer(allow_null=True)
     diagnostics = ExportDiagnosticsSerializer(many=True)
+
+
+class AdminUserSummarySerializer(serializers.Serializer):
+    """Shape of AdminUserListView's per-row data — the id/date_joined the
+    admin console's people list needs, plus the same GDPR-graph counts
+    assessments.gdpr.summarize_identity() computes."""
+
+    id = serializers.IntegerField()
+    email = serializers.CharField()
+    is_staff = serializers.BooleanField()
+    date_joined = serializers.DateTimeField(allow_null=True)
+    diagnostics_count = serializers.IntegerField()
+    submissions_count = serializers.IntegerField()
+    feedback_requests_count = serializers.IntegerField()
+    file_count = serializers.IntegerField()
+    has_consent = serializers.BooleanField()
+
+
+class AdminJourneySummarySerializer(serializers.Serializer):
+    slug = serializers.CharField()
+    name = serializers.CharField()
+
+
+class AdminGrantAccessResultSerializer(serializers.Serializer):
+    diagnostics_id = serializers.IntegerField()
+    email = serializers.CharField()
+    journey_slug = serializers.CharField()

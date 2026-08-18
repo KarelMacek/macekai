@@ -48,4 +48,10 @@ urlpatterns = [
         views.AdminFeedbackWriteView.as_view(),
         name="assessments-admin-feedback-write",
     ),
+    path("admin/users/", views.AdminUserListView.as_view(), name="assessments-admin-user-list"),
+    path("admin/erase/", views.AdminEraseIdentityView.as_view(), name="assessments-admin-erase"),
+    path("admin/journeys/", views.AdminJourneyListView.as_view(), name="assessments-admin-journey-list"),
+    path(
+        "admin/grant-access/", views.AdminGrantAccessView.as_view(), name="assessments-admin-grant-access"
+    ),
 ]

@@ -1,6 +1,7 @@
 import io
 import logging
 
+from django.contrib.auth import get_user_model
 from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -13,13 +14,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .emailing import send_feedback_published_email
-from .gdpr import export_identity
-from .i18n import get_lang
+from .gdpr import delete_identity, export_identity, resolve_identity, summarize_identity
+from .i18n import get_lang, resolve_locale
 from .models import (
     AdminFeedback,
     Diagnostics,
     FeedbackRequest,
     FileBlob,
+    Journey,
     Test,
     TestSubmission,
     UserConsent,
@@ -29,6 +31,9 @@ from .serializers import (
     AdminDiagnosticsSummarySerializer,
     AdminFeedbackReadSerializer,
     AdminFeedbackWriteSerializer,
+    AdminGrantAccessResultSerializer,
+    AdminJourneySummarySerializer,
+    AdminUserSummarySerializer,
     ConsentSerializer,
     DiagnosticsDetailSerializer,
     DiagnosticsSummarySerializer,
@@ -46,6 +51,7 @@ from .services import (
     diagnostics_step_statuses,
     finalize_draft,
     get_or_create_draft,
+    grant_diagnostics_access,
     upsert_draft_answers,
 )
 from .services import STATUS_COMPLETED
@@ -485,3 +491,122 @@ class MyDataExportView(APIView):
         filename = f"my-data-export-{timezone.now():%Y%m%d}.json"
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
+
+
+class AdminUserListView(APIView):
+    """The admin console's people list — every registered user, each with
+    the same GDPR-graph counts the Django admin confirmation page shows
+    (assessments.gdpr.summarize_identity), so "who has how much data" is
+    visible before deciding to erase someone. ?q= filters by email/username
+    substring."""
+
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(responses=AdminUserSummarySerializer(many=True))
+    def get(self, request):
+        users = get_user_model().objects.all().order_by("-date_joined")
+        query = request.query_params.get("q")
+        if query:
+            users = users.filter(email__icontains=query)
+
+        data = []
+        for u in users:
+            summary = summarize_identity(resolve_identity(user=u))
+            data.append(
+                {
+                    "id": u.id,
+                    "email": summary["email"],
+                    "is_staff": summary["is_staff"],
+                    "date_joined": u.date_joined,
+                    "diagnostics_count": summary["diagnostics_count"],
+                    "submissions_count": summary["submissions_count"],
+                    "feedback_requests_count": summary["feedback_requests_count"],
+                    "file_count": summary["file_count"],
+                    "has_consent": summary["has_consent"],
+                }
+            )
+        return Response(AdminUserSummarySerializer(data, many=True).data)
+
+
+class AdminEraseIdentityView(APIView):
+    """Erases a person's User row (if any) and every related record —
+    assessments.gdpr.delete_identity, the same primitive the Django admin
+    action and `erase_gdpr_data` management command use. Targeted either by
+    user_id (a row from AdminUserListView) or by a bare email (the "no
+    account yet" case — a pre-login purchase). typed_email must match the
+    resolved email exactly (case-insensitive) or nothing is deleted — the
+    same confirm-by-typing requirement as the Django admin action."""
+
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        user = None
+        user_id = request.data.get("user_id")
+        email = (request.data.get("email") or "").strip()
+        typed_email = (request.data.get("typed_email") or "").strip()
+
+        if user_id:
+            user = get_object_or_404(get_user_model(), pk=user_id)
+            email = user.email
+        if not email:
+            return Response({"detail": "email or user_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+        if typed_email.lower() != email.lower():
+            return Response(
+                {"detail": "Typed email did not match — nothing was deleted."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        summary = delete_identity(user=user, email=email)
+        return Response(
+            {
+                "email": summary["email"],
+                "diagnostics_count": summary["diagnostics_count"],
+                "submissions_count": summary["submissions_count"],
+                "file_count": summary["file_count"],
+            }
+        )
+
+
+class AdminJourneyListView(APIView):
+    """Active journeys, for the "grant access" form's picker — same locale
+    resolution the customer-facing journey/test copy uses."""
+
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(responses=AdminJourneySummarySerializer(many=True))
+    def get(self, request):
+        lang = get_lang(request)
+        journeys = Journey.objects.filter(is_active=True).order_by("slug")
+        data = [{"slug": j.slug, "name": resolve_locale(j.name, lang)} for j in journeys]
+        return Response(AdminJourneySummarySerializer(data, many=True).data)
+
+
+class AdminGrantAccessView(APIView):
+    """Manually grants diagnostics access — the "webhook runner": opens a
+    diagnostics and sends the real purchase-instructions email, exactly
+    like a genuine SimpleShop purchase, without one. See
+    services.grant_diagnostics_access. Used for dev/staging testing without
+    paying, and for granting an existing prod client access without asking
+    them to buy again."""
+
+    permission_classes = [IsAdminUser]
+
+    @extend_schema(responses=AdminGrantAccessResultSerializer)
+    def post(self, request):
+        email = (request.data.get("email") or "").strip()
+        journey_slug = request.data.get("journey_slug")
+        language = request.data.get("language", "")
+        if not email or not journey_slug:
+            return Response(
+                {"detail": "email and journey_slug are required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        journey = Journey.objects.filter(slug=journey_slug, is_active=True).first()
+        if not journey:
+            return Response({"detail": "Unknown or inactive journey."}, status=status.HTTP_400_BAD_REQUEST)
+
+        diagnostics = grant_diagnostics_access(email=email, journey=journey, language=language)
+        return Response(
+            {"diagnostics_id": diagnostics.id, "email": diagnostics.email, "journey_slug": journey.slug},
+            status=status.HTTP_201_CREATED,
+        )

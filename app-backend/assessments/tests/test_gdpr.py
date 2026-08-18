@@ -52,6 +52,20 @@ def api_client(user):
     return client
 
 
+@pytest.fixture
+def staff_user(db):
+    return get_user_model().objects.create(
+        username="admin", email="admin@example.com", is_staff=True, is_superuser=True
+    )
+
+
+@pytest.fixture
+def staff_client(staff_user):
+    client = APIClient()
+    client.force_authenticate(user=staff_user)
+    return client
+
+
 def _full_diagnostics_graph(journey_fixture, *, email, user=None):
     """Builds one Diagnostics with a FeedbackRequest+CV and a published
     AdminFeedback+document — the full graph a real person accumulates.
@@ -387,3 +401,105 @@ def test_diagnostics_admin_email_erasure_rejects_mixed_emails(admin_client, jour
 
     assert Diagnostics.objects.filter(pk=d1.pk).exists()
     assert Diagnostics.objects.filter(pk=d2.pk).exists()
+
+
+# --- admin console API: users list / erase / grant-access ---------------
+
+def test_admin_user_list_rejects_non_staff(api_client):
+    resp = api_client.get("/api/assessments/admin/users/")
+    assert resp.status_code == 403
+
+
+def test_admin_user_list_shows_counts(staff_client, journey, user):
+    _full_diagnostics_graph(journey, email=user.email, user=user)
+
+    resp = staff_client.get("/api/assessments/admin/users/")
+
+    assert resp.status_code == 200
+    row = next(r for r in resp.data if r["email"] == user.email)
+    assert row["diagnostics_count"] == 1
+    assert row["submissions_count"] == 1
+    assert row["file_count"] == 2
+
+
+def test_admin_user_list_filters_by_email(staff_client, user, staff_user):
+    resp = staff_client.get("/api/assessments/admin/users/", {"q": "alice"})
+
+    emails = [r["email"] for r in resp.data]
+    assert user.email in emails
+    assert staff_user.email not in emails
+
+
+def test_admin_erase_by_user_id_requires_matching_typed_email(staff_client, journey, user):
+    _full_diagnostics_graph(journey, email=user.email, user=user)
+
+    resp = staff_client.post(
+        "/api/assessments/admin/erase/", {"user_id": user.pk, "typed_email": "wrong@example.com"}
+    )
+
+    assert resp.status_code == 400
+    assert get_user_model().objects.filter(pk=user.pk).exists()
+
+
+def test_admin_erase_by_user_id_deletes_on_match(staff_client, journey, user):
+    _full_diagnostics_graph(journey, email=user.email, user=user)
+
+    resp = staff_client.post(
+        "/api/assessments/admin/erase/", {"user_id": user.pk, "typed_email": user.email}
+    )
+
+    assert resp.status_code == 200
+    assert not get_user_model().objects.filter(pk=user.pk).exists()
+
+
+def test_admin_erase_by_email_needs_no_user_row(staff_client, journey):
+    diagnostics = _full_diagnostics_graph(journey, email="orphan@example.com")
+
+    resp = staff_client.post(
+        "/api/assessments/admin/erase/",
+        {"email": "orphan@example.com", "typed_email": "orphan@example.com"},
+    )
+
+    assert resp.status_code == 200
+    assert not Diagnostics.objects.filter(pk=diagnostics.pk).exists()
+
+
+def test_admin_journey_list_returns_active_journeys(staff_client, journey):
+    journey_obj, _test, _question = journey
+
+    resp = staff_client.get("/api/assessments/admin/journeys/")
+
+    assert resp.status_code == 200
+    assert any(j["slug"] == journey_obj.slug for j in resp.data)
+
+
+def test_admin_grant_access_opens_diagnostics_and_sends_email(staff_client, journey, mock_send_mail):
+    journey_obj, _test, _question = journey
+
+    resp = staff_client.post(
+        "/api/assessments/admin/grant-access/",
+        {"email": "granted@example.com", "journey_slug": journey_obj.slug, "language": "en"},
+    )
+
+    assert resp.status_code == 201
+    assert Diagnostics.objects.filter(email="granted@example.com", journey=journey_obj).exists()
+    mock_send_mail.assert_called_once()
+
+
+def test_admin_grant_access_rejects_unknown_journey(staff_client):
+    resp = staff_client.post(
+        "/api/assessments/admin/grant-access/",
+        {"email": "granted@example.com", "journey_slug": "nonexistent"},
+    )
+
+    assert resp.status_code == 400
+    assert not Diagnostics.objects.filter(email="granted@example.com").exists()
+
+
+def test_admin_grant_access_rejects_non_staff(api_client, journey):
+    journey_obj, _test, _question = journey
+    resp = api_client.post(
+        "/api/assessments/admin/grant-access/",
+        {"email": "granted@example.com", "journey_slug": journey_obj.slug},
+    )
+    assert resp.status_code == 403

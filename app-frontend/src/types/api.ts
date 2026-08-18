@@ -185,3 +185,33 @@ export interface AdminFeedbackWritePayload {
   notes?: string;
   is_published?: boolean;
 }
+
+export interface AdminUserSummary {
+  id: number;
+  email: string;
+  is_staff: boolean;
+  date_joined: string | null;
+  diagnostics_count: number;
+  submissions_count: number;
+  feedback_requests_count: number;
+  file_count: number;
+  has_consent: boolean;
+}
+
+export interface EraseIdentityResult {
+  email: string;
+  diagnostics_count: number;
+  submissions_count: number;
+  file_count: number;
+}
+
+export interface AdminJourneySummary {
+  slug: string;
+  name: string;
+}
+
+export interface GrantAccessResult {
+  diagnostics_id: number;
+  email: string;
+  journey_slug: string;
+}

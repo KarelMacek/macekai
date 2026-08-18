@@ -9,6 +9,7 @@ import { ConsentGate } from "@/features/onboarding/ConsentGate";
 import { LanguageGate } from "@/features/onboarding/LanguageGate";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminDiagnosticsDetailPage } from "@/pages/admin/AdminDiagnosticsDetailPage";
+import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { DiagnosticsHistoryPage } from "@/pages/DiagnosticsHistoryPage";
 import { FeedbackRequestPage } from "@/pages/FeedbackRequestPage";
@@ -80,6 +81,7 @@ function SignedInApp() {
       {viewMode === "admin" ? (
         <Switch>
           <Route path="/admin/diagnostics/:id" component={AdminDiagnosticsDetailPage} />
+          <Route path="/admin/users" component={AdminUsersPage} />
           <Route path="/" component={AdminDashboardPage} />
           <Route component={AdminDashboardPage} />
         </Switch>

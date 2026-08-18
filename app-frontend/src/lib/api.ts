@@ -5,13 +5,17 @@ import type {
   AdminDiagnosticsSummary,
   AdminFeedback,
   AdminFeedbackWritePayload,
+  AdminJourneySummary,
+  AdminUserSummary,
   AnswerInput,
   Config,
   ConsentPayload,
   ConsentRecord,
   DiagnosticsDetail,
   DiagnosticsSummary,
+  EraseIdentityResult,
   FeedbackRequest,
+  GrantAccessResult,
   JourneyStatus,
   TestDetail,
   TestSubmission,
@@ -182,5 +186,49 @@ export async function submitAdminFeedback(
     form,
     { headers: { "Content-Type": "multipart/form-data" } }
   );
+  return data;
+}
+
+export async function getAdminUsers(q?: string): Promise<AdminUserSummary[]> {
+  const { data } = await client.get<AdminUserSummary[]>("/api/assessments/admin/users/", {
+    params: { q: q || undefined },
+  });
+  return data;
+}
+
+// Deletes a person's account and every related record. Targeted either by
+// userId (a row from getAdminUsers) or by a bare email (a purchase with no
+// account yet). typedEmail must match the account's real email exactly —
+// the server re-checks this; it's not just a client-side guard.
+export async function eraseIdentity(payload: {
+  userId?: number;
+  email?: string;
+  typedEmail: string;
+}): Promise<EraseIdentityResult> {
+  const { data } = await client.post<EraseIdentityResult>("/api/assessments/admin/erase/", {
+    user_id: payload.userId,
+    email: payload.email,
+    typed_email: payload.typedEmail,
+  });
+  return data;
+}
+
+export async function getAdminJourneys(): Promise<AdminJourneySummary[]> {
+  const { data } = await client.get<AdminJourneySummary[]>("/api/assessments/admin/journeys/");
+  return data;
+}
+
+// Opens a diagnostics and sends the real purchase-instructions email,
+// exactly like a genuine SimpleShop purchase, without one.
+export async function grantAccess(payload: {
+  email: string;
+  journeySlug: string;
+  language: string;
+}): Promise<GrantAccessResult> {
+  const { data } = await client.post<GrantAccessResult>("/api/assessments/admin/grant-access/", {
+    email: payload.email,
+    journey_slug: payload.journeySlug,
+    language: payload.language,
+  });
   return data;
 }

@@ -108,15 +108,6 @@ export function DashboardPage() {
           ))}
         </div>
       )}
-
-      <div className="mt-6 border-t pt-4">
-        <a
-          href="/api/assessments/export/"
-          className="text-xs text-muted-foreground underline underline-offset-4"
-        >
-          {t("downloadMyDataButton")}
-        </a>
-      </div>
     </div>
   );
 }

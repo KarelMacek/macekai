@@ -72,6 +72,12 @@ function SignedInApp() {
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           {user?.is_staff && <ViewModeToggle viewMode={viewMode} setMode={setMode} />}
           <LangSwitcher />
+          <a
+            href="/api/assessments/export/"
+            className="transition-colors duration-150 hover:text-gold"
+          >
+            {t("downloadMyDataButton")}
+          </a>
           <span>{user?.email}</span>
           <a href="/logout/" className="transition-colors duration-150 hover:text-gold">
             {t("signOut")}

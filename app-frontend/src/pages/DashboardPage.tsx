@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "wouter";
 
+import { RequestFeedbackCta } from "@/components/RequestFeedbackCta";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang, type Lang } from "@/contexts/LangContext";
@@ -81,24 +82,7 @@ export function DashboardPage() {
         </Card>
       ))}
 
-      {journey.all_tests_done && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">{t("allDone")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {journey.feedback_request_submitted ? (
-              <Link href="/feedback">
-                <Button>{t("viewFeedback")}</Button>
-              </Link>
-            ) : (
-              <Link href="/feedback-request">
-                <Button>{t("requestFeedbackTitle")}</Button>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      {journey.all_tests_done && <RequestFeedbackCta journey={journey} />}
 
       {pastDiagnostics.length > 0 && (
         <div className="mt-4 flex flex-col gap-3">

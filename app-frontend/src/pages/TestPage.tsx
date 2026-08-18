@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 
+import { RequestFeedbackCta } from "@/components/RequestFeedbackCta";
 import { SubmissionAnswers } from "@/components/SubmissionAnswers";
 import { Button } from "@/components/ui/button";
 import { MappingTest } from "@/features/assessments/MappingTest";
@@ -71,29 +72,41 @@ export function TestPage() {
         {test.test_type === "snapshot" ? (
           <SnapshotResult categories={test.categories} submission={submission} />
         ) : (
-          <p className="mx-auto max-w-xl text-sm text-muted-foreground">{t("feedbackRequestSubmitted")}</p>
+          <p className="mx-auto max-w-xl text-sm text-muted-foreground">{t("answersSavedConfirmation")}</p>
         )}
         <div className="mx-auto mt-8 flex w-full max-w-xl flex-col gap-4">
           {/* Naming the next step directly (instead of a bare "Continue")
               is the "what's next" touchpoint — closing the loop on "will I
-              ever feel lost" right at the moment a step just finished. */}
+              ever feel lost" right at the moment a step just finished. One
+              primary button only: the dashboard detour is a text link, not
+              a second competing CTA. */}
           {!wasEditing && nextStep && (
             <div className="border-t pt-4">
               <p className="mb-1 text-sm font-medium">{t("whatsNextHeading")}</p>
-              <p className="mb-1 text-sm text-muted-foreground">
+              <p className="mb-3 text-sm text-muted-foreground">
                 {t("whatsNextBody", { step: nextStep.title })}
               </p>
-              <p className="mb-4 text-xs text-muted-foreground">{t("whatsNextLater")}</p>
               <Link href={`/tests/${nextStep.test_slug}`}>
                 <Button size="sm">{t("startTest")}</Button>
               </Link>
+              <Link href="/" className="mt-3 block text-xs text-muted-foreground underline underline-offset-4">
+                {t("whatsNextLater")}
+              </Link>
             </div>
           )}
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              {t("continueButton")}
-            </Button>
-          </Link>
+          {/* Last step just finished: go straight to the one thing left to
+              do (request feedback) instead of a detour through the
+              dashboard. journey?.all_tests_done guards the brief render
+              before getJourney() resolves, where nextStep is also
+              momentarily undefined. */}
+          {!wasEditing && !nextStep && journey?.all_tests_done && <RequestFeedbackCta journey={journey} />}
+          {(wasEditing || (!nextStep && !journey?.all_tests_done)) && (
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                {t("continueButton")}
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     );

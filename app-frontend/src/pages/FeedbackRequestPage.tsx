@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { useLocation } from "wouter";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,10 @@ import { useTranslation } from "@/lib/i18n";
 
 export function FeedbackRequestPage() {
   const { t } = useTranslation();
+  const [, navigate] = useLocation();
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -27,23 +27,14 @@ export function FeedbackRequestPage() {
     setSubmitting(true);
     try {
       await submitFeedbackRequest({ cv_file: cvFile, linkedin_url: linkedinUrl.trim() });
-      setSubmitted(true);
+      // Straight to /feedback's "on its way" screen — that's already the
+      // one "you're done, we'll be in touch" moment, no need for a second
+      // confirmation screen here first.
+      navigate("/feedback");
     } catch {
       setError(t("submitError"));
-    } finally {
       setSubmitting(false);
     }
-  }
-
-  if (submitted) {
-    return (
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-4 p-8">
-        <p className="text-sm">{t("feedbackRequestSubmitted")}</p>
-        <Link href="/feedback">
-          <Button size="sm">{t("continueButton")}</Button>
-        </Link>
-      </div>
-    );
   }
 
   return (

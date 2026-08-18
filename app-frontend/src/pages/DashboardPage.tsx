@@ -89,11 +89,11 @@ export function DashboardPage() {
           <CardContent>
             {journey.feedback_request_submitted ? (
               <Link href="/feedback">
-                <Button size="sm">{t("viewFeedback")}</Button>
+                <Button>{t("viewFeedback")}</Button>
               </Link>
             ) : (
               <Link href="/feedback-request">
-                <Button size="sm">{t("requestFeedbackTitle")}</Button>
+                <Button>{t("requestFeedbackTitle")}</Button>
               </Link>
             )}
           </CardContent>

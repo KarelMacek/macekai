@@ -154,6 +154,7 @@ const translations = {
     adminGrantAccessButton: "Grant access & send email",
     adminGrantAccessSuccess: "Access granted — the purchase-instructions email was sent.",
     adminGrantAccessError: "Something went wrong. Please try again.",
+    downloadMyDataButton: "Download my data (JSON)",
   },
   cs: {
     signIn: "Přihlásit se přes Google",
@@ -304,6 +305,7 @@ const translations = {
     adminGrantAccessButton: "Udělit přístup a odeslat e-mail",
     adminGrantAccessSuccess: "Přístup udělen — e-mail s pokyny byl odeslán.",
     adminGrantAccessError: "Něco se pokazilo. Zkus to prosím znovu.",
+    downloadMyDataButton: "Stáhnout má data (JSON)",
   },
 } as const;
 

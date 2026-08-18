@@ -16,76 +16,78 @@ from .models import AdminFeedback, Diagnostics
 
 _COPY = {
     "subject": {
-        "cs": 'Vaše diagnostika „{journey_name}“ je připravena — jak pokračovat',
-        "en": 'Your "{journey_name}" diagnostics is ready — how to continue',
+    "cs": '{journey_name} je k dispozici — co dál',
+    "en": '{journey_name} is ready for you — what happens next',
     },
+
     "greeting": {
         "cs": "Dobrý den,",
         "en": "Hello,",
     },
+
     "intro": {
-        "cs": "děkuji za nákup diagnostiky „{journey_name}“. Níže najdete přesný postup, "
-        "jak se dostat k testům a co vás čeká dál.",
-        "en": 'thank you for purchasing the "{journey_name}" diagnostics. Below is exactly '
-        "how to get started and what to expect next.",
+        "cs": "děkuji za objednání „{journey_name}“. Níže najdete, jak začít a co vás čeká dál.",
+        "en": 'thank you for choosing "{journey_name}". Here’s how to get started and what happens next.',
     },
+
     "login_heading": {
         "cs": "1. Přihlaste se",
         "en": "1. Log in",
     },
+
     "login_body": {
-        "cs": "Otevřete <a href=\"{app_url}\">{app_url}</a> a klikněte na „Přihlásit se přes "
-        "Google“. Použijte prosím <strong>stejnou e-mailovou adresu, na kterou proběhl "
-        "nákup</strong>: <strong>{email}</strong>. Pokud se přihlásíte pod jinou adresou, "
-        "systém vaši diagnostiku nenajde.",
-        "en": 'Open <a href="{app_url}">{app_url}</a> and click "Sign in with Google". Please '
-        "use <strong>the same email address the purchase was made under</strong>: "
-        "<strong>{email}</strong>. Signing in with a different address means the system "
-        "won't find your diagnostics.",
+        "cs": "Otevřete <a href=\"{app_url}\">{app_url}</a> a klikněte na „Přihlásit se přes Google“. "
+            "Přihlaste se prosím stejnou e-mailovou adresou, kterou jste použili při nákupu: "
+            "<strong>{email}</strong>.",
+        "en": 'Open <a href="{app_url}">{app_url}</a> and click "Sign in with Google". '
+            "Please use the same email address you used for your purchase: "
+            "<strong>{email}</strong>.",
     },
+
     "next_heading": {
-        "cs": "2. Co bude dál",
+        "cs": "2. Co vás čeká",
         "en": "2. What happens next",
     },
+
     "next_consent": {
-        "cs": "Nejprve jednorázově odsouhlasíte podmínky zpracování dat.",
-        "en": "First, you'll give one-time consent for how your data is handled.",
+        "cs": "Nejprve potvrdíte souhlas se zpracováním dat.",
+        "en": "First, you'll confirm your consent to data processing.",
     },
+
     "next_tests": {
-        "cs": "Poté postupně projdete tyto testy: {step_names}.",
-        "en": "Then you'll work through these tests, in order: {step_names}.",
+        "cs": "Poté postupně projdete: {step_names}.",
+        "en": "Then you'll work through: {step_names}.",
     },
+
     "next_feedback_request": {
-        "cs": "Až budou všechny testy hotové, nahrajete své CV a/nebo vložíte odkaz na "
-        "LinkedIn profil.",
-        "en": "Once every test is done, you'll upload your CV and/or paste your LinkedIn "
-        "profile URL.",
+        "cs": "Nakonec nahrajete své CV a/nebo vložíte odkaz na LinkedIn profil.",
+        "en": "Finally, you'll upload your CV and/or add a link to your LinkedIn profile.",
     },
+
     "next_review": {
-        "cs": "Vše si projdu a připravím vám písemnou zpětnou vazbu i krátké video — dáme "
-        "vám vědět, jakmile bude hotovo.",
-        "en": "I'll review everything and prepare written feedback plus a short video — "
-        "you'll be notified once it's ready.",
+        "cs": "Vše si projdu a připravím vám písemnou zpětnou vazbu a krátké video. "
+            "Jakmile budou hotové, dám vám vědět.",
+        "en": "I'll review everything and prepare written feedback and a short video for you. "
+            "I'll let you know as soon as they're ready.",
     },
+
     "support": {
-        "cs": "Tento e-mail se odesílá automaticky, ale chodí do mé skutečné schránky — "
-        "pokud narazíte na jakýkoli problém nebo budete mít otázku, klidně mi na něj "
-        "rovnou odpovězte, nebo napište na "
-        "<a href=\"mailto:karel@macek.ai\">karel@macek.ai</a>.",
-        "en": "This email is sent automatically, but it lands in my real inbox — if you "
-        "run into any trouble or have a question, feel free to just reply directly, or "
-        'email me at <a href="mailto:karel@macek.ai">karel@macek.ai</a>.',
+        "cs": "Pokud narazíte na problém nebo budete mít otázku, jednoduše odpovězte na tento e-mail. "
+            "Odpověď přijde přímo ke mně.",
+        "en": "If you run into any trouble or have a question, simply reply to this email. "
+            "Your reply will come directly to me.",
     },
+
     "sign_off": {
         "cs": "Karel",
         "en": "Karel",
     },
     "feedback_subject": {
-        "cs": 'Vaše zpětná vazba k diagnostice „{journey_name}“ je hotová',
+        "cs": 'Vaše zpětná vazba k „{journey_name}“ je hotová',
         "en": 'Your feedback on "{journey_name}" is ready',
     },
     "feedback_intro": {
-        "cs": "vaše zpětná vazba k diagnostice „{journey_name}“ je hotová:",
+        "cs": "vaše zpětná vazba k „{journey_name}“ je hotová:",
         "en": 'your feedback on "{journey_name}" is ready:',
     },
     "feedback_link_body": {

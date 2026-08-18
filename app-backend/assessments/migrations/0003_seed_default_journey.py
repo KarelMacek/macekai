@@ -325,7 +325,7 @@ def seed_default_journey(apps, schema_editor):
 
     journey = Journey.objects.create(
         slug="default",
-        name={"en": "Default Journey", "cs": "Výchozí cesta"},
+        name={"en": "Situation review", "cs": "Pohled na situaci"},
         simpleshop_product_id=DEFAULT_JOURNEY_PRODUCT_ID,
     )
     JourneyStep.objects.create(journey=journey, test=snapshot, order=0)

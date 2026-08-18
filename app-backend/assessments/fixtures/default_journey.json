@@ -3373,8 +3373,8 @@
   "fields": {
     "slug": "default",
     "name": {
-      "en": "Default Journey",
-      "cs": "Výchozí cesta"
+      "en": "Situation review",
+      "cs": "Pohled na situaci"
     },
     "is_active": true,
     "simpleshop_product_id": "DIAGNOSTICS-DEFAULT"

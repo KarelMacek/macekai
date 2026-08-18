@@ -110,6 +110,8 @@ def _copy(key: str, lang: str, **kwargs) -> str:
 
 
 def _app_url() -> str:
+    if settings.APP_URL:
+        return settings.APP_URL
     host = settings.ALLOWED_HOSTS[0] if settings.ALLOWED_HOSTS else ""
     return f"https://{host}/" if host and host != "*" else ""
 

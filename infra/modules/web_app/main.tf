@@ -130,6 +130,12 @@ locals {
     var.custom_domain,
   ]))
 
+  # The hostname links in outgoing emails should use — the custom domain when
+  # one is bound (prod's app.macek.ai), otherwise the azurewebsites.net
+  # hostname. Explicit rather than "first entry in ALLOWED_HOSTS", which
+  # doesn't reflect a preference (see APP_URL app setting below).
+  public_hostname = var.custom_domain != "" ? var.custom_domain : "${local.web_app_name}.azurewebsites.net"
+
   # This module never receives raw secret values — only this vault's name
   # (pure naming convention, no Terraform dependency needed) to build Key
   # Vault reference strings. The Web App's own managed identity resolves
@@ -200,6 +206,7 @@ resource "azurerm_linux_web_app" "app" {
     "SECRET_KEY"        = local.kv_ref["secret-key"]
     "DEBUG"             = "False"
     "ALLOWED_HOSTS"     = local.allowed_hosts
+    "APP_URL"           = "https://${local.public_hostname}/"
     "EASY_AUTH_ENABLED" = "True"
 
     "GOOGLE_PROVIDER_AUTHENTICATION_SECRET" = local.kv_ref["google-client-secret"]

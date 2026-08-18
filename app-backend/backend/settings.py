@@ -13,6 +13,13 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 CSRF_TRUSTED_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS if host != '*']
 
+# The public URL used to build links in outgoing emails (assessments/emailing.py).
+# Explicit rather than inferred from ALLOWED_HOSTS[0] — that ordering isn't a
+# reliable "preferred hostname" signal (e.g. prod's ALLOWED_HOSTS lists the
+# azurewebsites.net hostname before the app.macek.ai custom domain). Blank
+# locally; emailing.py falls back to ALLOWED_HOSTS[0] if unset.
+APP_URL = os.environ.get('APP_URL', '')
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

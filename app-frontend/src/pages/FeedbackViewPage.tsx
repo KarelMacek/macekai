@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 
 import { Button } from "@/components/ui/button";
-import { getFeedback } from "@/lib/api";
+import { getFeedback, getJourney } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import type { AdminFeedback } from "@/types/api";
 
 export function FeedbackViewPage() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [feedback, setFeedback] = useState<AdminFeedback | null | undefined>(undefined);
+  const [diagnosticsId, setDiagnosticsId] = useState<number | null>(null);
 
   useEffect(() => {
     getFeedback().then(setFeedback);
-  }, []);
+    getJourney(lang).then((journey) => setDiagnosticsId(journey.diagnostics_id));
+  }, [lang]);
 
   if (feedback === undefined) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
@@ -40,6 +43,13 @@ export function FeedbackViewPage() {
               {t("watchVideo")}
             </Button>
           </a>
+        )}
+        {diagnosticsId !== null && (
+          <Link href={`/diagnostics/${diagnosticsId}`}>
+            <Button size="sm" variant="outline">
+              {t("viewMyAnswers")}
+            </Button>
+          </Link>
         )}
       </div>
     </div>

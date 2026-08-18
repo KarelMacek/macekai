@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h1>{{ title }}</h1>
+
+<p>The following will be <strong>permanently and irreversibly deleted</strong>:</p>
+
+<ul>
+  {% for identity in identities %}
+  <li>
+    <strong>{{ identity.email }}</strong>
+    {% if identity.is_staff %}<span style="color:#ba2121; font-weight:bold;">— ADMIN ACCOUNT</span>{% endif %}
+    — user row: {{ identity.user|yesno:"yes,no" }},
+    {{ identity.diagnostics_count }} diagnostics,
+    {{ identity.submissions_count }} test submission(s),
+    {{ identity.feedback_requests_count }} feedback request(s),
+    {{ identity.file_count }} file(s),
+    consent record: {{ identity.has_consent|yesno:"yes,no" }}
+  </li>
+  {% endfor %}
+</ul>
+
+<form method="post">
+  {% csrf_token %}
+  {% for obj in queryset %}
+    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}">
+  {% endfor %}
+  <input type="hidden" name="action" value="{{ action_name }}">
+  <input type="hidden" name="confirm_erasure" value="1">
+
+  <p>
+    <label for="id_typed_email">
+      Type <strong>{{ identities.0.email }}</strong> to confirm:
+    </label><br>
+    <input type="text" id="id_typed_email" name="typed_email" size="40" autocomplete="off">
+  </p>
+
+  <input type="submit" value="Yes, permanently erase this data" class="button"
+         style="background:#ba2121; color:#fff;">
+  <a href="." class="button cancel-link">Cancel</a>
+</form>
+{% endblock %}

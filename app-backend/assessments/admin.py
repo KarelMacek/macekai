@@ -1,10 +1,13 @@
 import json
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.template.response import TemplateResponse
 from django.urls import NoReverseMatch, reverse
 from django.utils.html import format_html
 
+from .gdpr import delete_identity, resolve_identity, summarize_identity
 from .i18n import resolve_locale
 from .models import (
     AdminFeedback,
@@ -23,6 +26,21 @@ from .models import (
     UserConsent,
 )
 from .services import diagnostics_status, open_diagnostics
+
+User = get_user_model()
+
+
+def _render_gdpr_confirmation(modeladmin, request, identities, *, action_name, queryset):
+    context = {
+        **modeladmin.admin_site.each_context(request),
+        "title": "Confirm GDPR erasure",
+        "identities": identities,
+        "queryset": queryset,
+        "action_checkbox_name": admin.helpers.ACTION_CHECKBOX_NAME,
+        "action_name": action_name,
+        "opts": modeladmin.model._meta,
+    }
+    return TemplateResponse(request, "assessments/admin/gdpr_confirm_erasure.html", context)
 
 
 class CategoryInline(admin.TabularInline):
@@ -238,7 +256,7 @@ class DiagnosticsAdmin(admin.ModelAdmin):
         "notes", "feedback_request_link",
     )
     inlines = [TestSubmissionSummaryInline]
-    actions = ["open_new_cycle_for_same_email"]
+    actions = ["open_new_cycle_for_same_email", "erase_gdpr_data_for_email"]
 
     @admin.display(description="Status")
     def status_display(self, obj):
@@ -267,6 +285,47 @@ class DiagnosticsAdmin(admin.ModelAdmin):
             open_diagnostics(email=diagnostics.email, journey=diagnostics.journey)
         self.message_user(request, f"Opened {queryset.count()} new cycle(s).")
 
+    @admin.action(description="Erase ALL GDPR data for this email (irreversible)")
+    def erase_gdpr_data_for_email(self, request, queryset):
+        emails = sorted(set(queryset.values_list("email", flat=True)))
+        if len(emails) != 1:
+            self.message_user(
+                request,
+                "Select diagnostics belonging to exactly one email to erase at a time.",
+                level=messages.ERROR,
+            )
+            return None
+
+        email = emails[0]
+        if request.POST.get("confirm_erasure"):
+            typed_email = request.POST.get("typed_email", "").strip()
+            if typed_email.lower() != email.lower():
+                self.message_user(
+                    request, "Typed email did not match — nothing was deleted.", level=messages.ERROR
+                )
+                return _render_gdpr_confirmation(
+                    self,
+                    request,
+                    [summarize_identity(resolve_identity(email=email))],
+                    action_name="erase_gdpr_data_for_email",
+                    queryset=queryset,
+                )
+            summary = delete_identity(email=email)
+            self.message_user(
+                request,
+                f"Erased {summary['email']}: {summary['diagnostics_count']} diagnostics, "
+                f"{summary['submissions_count']} submission(s), {summary['file_count']} file(s).",
+            )
+            return None
+
+        return _render_gdpr_confirmation(
+            self,
+            request,
+            [summarize_identity(resolve_identity(email=email))],
+            action_name="erase_gdpr_data_for_email",
+            queryset=queryset,
+        )
+
 
 @admin.register(UserConsent)
 class UserConsentAdmin(admin.ModelAdmin):
@@ -289,3 +348,64 @@ class FileBlobAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+admin.site.unregister(User)
+
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+    """Ordinary deletion is disabled on purpose (has_delete_permission
+    below, and delete_selected dropped from actions): Django's built-in
+    delete only cascades what User's own FKs CASCADE (TestSubmission,
+    UserConsent), silently leaving this person's Diagnostics/
+    FeedbackRequest/AdminFeedback/FileBlob rows behind with user set to
+    NULL by SET_NULL — a partial, GDPR-incomplete erasure. The only way to
+    delete a user here is erase_gdpr_data, which requires typing the exact
+    account email into a confirmation page before anything is destroyed."""
+
+    actions = ["erase_gdpr_data"]
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.action(description="Erase all GDPR data for this user (irreversible)")
+    def erase_gdpr_data(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(
+                request,
+                "Select exactly one user to erase at a time — email confirmation is per-account.",
+                level=messages.ERROR,
+            )
+            return None
+
+        user = queryset.first()
+        if request.POST.get("confirm_erasure"):
+            typed_email = request.POST.get("typed_email", "").strip()
+            if typed_email.lower() != user.email.lower():
+                self.message_user(
+                    request, "Typed email did not match — nothing was deleted.", level=messages.ERROR
+                )
+                return _render_gdpr_confirmation(
+                    self,
+                    request,
+                    [summarize_identity(resolve_identity(user=user))],
+                    action_name="erase_gdpr_data",
+                    queryset=queryset,
+                )
+            summary = delete_identity(user=user)
+            self.message_user(
+                request,
+                f"Erased {summary['email']}: {summary['diagnostics_count']} diagnostics, "
+                f"{summary['submissions_count']} submission(s), {summary['file_count']} file(s), "
+                f"consent removed: {summary['has_consent']}.",
+            )
+            return None
+
+        return _render_gdpr_confirmation(
+            self,
+            request,
+            [summarize_identity(resolve_identity(user=user))],
+            action_name="erase_gdpr_data",
+            queryset=queryset,
+        )

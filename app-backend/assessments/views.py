@@ -1,7 +1,9 @@
 import io
 import logging
 
+from django.http import FileResponse, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
@@ -11,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .emailing import send_feedback_published_email
+from .gdpr import export_identity
 from .i18n import get_lang
 from .models import (
     AdminFeedback,
@@ -31,6 +34,7 @@ from .serializers import (
     DiagnosticsSummarySerializer,
     FeedbackRequestSerializer,
     JourneyStatusSerializer,
+    MyDataExportSerializer,
     TestDetailSerializer,
     TestSubmissionInputSerializer,
     TestSubmissionReadSerializer,
@@ -466,3 +470,18 @@ class FileDownloadView(APIView):
         ).exists():
             return True
         return False
+
+
+class MyDataExportView(APIView):
+    """GDPR self-service export: everything belonging to the logged-in user,
+    as a browser-downloadable JSON file. Returns a plain JsonResponse (not a
+    DRF Response) so Content-Disposition can be set directly — the same
+    escape hatch FileDownloadView above uses for FileResponse."""
+
+    @extend_schema(responses=MyDataExportSerializer)
+    def get(self, request):
+        payload = export_identity(user=request.user)
+        response = JsonResponse(payload, json_dumps_params={"indent": 2, "ensure_ascii": False})
+        filename = f"my-data-export-{timezone.now():%Y%m%d}.json"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        return response

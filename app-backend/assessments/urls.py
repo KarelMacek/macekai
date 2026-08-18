@@ -14,6 +14,7 @@ urlpatterns = [
         name="assessments-submission-detail",
     ),
     path("consent/", views.ConsentView.as_view(), name="assessments-consent"),
+    path("export/", views.MyDataExportView.as_view(), name="assessments-export"),
     path(
         "feedback-request/",
         views.FeedbackRequestView.as_view(),

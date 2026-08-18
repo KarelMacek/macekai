@@ -310,3 +310,81 @@ class AdminFeedbackWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = AdminFeedback
         fields = ["document", "video_url", "notes", "is_published"]
+
+
+class ExportFileSerializer(serializers.Serializer):
+    filename = serializers.CharField()
+    content_type = serializers.CharField()
+    size = serializers.IntegerField()
+    base64 = serializers.CharField()
+
+
+class ExportAnswerSerializer(serializers.Serializer):
+    question_id = serializers.IntegerField()
+    selected_option_id = serializers.IntegerField(allow_null=True)
+    text_value = serializers.CharField(allow_blank=True)
+    comment = serializers.CharField(allow_blank=True)
+
+
+class ExportSubmissionSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    test_slug = serializers.CharField()
+    test_type = serializers.CharField()
+    status = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    submitted_at = serializers.DateTimeField(allow_null=True)
+    computed_result = serializers.JSONField()
+    answers = ExportAnswerSerializer(many=True)
+
+
+class ExportFeedbackRequestSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    linkedin_url = serializers.CharField(allow_blank=True)
+    requested_at = serializers.DateTimeField()
+    cv_file = ExportFileSerializer(allow_null=True)
+
+
+class ExportAdminFeedbackSerializer(serializers.Serializer):
+    video_url = serializers.CharField(allow_blank=True)
+    notes = serializers.CharField(allow_blank=True)
+    is_published = serializers.BooleanField()
+    published_at = serializers.DateTimeField(allow_null=True)
+    created_at = serializers.DateTimeField()
+    document = ExportFileSerializer(allow_null=True)
+
+
+class ExportDiagnosticsSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    email = serializers.CharField()
+    journey_slug = serializers.CharField()
+    opened_via = serializers.CharField()
+    opened_at = serializers.DateTimeField()
+    language = serializers.CharField()
+    notes = serializers.CharField(allow_blank=True)
+    source_order_id = serializers.CharField(allow_null=True)
+    source_order_number = serializers.CharField(allow_blank=True)
+    raw_payload = serializers.JSONField()
+    submissions = ExportSubmissionSerializer(many=True)
+    feedback_request = ExportFeedbackRequestSerializer(allow_null=True)
+    feedback = ExportAdminFeedbackSerializer(allow_null=True)
+
+
+class ExportProfileSerializer(serializers.Serializer):
+    email = serializers.CharField()
+    username = serializers.CharField()
+    first_name = serializers.CharField(allow_blank=True)
+    last_name = serializers.CharField(allow_blank=True)
+    date_joined = serializers.DateTimeField(allow_null=True)
+    last_login = serializers.DateTimeField(allow_null=True)
+
+
+class MyDataExportSerializer(serializers.Serializer):
+    """Shape of MyDataExportView's response — like DiagnosticsDetailSerializer
+    above, exists purely for @extend_schema typing; the view builds and
+    returns the dict directly via assessments.gdpr.export_identity."""
+
+    exported_at = serializers.DateTimeField()
+    email = serializers.CharField()
+    profile = ExportProfileSerializer(allow_null=True)
+    consent = ConsentSerializer(allow_null=True)
+    diagnostics = ExportDiagnosticsSerializer(many=True)

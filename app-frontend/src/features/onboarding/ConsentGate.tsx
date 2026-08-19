@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { LangSwitcher } from "@/components/LangSwitcher";
 import { useAuth } from "@/contexts/AuthContext";
 import { submitConsent } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
@@ -94,9 +93,6 @@ export function ConsentGate() {
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-xl flex-col justify-center gap-8 p-8">
-      <div className="flex justify-end">
-        <LangSwitcher />
-      </div>
       <div>
         <p className="section-label mb-2">{t("consentRecapTitle")}</p>
         <p className="text-sm text-muted-foreground">{t("consentRecapBody")}</p>

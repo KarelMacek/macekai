@@ -1,15 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 
 import { RequestFeedbackCta } from "@/components/RequestFeedbackCta";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLang, type Lang } from "@/contexts/LangContext";
 import { getDiagnosticsList, getJourney } from "@/lib/api";
 import { useTranslation, type TranslationKey } from "@/lib/i18n";
 import type { DiagnosticsSummary, DiagnosticsStatus, JourneyStatus } from "@/types/api";
-
-const SUPPORTED_LANGS: Lang[] = ["en", "cs"];
 
 export const STATUS_LABEL_KEY: Record<DiagnosticsStatus, TranslationKey> = {
   tests_in_progress: "diagnosticsStatusTestsInProgress",
@@ -20,26 +17,13 @@ export const STATUS_LABEL_KEY: Record<DiagnosticsStatus, TranslationKey> = {
 
 export function DashboardPage() {
   const { t, lang } = useTranslation();
-  const { setLang } = useLang();
   const [journey, setJourney] = useState<JourneyStatus | null>(null);
   const [diagnosticsList, setDiagnosticsList] = useState<DiagnosticsSummary[] | null>(null);
-  const correctedLangFromPurchase = useRef(false);
 
   useEffect(() => {
     getJourney(lang).then(setJourney);
-    getDiagnosticsList().then((list) => {
-      setDiagnosticsList(list);
-      // One-time nudge: default to the language actually purchased instead
-      // of only the browser-guessed one, without fighting a later manual
-      // switch (see SUPPORTED_LANGS guard — language may be "" for
-      // admin-opened diagnostics).
-      const purchasedLang = list[0]?.language;
-      if (!correctedLangFromPurchase.current && SUPPORTED_LANGS.includes(purchasedLang as Lang)) {
-        correctedLangFromPurchase.current = true;
-        if (purchasedLang !== lang) setLang(purchasedLang as Lang);
-      }
-    });
-  }, [lang, setLang]);
+    getDiagnosticsList().then(setDiagnosticsList);
+  }, [lang]);
 
   if (!journey) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 

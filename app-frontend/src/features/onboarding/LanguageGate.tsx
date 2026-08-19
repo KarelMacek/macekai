@@ -50,9 +50,6 @@ export function LanguageGate({ suggestedLang, onChosen }: LanguageGateProps) {
           Čeština
         </button>
       </div>
-      <p className="text-xs text-muted-foreground">
-        You can change this anytime · Kdykoli to můžeš změnit
-      </p>
     </div>
   );
 }

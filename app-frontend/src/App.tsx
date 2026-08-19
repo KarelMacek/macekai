@@ -3,7 +3,6 @@ import { Route, Switch } from "wouter";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { getStoredLang, LangProvider } from "@/contexts/LangContext";
-import { LangSwitcher } from "@/components/LangSwitcher";
 import { useTranslation } from "@/lib/i18n";
 import { ConsentGate } from "@/features/onboarding/ConsentGate";
 import { LanguageGate } from "@/features/onboarding/LanguageGate";
@@ -71,7 +70,6 @@ function SignedInApp() {
         <h1 className="text-lg font-semibold text-gold">{t("appTitle")}</h1>
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           {user?.is_staff && <ViewModeToggle viewMode={viewMode} setMode={setMode} />}
-          <LangSwitcher />
           <a
             href="/api/assessments/export/"
             className="transition-colors duration-150 hover:text-gold"

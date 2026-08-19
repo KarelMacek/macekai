@@ -7,10 +7,11 @@ interface LangContextType {
   setLang: (l: Lang) => void;
 }
 
-// Written by LanguageGate (the onboarding "pick your language" screen) and
-// LangSwitcher (the small header/ConsentGate toggle) alike, so a choice made
-// either way sticks across sessions instead of re-guessing from the browser
-// every time.
+// Written once by LanguageGate (the onboarding "pick your language" screen),
+// the only place allowed to write it — the choice sticks across sessions
+// instead of re-guessing from the browser every time, and is never
+// overridden afterwards (no header/settings switcher, no auto-correction
+// from purchase records — see git history for what NOT to reintroduce).
 const LANG_CHOSEN_KEY = "macekai-lang-chosen";
 
 export function getStoredLang(): Lang | null {

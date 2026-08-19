@@ -2,10 +2,9 @@ import { useEffect, useState } from "react";
 import { Route, Switch } from "wouter";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { getStoredLangFor, LangProvider } from "@/contexts/LangContext";
+import { LangProvider, useLang, type Lang } from "@/contexts/LangContext";
 import { useTranslation } from "@/lib/i18n";
 import { ConsentGate } from "@/features/onboarding/ConsentGate";
-import { LanguageGate } from "@/features/onboarding/LanguageGate";
 import { AdminDashboardPage } from "@/pages/admin/AdminDashboardPage";
 import { AdminDiagnosticsDetailPage } from "@/pages/admin/AdminDiagnosticsDetailPage";
 import { AdminUsersPage } from "@/pages/admin/AdminUsersPage";
@@ -147,22 +146,28 @@ function SignedOutLanding() {
 
 function AppShell() {
   const { user, loading } = useAuth();
+  const { lang, setLang } = useLang();
   const { t } = useTranslation();
+
+  // Language always follows the diagnostics it was purchased/granted under
+  // (Diagnostics.language, surfaced as WhoAmI.purchased_language) — never
+  // asked, never remembered client-side, so a delete + re-grant (or a
+  // second purchase in a different language) can never leave a stale
+  // choice behind. Falls back to English only when there's no diagnostics
+  // language to go by yet (NoDiagnosticsGate, or a staff account with none).
+  const orderLang: Lang = user?.purchased_language === "cs" ? "cs" : "en";
+  const needsLangSync = !!user?.has_diagnostics && lang !== orderLang;
+
+  useEffect(() => {
+    if (needsLangSync) setLang(orderLang);
+  }, [needsLangSync, orderLang, setLang]);
 
   const isSignedOut = window.location.pathname === "/signed-out";
   if (isSignedOut) return <SignedOutPage />;
   if (loading) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
   if (!user) return <SignedOutLanding />;
   if (!user.has_diagnostics) return <NoDiagnosticsGate />;
-
-  // Asked once per diagnostics (see LangContext/storeLang) — a returning
-  // visitor who already chose for this diagnostics never sees this screen
-  // again, but a new diagnostics (re-purchase, admin re-grant) gets asked
-  // fresh even on a browser that answered for an older one.
-  const diagnosticsId = user.current_diagnostics_id ?? null;
-  if (getStoredLangFor(diagnosticsId) === null) {
-    return <LanguageGate suggestedLang={user.purchased_language} diagnosticsId={diagnosticsId} />;
-  }
+  if (needsLangSync) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
   if (!user.consent_recorded) return <ConsentGate />;
   return <SignedInApp />;
 }

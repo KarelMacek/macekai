@@ -174,17 +174,15 @@ def test_whoami_purchased_language_empty_without_diagnostics(user):
     client.force_login(user)
     resp = client.get("/api/whoami/")
     assert resp.json()["purchased_language"] == ""
-    assert resp.json()["current_diagnostics_id"] is None
 
 
 def test_whoami_purchased_language_reflects_latest_diagnostics(journey, user):
     open_diagnostics(email=user.email, journey=journey, source_order_id="A", language="cs")
-    latest = open_diagnostics(email=user.email, journey=journey, source_order_id="B", language="en")
+    open_diagnostics(email=user.email, journey=journey, source_order_id="B", language="en")
     client = APIClient()
     client.force_login(user)
     resp = client.get("/api/whoami/")
     assert resp.json()["purchased_language"] == "en"
-    assert resp.json()["current_diagnostics_id"] == latest.id
 
 
 # --- SimpleShop webhook -------------------------------------------------------

@@ -53,6 +53,12 @@ def whoami_view(request):
             # Diagnostics.language) — used by app-frontend's LanguageGate to
             # pre-highlight a default, not to silently pick for the visitor.
             "purchased_language": diag.language if diag else "",
+            # Scopes the frontend's "language asked once" lock to this
+            # specific diagnostics rather than the browser forever — a new
+            # diagnostics (re-purchase, admin re-grant) is a legitimate new
+            # first-time ask, even on a browser that already answered for an
+            # older one. See app-frontend's LangContext.
+            "current_diagnostics_id": diag.id if diag else None,
         })
     return JsonResponse({"is_authenticated": False}, status=401)
 

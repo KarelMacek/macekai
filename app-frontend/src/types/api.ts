@@ -16,6 +16,7 @@ export interface WhoAmI {
   consent_recorded?: boolean;
   is_staff?: boolean;
   purchased_language?: string;
+  current_diagnostics_id?: number | null;
 }
 
 export interface ConsentPayload {

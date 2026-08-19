@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Route, Switch } from "wouter";
 
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { getStoredLang, LangProvider } from "@/contexts/LangContext";
+import { getStoredLangFor, LangProvider } from "@/contexts/LangContext";
 import { useTranslation } from "@/lib/i18n";
 import { ConsentGate } from "@/features/onboarding/ConsentGate";
 import { LanguageGate } from "@/features/onboarding/LanguageGate";
@@ -148,22 +148,20 @@ function SignedOutLanding() {
 function AppShell() {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
-  // Asked once per browser (see LangProvider/storeLang) — a returning
-  // visitor who's already chosen never sees this screen again.
-  const [langChosen, setLangChosen] = useState(() => getStoredLang() !== null);
 
   const isSignedOut = window.location.pathname === "/signed-out";
   if (isSignedOut) return <SignedOutPage />;
   if (loading) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
   if (!user) return <SignedOutLanding />;
   if (!user.has_diagnostics) return <NoDiagnosticsGate />;
-  if (!langChosen) {
-    return (
-      <LanguageGate
-        suggestedLang={user.purchased_language}
-        onChosen={() => setLangChosen(true)}
-      />
-    );
+
+  // Asked once per diagnostics (see LangContext/storeLang) — a returning
+  // visitor who already chose for this diagnostics never sees this screen
+  // again, but a new diagnostics (re-purchase, admin re-grant) gets asked
+  // fresh even on a browser that answered for an older one.
+  const diagnosticsId = user.current_diagnostics_id ?? null;
+  if (getStoredLangFor(diagnosticsId) === null) {
+    return <LanguageGate suggestedLang={user.purchased_language} diagnosticsId={diagnosticsId} />;
   }
   if (!user.consent_recorded) return <ConsentGate />;
   return <SignedInApp />;

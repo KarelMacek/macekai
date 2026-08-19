@@ -1,24 +1,27 @@
 import type { Lang } from "@/contexts/LangContext";
 import { storeLang, useLang } from "@/contexts/LangContext";
 
-// Shown once, before ConsentGate, so language is an explicit first-class
-// choice rather than a small corner switcher easy to miss. Deliberately
-// bilingual in its own copy (not run through useTranslation()) — we don't
-// know the visitor's language yet, that's the whole point of this screen.
+// Shown once per diagnostics, before ConsentGate, so language is an explicit
+// first-class choice rather than a small corner switcher easy to miss.
+// Deliberately bilingual in its own copy (not run through useTranslation())
+// — we don't know the visitor's language yet, that's the whole point of
+// this screen.
 interface LanguageGateProps {
   /** From WhoAmI.purchased_language — pre-highlights the language the
    * account's most recent SimpleShop purchase was made under, if any. */
   suggestedLang?: string;
-  onChosen: () => void;
+  /** From WhoAmI.current_diagnostics_id — the choice is stored against this
+   * id so a later, different diagnostics (re-purchase, admin re-grant) gets
+   * asked again instead of silently inheriting an old browser choice. */
+  diagnosticsId: number | null;
 }
 
-export function LanguageGate({ suggestedLang, onChosen }: LanguageGateProps) {
+export function LanguageGate({ suggestedLang, diagnosticsId }: LanguageGateProps) {
   const { setLang } = useLang();
 
   function choose(lang: Lang) {
     setLang(lang);
-    storeLang(lang);
-    onChosen();
+    storeLang(lang, diagnosticsId);
   }
 
   return (

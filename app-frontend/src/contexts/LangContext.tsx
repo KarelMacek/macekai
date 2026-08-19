@@ -7,22 +7,60 @@ interface LangContextType {
   setLang: (l: Lang) => void;
 }
 
-// Written once by LanguageGate (the onboarding "pick your language" screen),
-// the only place allowed to write it — the choice sticks across sessions
-// instead of re-guessing from the browser every time, and is never
-// overridden afterwards (no header/settings switcher, no auto-correction
-// from purchase records — see git history for what NOT to reintroduce).
+// Written once per diagnostics by LanguageGate (the onboarding "pick your
+// language" screen), the only place allowed to write it. Scoped to a
+// diagnostics id (WhoAmI.current_diagnostics_id), not just the browser —
+// a browser that already answered for an older diagnostics must still be
+// asked again for a new one (re-purchase, admin re-grant in a different
+// language), rather than a stale choice silently winning. Once answered for
+// a given diagnostics it's locked for that diagnostics: no switcher, no
+// auto-correction from purchase records (see git history for what NOT to
+// reintroduce).
 const LANG_CHOSEN_KEY = "macekai-lang-chosen";
 
-export function getStoredLang(): Lang | null {
-  if (typeof localStorage === "undefined") return null;
-  const stored = localStorage.getItem(LANG_CHOSEN_KEY);
-  return stored === "en" || stored === "cs" ? stored : null;
+interface StoredLangChoice {
+  diagnosticsId: number | null;
+  lang: Lang;
 }
 
-export function storeLang(lang: Lang): void {
+function readStoredChoice(): StoredLangChoice | null {
+  if (typeof localStorage === "undefined") return null;
+  const raw = localStorage.getItem(LANG_CHOSEN_KEY);
+  if (!raw) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      ((parsed as StoredLangChoice).lang === "en" || (parsed as StoredLangChoice).lang === "cs") &&
+      (typeof (parsed as StoredLangChoice).diagnosticsId === "number" ||
+        (parsed as StoredLangChoice).diagnosticsId === null)
+    ) {
+      return parsed as StoredLangChoice;
+    }
+  } catch {
+    // Malformed or pre-scoping legacy value (a bare "en"/"cs" string) —
+    // treat as unanswered rather than guessing which diagnostics it meant.
+  }
+  return null;
+}
+
+/** Best-guess initial value before the current diagnostics id is known
+ * (LangProvider mounts above AuthProvider, ahead of the whoami fetch). Only
+ * ever used as a first-paint placeholder — `getStoredLangFor` below is what
+ * actually decides whether LanguageGate should show. */
+export function getStoredLangRaw(): Lang | null {
+  return readStoredChoice()?.lang ?? null;
+}
+
+export function getStoredLangFor(diagnosticsId: number | null): Lang | null {
+  const stored = readStoredChoice();
+  return stored && stored.diagnosticsId === diagnosticsId ? stored.lang : null;
+}
+
+export function storeLang(lang: Lang, diagnosticsId: number | null): void {
   if (typeof localStorage === "undefined") return;
-  localStorage.setItem(LANG_CHOSEN_KEY, lang);
+  localStorage.setItem(LANG_CHOSEN_KEY, JSON.stringify({ diagnosticsId, lang }));
 }
 
 function detectDefaultLang(): Lang {
@@ -38,7 +76,7 @@ const LangContext = createContext<LangContextType>({
 });
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>(() => getStoredLang() ?? detectDefaultLang());
+  const [lang, setLang] = useState<Lang>(() => getStoredLangRaw() ?? detectDefaultLang());
   return <LangContext.Provider value={{ lang, setLang }}>{children}</LangContext.Provider>;
 }
 

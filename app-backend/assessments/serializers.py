@@ -309,7 +309,10 @@ class DiagnosticsDetailSerializer(serializers.Serializer):
     feedback_request = FeedbackRequestSerializer(allow_null=True)
     feedback = AdminFeedbackReadSerializer(allow_null=True)
     # None = no linked user yet / consent never recorded, distinct from False.
+    # Two separate questions — see views._build_diagnostics_detail — never
+    # collapse these into one flag.
     ai_consent = serializers.BooleanField(allow_null=True)
+    research_consent = serializers.BooleanField(allow_null=True)
 
 
 class AdminDiagnosticsSummarySerializer(DiagnosticsSummarySerializer):

@@ -83,11 +83,17 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
         # AdminFeedbackReadSerializer can still seed the email draft fields.
         feedback = AdminFeedback(feedback_request=feedback_request)
 
+    # Two distinct questions asked once, together, by ConsentGate — never
+    # blend these into one flag: ai_processing_consent is "can AI touch this
+    # client's own answers/feedback," research_consent is the separate
+    # "can their anonymized record feed statistics/ML research" question.
     ai_consent = None
+    research_consent = None
     if diagnostics.user_id:
         consent = UserConsent.objects.filter(user_id=diagnostics.user_id).first()
         if consent:
             ai_consent = consent.ai_processing_consent
+            research_consent = consent.research_consent
 
     return {
         "id": diagnostics.id,
@@ -112,6 +118,7 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
             else None
         ),
         "ai_consent": ai_consent,
+        "research_consent": research_consent,
     }
 
 

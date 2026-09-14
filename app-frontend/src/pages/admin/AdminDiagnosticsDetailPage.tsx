@@ -62,12 +62,17 @@ export function AdminDiagnosticsDetailPage() {
     }
   }
 
-  const aiConsentLabel =
-    diagnostics?.ai_consent === true
-      ? t("adminAiConsentYes")
-      : diagnostics?.ai_consent === false
-        ? t("adminAiConsentNo")
-        : t("adminAiConsentUnknown");
+  function consentLabel(value: boolean | null | undefined) {
+    if (value === true) return t("adminConsentYes");
+    if (value === false) return t("adminConsentNo");
+    return t("adminConsentUnknown");
+  }
+
+  function consentColor(value: boolean | null | undefined) {
+    if (value === true) return "text-emerald-600";
+    if (value === false) return "text-destructive";
+    return "text-muted-foreground";
+  }
 
   if (!diagnostics) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
@@ -81,18 +86,14 @@ export function AdminDiagnosticsDetailPage() {
         <p className="text-sm text-muted-foreground">
           {diagnostics.journey_slug} · {t(STATUS_LABEL_KEY[diagnostics.status])}
         </p>
-        <p
-          className={
-            "text-sm font-medium " +
-            (diagnostics.ai_consent === true
-              ? "text-emerald-600"
-              : diagnostics.ai_consent === false
-                ? "text-destructive"
-                : "text-muted-foreground")
-          }
-        >
-          {t("adminAiConsentLabel")}: {aiConsentLabel}
-        </p>
+        <div className="flex flex-col gap-0.5">
+          <p className={"text-sm font-medium " + consentColor(diagnostics.ai_consent)}>
+            {t("adminAiConsentLabel")}: {consentLabel(diagnostics.ai_consent)}
+          </p>
+          <p className={"text-sm font-medium " + consentColor(diagnostics.research_consent)}>
+            {t("adminMlConsentLabel")}: {consentLabel(diagnostics.research_consent)}
+          </p>
+        </div>
       </div>
 
       {diagnostics.submissions.map((submission) => (

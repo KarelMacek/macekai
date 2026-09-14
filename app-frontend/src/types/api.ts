@@ -170,7 +170,9 @@ export interface DiagnosticsDetail {
   feedback_request: FeedbackRequest | null;
   feedback: AdminFeedback | null;
   // null = no linked user yet / consent never recorded, distinct from false.
+  // Two separate questions — never blend these into one "AI/ML" flag.
   ai_consent: boolean | null;
+  research_consent: boolean | null;
 }
 
 export interface AdminDiagnosticsSummary extends DiagnosticsSummary {

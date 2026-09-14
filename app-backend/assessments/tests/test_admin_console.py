@@ -188,13 +188,15 @@ def test_admin_detail_seeds_email_draft_before_any_feedback_saved(staff_client, 
     assert resp.data["feedback"]["email_body"]
 
 
-def test_admin_detail_reports_ai_consent(staff_client, diagnostics, customer):
+def test_admin_detail_reports_ai_and_research_consent_separately(staff_client, diagnostics, customer):
     resp = staff_client.get(f"/api/assessments/admin/diagnostics/{diagnostics.id}/")
     assert resp.data["ai_consent"] is None  # never asked yet
+    assert resp.data["research_consent"] is None
 
     UserConsent.objects.create(user=customer, ai_processing_consent=True, research_consent=False)
     resp = staff_client.get(f"/api/assessments/admin/diagnostics/{diagnostics.id}/")
     assert resp.data["ai_consent"] is True
+    assert resp.data["research_consent"] is False
 
 
 # --- feedback write ------------------------------------------------------------------

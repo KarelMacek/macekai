@@ -187,14 +187,22 @@ class NeedsReviewFilter(admin.SimpleListFilter):
 
 @admin.register(FeedbackRequest)
 class FeedbackRequestAdmin(admin.ModelAdmin):
-    list_display = ("diagnostics", "linkedin_url", "has_cv", "ai_consent", "requested_at", "published")
+    # ai_consent and ml_consent are two separate questions ConsentGate asks
+    # (see UserConsent.ai_processing_consent/research_consent) — deliberately
+    # not blended into one "AI/ML" flag, each shown explicitly.
+    list_display = (
+        "diagnostics", "linkedin_url", "has_cv", "ai_consent", "ml_consent", "requested_at", "published",
+    )
     list_filter = (NeedsReviewFilter, "diagnostics__journey")
     search_fields = ("diagnostics__email", "diagnostics__user__email", "diagnostics__user__username")
-    readonly_fields = ("diagnostics", "requested_at", "diagnostics_answers_link", "ai_consent")
+    readonly_fields = (
+        "diagnostics", "requested_at", "diagnostics_answers_link", "ai_consent", "ml_consent",
+    )
     fields = (
         "diagnostics",
         "diagnostics_answers_link",
         "ai_consent",
+        "ml_consent",
         "cv_file",
         "linkedin_url",
         "requested_at",
@@ -205,13 +213,23 @@ class FeedbackRequestAdmin(admin.ModelAdmin):
     def has_cv(self, obj):
         return bool(obj.cv_file)
 
-    @admin.display(description="OK to use AI/ML")
-    def ai_consent(self, obj):
+    def _consent(self, obj):
         user = obj.diagnostics.user
-        consent = getattr(user, "consent", None) if user else None
+        return getattr(user, "consent", None) if user else None
+
+    @admin.display(description="OK to use AI on their answers?")
+    def ai_consent(self, obj):
+        consent = self._consent(obj)
         if consent is None:
             return "not recorded"
         return "yes" if consent.ai_processing_consent else "no"
+
+    @admin.display(description="OK for statistics/ML research?")
+    def ml_consent(self, obj):
+        consent = self._consent(obj)
+        if consent is None:
+            return "not recorded"
+        return "yes" if consent.research_consent else "no"
 
     @admin.display(description="Published", boolean=True)
     def published(self, obj):

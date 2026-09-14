@@ -13,7 +13,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .emailing import send_feedback_published_email
+from .emailing import send_feedback_published_email, send_feedback_requested_notification
 from .gdpr import delete_identity, export_identity, resolve_identity, summarize_identity
 from .i18n import get_lang, resolve_locale
 from .models import (
@@ -316,7 +316,20 @@ class FeedbackRequestView(APIView):
             instance=instance, data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save(diagnostics=diagnostics)
+        feedback_request = serializer.save(diagnostics=diagnostics)
+
+        if instance is None:
+            try:
+                send_feedback_requested_notification(feedback_request)
+            except Exception:
+                # The FeedbackRequest row is the important side effect and it's
+                # already saved — don't fail the submission just because the
+                # notification email failed to send.
+                logger.exception(
+                    "Failed to send feedback-requested admin notification for feedback_request %s",
+                    feedback_request.pk,
+                )
+
         response_status = status.HTTP_200_OK if instance else status.HTTP_201_CREATED
         return Response(serializer.data, status=response_status)
 

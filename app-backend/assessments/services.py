@@ -130,7 +130,7 @@ def grant_diagnostics_access(*, email: str, journey: Journey, language: str = ""
     synthetic uuid, never a real SimpleShop order id, so open_diagnostics()
     always treats this as a brand-new order and the email always sends
     exactly once per call."""
-    from .emailing import send_purchase_instructions_email
+    from .emailing import send_new_client_notification, send_purchase_instructions_email
 
     order_id = f"admin-grant-{uuid.uuid4().hex[:12]}"
     diagnostics = open_diagnostics(
@@ -146,6 +146,10 @@ def grant_diagnostics_access(*, email: str, journey: Journey, language: str = ""
         # The Diagnostics row is the important side effect and it's already
         # saved — don't fail the grant just because the email failed to send.
         logger.exception("Failed to send purchase instructions email for admin grant %s", diagnostics.pk)
+    try:
+        send_new_client_notification(diagnostics)
+    except Exception:
+        logger.exception("Failed to send new-client admin notification for admin grant %s", diagnostics.pk)
     return diagnostics
 
 

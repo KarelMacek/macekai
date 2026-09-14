@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
@@ -130,6 +132,24 @@ def test_feedback_hidden_until_published(api_client, diagnostics):
     resp = api_client.get("/api/assessments/feedback/")
     assert resp.status_code == 200
     assert resp.data["video_url"] == "https://example.com/video"
+
+
+def test_feedback_request_notifies_admin_once(api_client, diagnostics):
+    with patch("assessments.emailing.graph_mail.send_mail") as mock_send_mail:
+        resp = api_client.post(
+            "/api/assessments/feedback-request/", {"linkedin_url": "https://linkedin.com/in/alice"}
+        )
+        assert resp.status_code == 201
+        mock_send_mail.assert_called_once()
+        assert mock_send_mail.call_args.kwargs["to"] == "karel@macek.ai"
+        assert diagnostics.email in mock_send_mail.call_args.kwargs["subject"]
+
+        # Editing the same request (still no admin review) must not re-notify.
+        resp = api_client.post(
+            "/api/assessments/feedback-request/", {"linkedin_url": "https://linkedin.com/in/alice2"}
+        )
+        assert resp.status_code == 200
+        mock_send_mail.assert_called_once()
 
 
 def test_journey_reports_current_step(api_client, diagnostics):

@@ -483,7 +483,10 @@ def test_admin_grant_access_opens_diagnostics_and_sends_email(staff_client, jour
 
     assert resp.status_code == 201
     assert Diagnostics.objects.filter(email="granted@example.com", journey=journey_obj).exists()
-    mock_send_mail.assert_called_once()
+    # Purchase instructions to the client + a new-client notification to the admin.
+    assert mock_send_mail.call_count == 2
+    calls_to = {call.kwargs["to"] for call in mock_send_mail.call_args_list}
+    assert calls_to == {"granted@example.com", "karel@macek.ai"}
 
 
 def test_admin_grant_access_rejects_unknown_journey(staff_client):

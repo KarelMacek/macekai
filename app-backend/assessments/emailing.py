@@ -12,7 +12,7 @@ from django.utils.html import linebreaks
 from backend import graph_mail
 
 from .i18n import resolve_locale
-from .models import AdminFeedback, Diagnostics
+from .models import AdminFeedback, Diagnostics, FeedbackRequest
 
 _COPY = {
     "subject": {
@@ -106,6 +106,10 @@ _COPY = {
         "cs": 'Nový klient: {email} ({journey_name})',
         "en": "New client: {email} ({journey_name})",
     },
+    "feedback_requested_subject": {
+        "cs": 'Vyžádána zpětná vazba: {email} ({journey_name})',
+        "en": "Feedback requested: {email} ({journey_name})",
+    },
 }
 
 
@@ -195,17 +199,46 @@ def send_feedback_published_email(diagnostics: Diagnostics, feedback: AdminFeedb
     graph_mail.send_mail(to=diagnostics.email, subject=subject, html_body=linebreaks(body))
 
 
-def send_new_client_notification(diagnostics: Diagnostics) -> None:
-    """Tells settings.ADMIN_NOTIFY_EMAIL a new client just purchased — fired
-    once per new SimpleShop order, alongside the buyer's own
-    purchase-instructions email (see webhooks.SimpleShopWebhookView)."""
+def _notify_admin(subject: str, body: str) -> None:
+    """Shared by send_new_client_notification and
+    send_feedback_requested_notification below — blank ADMIN_NOTIFY_EMAIL
+    disables both silently, same as the buyer-facing emails do for their
+    own blank settings."""
     if not settings.ADMIN_NOTIFY_EMAIL:
         return
+    graph_mail.send_mail(to=settings.ADMIN_NOTIFY_EMAIL, subject=subject, html_body=body)
+
+
+def send_new_client_notification(diagnostics: Diagnostics) -> None:
+    """Tells settings.ADMIN_NOTIFY_EMAIL a new client just got a diagnostics
+    opened — fired once per new Diagnostics, whether from a real SimpleShop
+    order (webhooks.SimpleShopWebhookView) or an admin manually granting
+    access (services.grant_diagnostics_access)."""
     lang = diagnostics.language or "en"
     journey_name = resolve_locale(diagnostics.journey.name, lang) or diagnostics.journey.slug
     subject = _copy("new_client_subject", lang, email=diagnostics.email, journey_name=journey_name)
-    body = (
-        f"<p>{diagnostics.email} just purchased “{journey_name}”.</p>"
-        f"<p>Order: {diagnostics.source_order_number or diagnostics.source_order_id or '—'}</p>"
+    order_note = (
+        f"<p>Order: {diagnostics.source_order_number or diagnostics.source_order_id}</p>"
+        if diagnostics.opened_via == Diagnostics.OPENED_VIA_WEBHOOK
+        else "<p>Opened manually (admin grant).</p>"
     )
-    graph_mail.send_mail(to=settings.ADMIN_NOTIFY_EMAIL, subject=subject, html_body=body)
+    body = f"<p>{diagnostics.email} just got access to “{journey_name}”.</p>{order_note}"
+    _notify_admin(subject, body)
+
+
+def send_feedback_requested_notification(feedback_request: FeedbackRequest) -> None:
+    """Tells settings.ADMIN_NOTIFY_EMAIL a client just submitted their
+    CV/LinkedIn for review — fired once per FeedbackRequest, only on first
+    creation (see views.FeedbackRequestView.post), never on later edits of
+    the same request."""
+    diagnostics = feedback_request.diagnostics
+    lang = diagnostics.language or "en"
+    journey_name = resolve_locale(diagnostics.journey.name, lang) or diagnostics.journey.slug
+    subject = _copy("feedback_requested_subject", lang, email=diagnostics.email, journey_name=journey_name)
+    link = f"{_app_url()}admin/diagnostics/{diagnostics.id}"
+    body = (
+        f"<p>{diagnostics.email} just submitted their CV/LinkedIn for "
+        f"“{journey_name}” — ready for your review.</p>"
+        f'<p><a href="{link}">{link}</a></p>'
+    )
+    _notify_admin(subject, body)

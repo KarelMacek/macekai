@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .emailing import send_purchase_instructions_email
+from .emailing import send_new_client_notification, send_purchase_instructions_email
 from .models import Diagnostics, Journey
 from .services import open_diagnostics
 
@@ -91,6 +91,13 @@ class SimpleShopWebhookView(APIView):
                 # just because the email failed to send.
                 logger.exception(
                     "Failed to send purchase instructions email for order %s", order_id
+                )
+            try:
+                send_new_client_notification(diagnostics)
+            except Exception:
+                # Same reasoning — a failed admin notification shouldn't fail the webhook.
+                logger.exception(
+                    "Failed to send new-client admin notification for order %s", order_id
                 )
 
         return Response(status=200)

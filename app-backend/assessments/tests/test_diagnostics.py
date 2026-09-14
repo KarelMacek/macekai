@@ -264,28 +264,39 @@ def test_webhook_accepts_post(journey):
 
 # --- webhook -> purchase instructions email ----------------------------------
 
+def _call_to(mock_send_mail, to):
+    return next(call for call in mock_send_mail.call_args_list if call.kwargs["to"] == to)
+
+
 def test_webhook_sends_purchase_instructions_email_on_new_order(journey, mock_send_mail):
     resp = APIClient().get(
         _webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"}
     )
     assert resp.status_code == 200
-    mock_send_mail.assert_called_once()
-    assert mock_send_mail.call_args.kwargs["to"] == "buyer@example.com"
+    _call_to(mock_send_mail, "buyer@example.com")
 
 
 def test_webhook_does_not_resend_email_on_repeat_order(journey, mock_send_mail):
     params = {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"}
     APIClient().get(_webhook_url(), params)
+    assert mock_send_mail.call_count == 2  # buyer instructions + admin notification
     APIClient().get(_webhook_url(), params)
-    mock_send_mail.assert_called_once()
+    assert mock_send_mail.call_count == 2
 
 
 def test_webhook_email_language_matches_purchased_product(journey, mock_send_mail):
     APIClient().get(_webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"})
-    assert "připravena" in mock_send_mail.call_args.kwargs["subject"]
+    assert "k dispozici" in _call_to(mock_send_mail, "buyer@example.com").kwargs["subject"]
 
     APIClient().get(_webhook_url(), {"mail": "buyer2@example.com", "id": "ORDER2", "id_product": "PROD1-EN"})
-    assert "ready" in mock_send_mail.call_args.kwargs["subject"]
+    assert "ready" in _call_to(mock_send_mail, "buyer2@example.com").kwargs["subject"]
+
+
+def test_webhook_notifies_admin_on_new_order(journey, mock_send_mail, settings):
+    settings.ADMIN_NOTIFY_EMAIL = "karel@macek.ai"
+    APIClient().get(_webhook_url(), {"mail": "buyer@example.com", "id": "ORDER1", "id_product": "PROD1"})
+    admin_call = _call_to(mock_send_mail, "karel@macek.ai")
+    assert "buyer@example.com" in admin_call.kwargs["subject"]
 
 
 def test_webhook_email_failure_does_not_break_webhook(journey, mock_send_mail):

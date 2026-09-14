@@ -171,6 +171,11 @@ EASY_AUTH_DEV_USER_EMAIL = os.environ.get('EASY_AUTH_DEV_USER_EMAIL', '')
 # to /admin/ (assessments review/authoring). See backend/auth/middleware.py.
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', '')
 
+# Where "new client" notifications go (see assessments.emailing.send_new_client_notification,
+# fired from the SimpleShop webhook) — deliberately separate from ADMIN_EMAIL above, which
+# controls staff/login access, not notifications. Blank disables the notification silently.
+ADMIN_NOTIFY_EMAIL = os.environ.get('ADMIN_NOTIFY_EMAIL', 'karel@macek.ai')
+
 # SimpleShop.cz payment webhook — see assessments/webhooks.py. SECRET is the
 # unguessable path segment configured in SimpleShop's "webhook after
 # payment" field (SimpleShop doesn't sign requests, so this is the actual

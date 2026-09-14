@@ -18,6 +18,8 @@ export function AdminDiagnosticsDetailPage() {
   const [document, setDocument] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState("");
   const [notes, setNotes] = useState("");
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -29,6 +31,8 @@ export function AdminDiagnosticsDetailPage() {
       setDiagnostics(d);
       setVideoUrl(d.feedback?.video_url ?? "");
       setNotes(d.feedback?.notes ?? "");
+      setEmailSubject(d.feedback?.email_subject ?? "");
+      setEmailBody(d.feedback?.email_body ?? "");
       setIsPublished(!!d.feedback?.published_at);
     });
   }, [id, lang]);
@@ -44,6 +48,8 @@ export function AdminDiagnosticsDetailPage() {
         document,
         video_url: videoUrl,
         notes,
+        email_subject: emailSubject,
+        email_body: emailBody,
         is_published: isPublished,
       });
       setDiagnostics({ ...diagnostics, feedback });
@@ -56,6 +62,13 @@ export function AdminDiagnosticsDetailPage() {
     }
   }
 
+  const aiConsentLabel =
+    diagnostics?.ai_consent === true
+      ? t("adminAiConsentYes")
+      : diagnostics?.ai_consent === false
+        ? t("adminAiConsentNo")
+        : t("adminAiConsentUnknown");
+
   if (!diagnostics) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
   return (
@@ -67,6 +80,18 @@ export function AdminDiagnosticsDetailPage() {
         <h1 className="text-lg font-semibold">{diagnostics.email}</h1>
         <p className="text-sm text-muted-foreground">
           {diagnostics.journey_slug} · {t(STATUS_LABEL_KEY[diagnostics.status])}
+        </p>
+        <p
+          className={
+            "text-sm font-medium " +
+            (diagnostics.ai_consent === true
+              ? "text-emerald-600"
+              : diagnostics.ai_consent === false
+                ? "text-destructive"
+                : "text-muted-foreground")
+          }
+        >
+          {t("adminAiConsentLabel")}: {aiConsentLabel}
         </p>
       </div>
 
@@ -140,6 +165,26 @@ export function AdminDiagnosticsDetailPage() {
             <div className="flex flex-col gap-2">
               <Label htmlFor="notes">{t("adminNotesLabel")}</Label>
               <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+            </div>
+
+            <div className="flex flex-col gap-2 border-t pt-4">
+              <Label htmlFor="email_subject">{t("adminEmailSubjectLabel")}</Label>
+              <Input
+                id="email_subject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="email_body">{t("adminEmailBodyLabel")}</Label>
+              <Textarea
+                id="email_body"
+                rows={14}
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">{t("adminEmailBodyHint")}</p>
             </div>
 
             <div className="flex flex-col gap-1">

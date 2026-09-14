@@ -187,16 +187,31 @@ class NeedsReviewFilter(admin.SimpleListFilter):
 
 @admin.register(FeedbackRequest)
 class FeedbackRequestAdmin(admin.ModelAdmin):
-    list_display = ("diagnostics", "linkedin_url", "has_cv", "requested_at", "published")
+    list_display = ("diagnostics", "linkedin_url", "has_cv", "ai_consent", "requested_at", "published")
     list_filter = (NeedsReviewFilter, "diagnostics__journey")
     search_fields = ("diagnostics__email", "diagnostics__user__email", "diagnostics__user__username")
-    readonly_fields = ("diagnostics", "requested_at", "diagnostics_answers_link")
-    fields = ("diagnostics", "diagnostics_answers_link", "cv_file", "linkedin_url", "requested_at")
+    readonly_fields = ("diagnostics", "requested_at", "diagnostics_answers_link", "ai_consent")
+    fields = (
+        "diagnostics",
+        "diagnostics_answers_link",
+        "ai_consent",
+        "cv_file",
+        "linkedin_url",
+        "requested_at",
+    )
     inlines = [AdminFeedbackInline]
 
     @admin.display(description="CV uploaded", boolean=True)
     def has_cv(self, obj):
         return bool(obj.cv_file)
+
+    @admin.display(description="OK to use AI/ML")
+    def ai_consent(self, obj):
+        user = obj.diagnostics.user
+        consent = getattr(user, "consent", None) if user else None
+        if consent is None:
+            return "not recorded"
+        return "yes" if consent.ai_processing_consent else "no"
 
     @admin.display(description="Published", boolean=True)
     def published(self, obj):

@@ -179,6 +179,8 @@ export async function submitAdminFeedback(
   if (payload.document) form.append("document", payload.document);
   if (payload.video_url !== undefined) form.append("video_url", payload.video_url);
   if (payload.notes !== undefined) form.append("notes", payload.notes);
+  if (payload.email_subject !== undefined) form.append("email_subject", payload.email_subject);
+  if (payload.email_body !== undefined) form.append("email_body", payload.email_body);
   if (payload.is_published !== undefined) form.append("is_published", String(payload.is_published));
 
   const { data } = await client.post<AdminFeedback>(

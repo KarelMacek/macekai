@@ -78,6 +78,16 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
     if not include_unpublished_feedback:
         feedback_qs = feedback_qs.filter(is_published=True)
     feedback = feedback_qs.first()
+    if feedback is None and include_unpublished_feedback and feedback_request is not None:
+        # Nothing saved yet — hand the admin console an unsaved instance so
+        # AdminFeedbackReadSerializer can still seed the email draft fields.
+        feedback = AdminFeedback(feedback_request=feedback_request)
+
+    ai_consent = None
+    if diagnostics.user_id:
+        consent = UserConsent.objects.filter(user_id=diagnostics.user_id).first()
+        if consent:
+            ai_consent = consent.ai_processing_consent
 
     return {
         "id": diagnostics.id,
@@ -101,11 +111,26 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
             if feedback
             else None
         ),
+        "ai_consent": ai_consent,
     }
 
 
 def _latest_active_test(slug):
     return Test.objects.filter(slug=slug, is_active=True).order_by("-version").first()
+
+
+def _diagnostics_summary_row(d):
+    return {
+        "id": d.id,
+        "journey_slug": d.journey.slug,
+        "opened_at": d.opened_at,
+        "status": diagnostics_status(d),
+        "language": d.language,
+    }
+
+
+class AdminAPIView(APIView):
+    permission_classes = [IsAdminUser]
 
 
 class JourneyView(APIView):
@@ -317,16 +342,7 @@ class DiagnosticsListView(APIView):
     @extend_schema(responses=DiagnosticsSummarySerializer(many=True))
     def get(self, request):
         diagnostics_qs = Diagnostics.objects.filter(user=request.user).select_related("journey")
-        data = [
-            {
-                "id": d.id,
-                "journey_slug": d.journey.slug,
-                "opened_at": d.opened_at,
-                "status": diagnostics_status(d),
-                "language": d.language,
-            }
-            for d in diagnostics_qs
-        ]
+        data = [_diagnostics_summary_row(d) for d in diagnostics_qs]
         return Response(DiagnosticsSummarySerializer(data, many=True).data)
 
 
@@ -344,13 +360,9 @@ class DiagnosticsDetailView(APIView):
         return Response(data)
 
 
-class AdminDiagnosticsListView(APIView):
+class AdminDiagnosticsListView(AdminAPIView):
     """The admin console's queue — every diagnostics, not just the
-    requester's own. permission_classes overrides the default
-    IsAuthenticated with IsAdminUser (checks request.user.is_staff, the same
-    flag that gates Django admin)."""
-
-    permission_classes = [IsAdminUser]
+    requester's own."""
 
     @extend_schema(responses=AdminDiagnosticsSummarySerializer(many=True))
     def get(self, request):
@@ -363,28 +375,17 @@ class AdminDiagnosticsListView(APIView):
 
         data = []
         for d in diagnostics_qs:
-            row_status = diagnostics_status(d)
-            if status_filter and row_status != status_filter:
+            row = _diagnostics_summary_row(d)
+            if status_filter and row["status"] != status_filter:
                 continue
-            data.append(
-                {
-                    "id": d.id,
-                    "email": d.email,
-                    "journey_slug": d.journey.slug,
-                    "opened_at": d.opened_at,
-                    "status": row_status,
-                    "language": d.language,
-                }
-            )
+            data.append({**row, "email": d.email})
         return Response(AdminDiagnosticsSummarySerializer(data, many=True).data)
 
 
-class AdminDiagnosticsStatsView(APIView):
+class AdminDiagnosticsStatsView(AdminAPIView):
     """Funnel summary for the entry-diagnostic pricing decision: paid vs.
     started the questionnaire vs. actually finished. All-time by default;
     ?from=YYYY-MM-DD&to=YYYY-MM-DD narrows the paid cohort by opened_at."""
-
-    permission_classes = [IsAdminUser]
 
     @extend_schema(responses=AdminDiagnosticsStatsSerializer)
     def get(self, request):
@@ -399,12 +400,10 @@ class AdminDiagnosticsStatsView(APIView):
         return Response(AdminDiagnosticsStatsSerializer(diagnostics_funnel_counts(diagnostics_qs)).data)
 
 
-class AdminDiagnosticsDetailView(APIView):
+class AdminDiagnosticsDetailView(AdminAPIView):
     """Same shape as DiagnosticsDetailView, minus the ownership filter and
     including unpublished (draft) feedback so the admin can see/edit what
     they've written before publishing it."""
-
-    permission_classes = [IsAdminUser]
 
     @extend_schema(responses=DiagnosticsDetailSerializer)
     def get(self, request, pk):
@@ -419,12 +418,10 @@ class AdminDiagnosticsDetailView(APIView):
         return Response(data)
 
 
-class AdminFeedbackWriteView(APIView):
+class AdminFeedbackWriteView(AdminAPIView):
     """Create-or-update the AdminFeedback for a given FeedbackRequest.
     document is optional per request — omit it to edit notes/video_url/
     is_published without re-uploading."""
-
-    permission_classes = [IsAdminUser]
 
     @extend_schema(request=AdminFeedbackWriteSerializer, responses=AdminFeedbackReadSerializer)
     def post(self, request, pk):
@@ -493,14 +490,12 @@ class MyDataExportView(APIView):
         return response
 
 
-class AdminUserListView(APIView):
+class AdminUserListView(AdminAPIView):
     """The admin console's people list — every registered user, each with
     the same GDPR-graph counts the Django admin confirmation page shows
     (assessments.gdpr.summarize_identity), so "who has how much data" is
     visible before deciding to erase someone. ?q= filters by email/username
     substring."""
-
-    permission_classes = [IsAdminUser]
 
     @extend_schema(responses=AdminUserSummarySerializer(many=True))
     def get(self, request):
@@ -528,7 +523,7 @@ class AdminUserListView(APIView):
         return Response(AdminUserSummarySerializer(data, many=True).data)
 
 
-class AdminEraseIdentityView(APIView):
+class AdminEraseIdentityView(AdminAPIView):
     """Erases a person's User row (if any) and every related record —
     assessments.gdpr.delete_identity, the same primitive the Django admin
     action and `erase_gdpr_data` management command use. Targeted either by
@@ -536,8 +531,6 @@ class AdminEraseIdentityView(APIView):
     account yet" case — a pre-login purchase). typed_email must match the
     resolved email exactly (case-insensitive) or nothing is deleted — the
     same confirm-by-typing requirement as the Django admin action."""
-
-    permission_classes = [IsAdminUser]
 
     def post(self, request):
         user = None
@@ -567,11 +560,9 @@ class AdminEraseIdentityView(APIView):
         )
 
 
-class AdminJourneyListView(APIView):
+class AdminJourneyListView(AdminAPIView):
     """Active journeys, for the "grant access" form's picker — same locale
     resolution the customer-facing journey/test copy uses."""
-
-    permission_classes = [IsAdminUser]
 
     @extend_schema(responses=AdminJourneySummarySerializer(many=True))
     def get(self, request):
@@ -581,15 +572,13 @@ class AdminJourneyListView(APIView):
         return Response(AdminJourneySummarySerializer(data, many=True).data)
 
 
-class AdminGrantAccessView(APIView):
+class AdminGrantAccessView(AdminAPIView):
     """Manually grants diagnostics access — the "webhook runner": opens a
     diagnostics and sends the real purchase-instructions email, exactly
     like a genuine SimpleShop purchase, without one. See
     services.grant_diagnostics_access. Used for dev/staging testing without
     paying, and for granting an existing prod client access without asking
     them to buy again."""
-
-    permission_classes = [IsAdminUser]
 
     @extend_schema(responses=AdminGrantAccessResultSerializer)
     def post(self, request):

@@ -92,15 +92,19 @@ _COPY = {
     },
     "feedback_link_body": {
         "cs": "Celou zpětnou vazbu (včetně dokumentu{video_note}) najdete po přihlášení na "
-        '<a href="{link}">{link}</a>. Přihlaste se prosím <strong>stejnou e-mailovou '
-        "adresou, na kterou proběhl nákup</strong>: <strong>{email}</strong>.",
+        "{link}. Přihlaste se prosím stejnou e-mailovou adresou, na kterou proběhl nákup: "
+        "{email}.",
         "en": "You'll find the full feedback (including the document{video_note}) after "
-        'signing in at <a href="{link}">{link}</a>. Please use <strong>the same email '
-        "address the purchase was made under</strong>: <strong>{email}</strong>.",
+        "signing in at {link}. Please use the same email address the purchase was made "
+        "under: {email}.",
     },
     "feedback_video_note": {
         "cs": " a video",
         "en": " and video",
+    },
+    "new_client_subject": {
+        "cs": 'Nový klient: {email} ({journey_name})',
+        "en": "New client: {email} ({journey_name})",
     },
 }
 
@@ -145,12 +149,13 @@ def send_purchase_instructions_email(diagnostics: Diagnostics) -> None:
     graph_mail.send_mail(to=diagnostics.email, subject=subject, html_body="".join(body_parts))
 
 
-def send_feedback_published_email(diagnostics: Diagnostics, feedback: AdminFeedback) -> None:
-    """Fired once, when an admin flips AdminFeedback.is_published (see
-    views.AdminFeedbackWriteView) — never on later edits of an already-
-    published feedback. The email's substance is feedback.notes itself (the
-    same text FeedbackViewPage shows the client), not a generic canned
-    paragraph — only the greeting/link/sign-off around it are boilerplate."""
+def draft_feedback_email(diagnostics: Diagnostics, feedback: AdminFeedback) -> tuple[str, str]:
+    """Plain-text starting point for the admin console's feedback email
+    fields (see AdminFeedbackReadSerializer) — the admin is expected to
+    rewrite this freely, signature included, before publishing. Never sent
+    as-is except as send_feedback_published_email's last-resort fallback
+    for a feedback row whose email_subject/email_body were somehow left
+    blank."""
     lang = diagnostics.language or "en"
     journey_name = resolve_locale(diagnostics.journey.name, lang) or diagnostics.journey.slug
 
@@ -158,16 +163,49 @@ def send_feedback_published_email(diagnostics: Diagnostics, feedback: AdminFeedb
     video_note = _copy("feedback_video_note", lang) if feedback.video_url else ""
     link = f"{_app_url()}feedback"
 
-    body_parts = [
-        f"<p>{_copy('greeting', lang)}</p>",
-        f"<p>{_copy('feedback_intro', lang, journey_name=journey_name)}</p>",
-    ]
+    lines = [_copy("greeting", lang), "", _copy("feedback_intro", lang, journey_name=journey_name)]
     if feedback.notes:
-        body_parts.append(linebreaks(feedback.notes))
-    body_parts += [
-        f"<p>{_copy('feedback_link_body', lang, link=link, email=diagnostics.email, video_note=video_note)}</p>",
-        f"<p>{_copy('support', lang)}</p>",
-        f"<p>{_copy('sign_off', lang)}</p>",
+        lines += ["", feedback.notes]
+    lines += [
+        "",
+        _copy("feedback_link_body", lang, link=link, email=diagnostics.email, video_note=video_note),
+        "",
+        _copy("support", lang),
+        "",
+        _copy("sign_off", lang),
     ]
+    return subject, "\n".join(lines)
 
-    graph_mail.send_mail(to=diagnostics.email, subject=subject, html_body="".join(body_parts))
+
+def send_feedback_published_email(diagnostics: Diagnostics, feedback: AdminFeedback) -> None:
+    """Fired once, when an admin flips AdminFeedback.is_published (see
+    views.AdminFeedbackWriteView) — never on later edits of an already-
+    published feedback. Sends feedback.email_subject/email_body completely
+    verbatim (only newlines become <p>/<br> via linebreaks()) — the admin
+    console prefills both from draft_feedback_email() but the admin owns
+    every word of the final text, signature included, by the time this
+    fires."""
+    subject = feedback.email_subject
+    body = feedback.email_body
+    if not subject or not body:
+        draft_subject, draft_body = draft_feedback_email(diagnostics, feedback)
+        subject = subject or draft_subject
+        body = body or draft_body
+
+    graph_mail.send_mail(to=diagnostics.email, subject=subject, html_body=linebreaks(body))
+
+
+def send_new_client_notification(diagnostics: Diagnostics) -> None:
+    """Tells settings.ADMIN_NOTIFY_EMAIL a new client just purchased — fired
+    once per new SimpleShop order, alongside the buyer's own
+    purchase-instructions email (see webhooks.SimpleShopWebhookView)."""
+    if not settings.ADMIN_NOTIFY_EMAIL:
+        return
+    lang = diagnostics.language or "en"
+    journey_name = resolve_locale(diagnostics.journey.name, lang) or diagnostics.journey.slug
+    subject = _copy("new_client_subject", lang, email=diagnostics.email, journey_name=journey_name)
+    body = (
+        f"<p>{diagnostics.email} just purchased “{journey_name}”.</p>"
+        f"<p>Order: {diagnostics.source_order_number or diagnostics.source_order_id or '—'}</p>"
+    )
+    graph_mail.send_mail(to=settings.ADMIN_NOTIFY_EMAIL, subject=subject, html_body=body)

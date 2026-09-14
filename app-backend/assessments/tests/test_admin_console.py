@@ -4,7 +4,16 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from assessments.models import AdminFeedback, Diagnostics, FeedbackRequest, Journey, JourneyStep, Test, TestSubmission
+from assessments.models import (
+    AdminFeedback,
+    Diagnostics,
+    FeedbackRequest,
+    Journey,
+    JourneyStep,
+    Test,
+    TestSubmission,
+    UserConsent,
+)
 from assessments.services import open_diagnostics
 
 
@@ -168,6 +177,26 @@ def test_admin_detail_includes_unpublished_feedback(staff_client, diagnostics):
     assert resp.data["feedback"]["notes"] == "draft"
 
 
+def test_admin_detail_seeds_email_draft_before_any_feedback_saved(staff_client, diagnostics):
+    # No AdminFeedback row at all yet — the admin console still needs
+    # something to prefill the email subject/body fields with.
+    FeedbackRequest.objects.create(diagnostics=diagnostics, linkedin_url="https://x")
+
+    resp = staff_client.get(f"/api/assessments/admin/diagnostics/{diagnostics.id}/")
+    assert resp.status_code == 200
+    assert resp.data["feedback"]["email_subject"]
+    assert resp.data["feedback"]["email_body"]
+
+
+def test_admin_detail_reports_ai_consent(staff_client, diagnostics, customer):
+    resp = staff_client.get(f"/api/assessments/admin/diagnostics/{diagnostics.id}/")
+    assert resp.data["ai_consent"] is None  # never asked yet
+
+    UserConsent.objects.create(user=customer, ai_processing_consent=True, research_consent=False)
+    resp = staff_client.get(f"/api/assessments/admin/diagnostics/{diagnostics.id}/")
+    assert resp.data["ai_consent"] is True
+
+
 # --- feedback write ------------------------------------------------------------------
 
 def test_admin_can_create_then_update_feedback(staff_client, diagnostics, mock_send_mail):
@@ -201,6 +230,27 @@ def test_admin_can_create_then_update_feedback(staff_client, diagnostics, mock_s
     )
     assert resp.status_code == 200
     mock_send_mail.assert_called_once()
+
+
+def test_admin_publish_sends_email_body_verbatim(staff_client, diagnostics, mock_send_mail):
+    feedback_request = FeedbackRequest.objects.create(diagnostics=diagnostics, linkedin_url="https://x")
+
+    resp = staff_client.post(
+        f"/api/assessments/admin/feedback-requests/{feedback_request.id}/feedback/",
+        {
+            "notes": "internal note, not the email",
+            "email_subject": "Custom subject just for you",
+            "email_body": "Hi there,\n\nfully custom body.\n\n— K",
+            "is_published": "true",
+        },
+    )
+    assert resp.status_code == 201
+    mock_send_mail.assert_called_once()
+    assert mock_send_mail.call_args.kwargs["subject"] == "Custom subject just for you"
+    assert "fully custom body" in mock_send_mail.call_args.kwargs["html_body"]
+    assert "— K" in mock_send_mail.call_args.kwargs["html_body"]
+    # The in-app notes text is a separate field, never folded into the email.
+    assert "not the email" not in mock_send_mail.call_args.kwargs["html_body"]
 
 
 def test_admin_published_feedback_visible_to_customer(staff_client, customer_client, diagnostics):

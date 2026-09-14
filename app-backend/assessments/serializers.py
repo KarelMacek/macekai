@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from .emailing import draft_feedback_email
 from .i18n import get_lang, resolve_locale
 from .models import (
     AdminFeedback,
@@ -237,14 +238,34 @@ class FeedbackRequestSerializer(serializers.ModelSerializer):
 
 
 class AdminFeedbackReadSerializer(serializers.ModelSerializer):
+    """email_subject/email_body fall back to draft_feedback_email()'s
+    boilerplate whenever the stored value is still blank — so the admin
+    console always has something populated to start rewriting, even before
+    the first save (see views._build_diagnostics_detail, which seeds an
+    unsaved AdminFeedback instance for that "nothing saved yet" case)."""
+
     document_url = serializers.SerializerMethodField()
+    email_subject = serializers.SerializerMethodField()
+    email_body = serializers.SerializerMethodField()
 
     class Meta:
         model = AdminFeedback
-        fields = ["document_url", "video_url", "notes", "published_at"]
+        fields = ["document_url", "video_url", "notes", "email_subject", "email_body", "published_at"]
 
     def get_document_url(self, obj) -> str | None:
         return obj.document.url if obj.document else None
+
+    def get_email_subject(self, obj) -> str:
+        if obj.email_subject:
+            return obj.email_subject
+        subject, _ = draft_feedback_email(obj.feedback_request.diagnostics, obj)
+        return subject
+
+    def get_email_body(self, obj) -> str:
+        if obj.email_body:
+            return obj.email_body
+        _, body = draft_feedback_email(obj.feedback_request.diagnostics, obj)
+        return body
 
 
 class JourneyStepStatusSerializer(serializers.Serializer):
@@ -287,6 +308,8 @@ class DiagnosticsDetailSerializer(serializers.Serializer):
     submissions = TestSubmissionReadSerializer(many=True)
     feedback_request = FeedbackRequestSerializer(allow_null=True)
     feedback = AdminFeedbackReadSerializer(allow_null=True)
+    # None = no linked user yet / consent never recorded, distinct from False.
+    ai_consent = serializers.BooleanField(allow_null=True)
 
 
 class AdminDiagnosticsSummarySerializer(DiagnosticsSummarySerializer):
@@ -309,7 +332,7 @@ class AdminFeedbackWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AdminFeedback
-        fields = ["document", "video_url", "notes", "is_published"]
+        fields = ["document", "video_url", "notes", "email_subject", "email_body", "is_published"]
 
 
 class ExportFileSerializer(serializers.Serializer):

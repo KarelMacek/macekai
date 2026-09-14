@@ -152,6 +152,8 @@ export interface AdminFeedback {
   document_url: string | null;
   video_url: string;
   notes: string;
+  email_subject: string;
+  email_body: string;
   published_at: string | null;
 }
 
@@ -167,6 +169,8 @@ export interface DiagnosticsDetail {
   submissions: TestSubmission[];
   feedback_request: FeedbackRequest | null;
   feedback: AdminFeedback | null;
+  // null = no linked user yet / consent never recorded, distinct from false.
+  ai_consent: boolean | null;
 }
 
 export interface AdminDiagnosticsSummary extends DiagnosticsSummary {
@@ -183,6 +187,8 @@ export interface AdminFeedbackWritePayload {
   document?: File | null;
   video_url?: string;
   notes?: string;
+  email_subject?: string;
+  email_body?: string;
   is_published?: boolean;
 }
 

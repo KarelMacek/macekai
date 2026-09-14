@@ -318,7 +318,12 @@ class FeedbackRequest(models.Model):
 
 class AdminFeedback(models.Model):
     """The admin's (Karel's) response to a FeedbackRequest: a document plus an
-    external video link (never an uploaded video file)."""
+    external video link (never an uploaded video file). notes is the short
+    blurb shown in-app on FeedbackViewPage; email_subject/email_body are the
+    actual "feedback published" email verbatim — see emailing.py's
+    draft_feedback_email (seeds these two from notes) and
+    send_feedback_published_email (sends them completely as-is, no further
+    template wrapping)."""
 
     feedback_request = models.OneToOneField(
         FeedbackRequest, on_delete=models.CASCADE, related_name="feedback"
@@ -328,6 +333,8 @@ class AdminFeedback(models.Model):
     )
     video_url = models.URLField(blank=True, default="")
     notes = models.TextField(blank=True, default="")
+    email_subject = models.CharField(max_length=255, blank=True, default="")
+    email_body = models.TextField(blank=True, default="")
     is_published = models.BooleanField(default=False)
     published_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -331,7 +331,11 @@ class AdminFeedback(models.Model):
     document = models.FileField(
         upload_to="feedback-docs/", storage=file_storage, null=True, blank=True
     )
-    video_url = models.URLField(blank=True, default="")
+    # Default URLField max_length (200) is too short for real-world signed
+    # sharing links (Loom/OneDrive/SharePoint/etc. routinely exceed it with
+    # query-string tokens) — hit live in prod 2026-09-14 on a genuine client
+    # video link, blocking a publish.
+    video_url = models.URLField(blank=True, default="", max_length=2000)
     notes = models.TextField(blank=True, default="")
     email_subject = models.CharField(max_length=255, blank=True, default="")
     email_body = models.TextField(blank=True, default="")

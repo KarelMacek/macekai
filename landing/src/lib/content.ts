@@ -9,9 +9,9 @@ export type Lang = "cs" | "en";
 export const PRICES = {
   quickCheck: { cs: "0 Kč", en: "0 EUR" },
   situationReview: { cs: "590 Kč", en: "23.99 EUR" },
-  changeMap: { cs: "3 600 Kč", en: "150 EUR" },
-  tacticalSprint: { cs: "10 800 Kč", en: "450 EUR" },
-  fullProgram: { cs: "43 200 Kč", en: "1 800 EUR" },
+  changeMap: { cs: "4 000 Kč", en: "165 EUR" },
+  tacticalSprint: { cs: "12 000 Kč", en: "490 EUR" },
+  fullProgram: { cs: "45 000 Kč", en: "1 900 EUR" },
 } as const;
 
 // Temporary end-of-August discount on "Situation review" (step 03) — reverts

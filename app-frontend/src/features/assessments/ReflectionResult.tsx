@@ -1,18 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { getReflectionText, saveReflectionText } from "@/lib/api";
-import { useTranslation, type TranslationKey } from "@/lib/i18n";
+import { useTranslation } from "@/lib/i18n";
 import type { ReflectionCell, ReflectionText, TestDetail, TestSubmission } from "@/types/api";
 
 import { DOMAIN_KEYS, domainTitleKey } from "./ReflectionTest";
+import type { AutosaveState } from "./SaveExitControl";
 
-const PROMPTS = [
-  ["situation", "scarfPromptSituation"],
-  ["exception", "scarfPromptException"],
-  ["missing", "scarfPromptMissing"],
-] as const satisfies readonly (readonly [string, TranslationKey])[];
+const COMMENT_SAVE_DELAY_MS = 800;
 
 interface Props {
   test: TestDetail;
@@ -26,6 +22,36 @@ export function ReflectionResult({ test, submission }: Props) {
   const { t } = useTranslation();
   const cells = submission.computed_result.reflection ?? {};
   const domains = DOMAIN_KEYS.filter((d) => cells[d]);
+  const [reflection, setReflection] = useState<ReflectionText>({});
+  const [commentSave, setCommentSave] = useState<Record<string, AutosaveState>>({});
+  const reflectionRef = useRef<ReflectionText>({});
+  const saveTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
+  useEffect(() => {
+    getReflectionText(submission.id)
+      .then((loaded) => {
+        reflectionRef.current = loaded;
+        setReflection(loaded);
+      })
+      .catch(() => undefined);
+    const timers = saveTimers.current;
+    return () => Object.values(timers).forEach(clearTimeout);
+  }, [submission.id]);
+
+  // The endpoint replaces the whole blob, so every save sends all domains,
+  // read from the ref so overlapping edits in two domains can't drop each other.
+  function updateDomainComment(domain: string, text: string) {
+    const next = { ...reflectionRef.current, [domain]: { ...reflectionRef.current[domain], comment: text } };
+    reflectionRef.current = next;
+    setReflection(next);
+    clearTimeout(saveTimers.current[domain]);
+    saveTimers.current[domain] = setTimeout(() => {
+      setCommentSave((prev) => ({ ...prev, [domain]: "saving" }));
+      saveReflectionText(submission.id, reflectionRef.current)
+        .then(() => setCommentSave((prev) => ({ ...prev, [domain]: "saved" })))
+        .catch(() => setCommentSave((prev) => ({ ...prev, [domain]: "idle" })));
+    }, COMMENT_SAVE_DELAY_MS);
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
@@ -49,7 +75,6 @@ export function ReflectionResult({ test, submission }: Props) {
           value: difference(cells[d].experience, cells[d].contribution),
         }))}
       />
-      <p className="-mt-4 text-xs text-muted-foreground">{t("scarfNotEnoughInfoShort")}</p>
 
       <section className="flex flex-col gap-2 text-sm text-muted-foreground">
         <h2 className="text-base font-semibold text-foreground">{t("scarfExplainHeading")}</h2>
@@ -62,7 +87,15 @@ export function ReflectionResult({ test, submission }: Props) {
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">{t("scarfYourAnswers")}</h2>
         {domains.map((d) => (
-          <DomainAnswers key={d} domain={d} test={test} submission={submission} />
+          <DomainAnswers
+            key={d}
+            domain={d}
+            test={test}
+            submission={submission}
+            comment={reflection[d]?.comment ?? ""}
+            onComment={(text) => updateDomainComment(d, text)}
+            saveState={commentSave[d] ?? "idle"}
+          />
         ))}
       </section>
 
@@ -72,8 +105,6 @@ export function ReflectionResult({ test, submission }: Props) {
         <p>{t("scarfDifferences2")}</p>
         <p>{t("scarfDifferences3")}</p>
       </section>
-
-      <WrittenReflection submissionId={submission.id} domains={domains} />
 
       <section className="flex flex-col gap-2 border-t pt-4 text-xs text-muted-foreground">
         <p>{t("scarfPrivacy")}</p>
@@ -178,110 +209,94 @@ function DifferenceBars({ rows }: { rows: Row[] }) {
   );
 }
 
-function DomainAnswers({ domain, test, submission }: { domain: string; test: TestDetail; submission: TestSubmission }) {
+interface DomainAnswersProps {
+  domain: string;
+  test: TestDetail;
+  submission: TestSubmission;
+  comment: string;
+  onComment: (text: string) => void;
+  saveState: AutosaveState;
+}
+
+// One domain's statements, split into "what I receive" (experience) and
+// "what I give" (contribution), each sorted highest first with a 1-7 bar.
+// Skipped / N/A items go last. A single free comment on the whole domain
+// sits right under its statements.
+function DomainAnswers({ domain, test, submission, comment, onComment, saveState }: DomainAnswersProps) {
   const { t } = useTranslation();
   const byQuestion = new Map(submission.answers.map((a) => [a.question_id, a]));
-  // The form order is shuffled (migration 0014); results regroup each
-  // domain's items by pair, experience before contribution.
-  const questions = test.questions
-    .filter((q) => q.config.domain === domain)
-    .sort(
-      (a, b) =>
-        (a.config.pair ?? "").localeCompare(b.config.pair ?? "") ||
-        Number(b.config.role === "experience") - Number(a.config.role === "experience"),
-    );
+  const cell = submission.computed_result.reflection?.[domain];
+  const commentId = `domain-comment-${domain}`;
 
-  return (
-    <details className="rounded-md border p-3">
-      <summary className="cursor-pointer text-sm font-medium">{t(domainTitleKey(domain))}</summary>
-      <ul className="mt-3 flex flex-col gap-3">
-        {questions.map((q) => {
-          const a = byQuestion.get(q.id);
-          const value =
-            a?.response_state === "not_applicable"
-              ? t("scarfStateNotApplicable")
-              : a?.response_state === "answered" && a.selected_option_label
-                ? `${q.options.find((o) => o.id === a.selected_option_id)?.value}: ${a.selected_option_label}`
-                : t("scarfStateSkipped");
-          return (
-            <li key={q.id} className="text-sm">
-              <span className="section-label block">
-                {t(q.config.role === "experience" ? "scarfExperience" : "scarfContribution")}
-              </span>
-              <span className="block">{q.text}</span>
-              <span className="block text-muted-foreground">{value}</span>
+  function items(role: "experience" | "contribution") {
+    return test.questions
+      .filter((q) => q.config.domain === domain && q.config.role === role)
+      .map((q) => {
+        const a = byQuestion.get(q.id);
+        const value =
+          a?.response_state === "answered" ? (q.options.find((o) => o.id === a.selected_option_id)?.value ?? null) : null;
+        return { q, a, value };
+      })
+      .sort((x, y) => (y.value ?? -Infinity) - (x.value ?? -Infinity));
+  }
+
+  function group(role: "experience" | "contribution", heading: string, barClass: string) {
+    return (
+      <div className="flex flex-col gap-3">
+        <h3 className="section-label text-gold">{heading}</h3>
+        <ul className="flex flex-col gap-4">
+          {items(role).map(({ q, a, value }) => (
+            <li key={q.id} className="flex flex-col gap-1.5 text-sm">
+              <span>{q.text}</span>
+              {value !== null ? (
+                <span className="grid grid-cols-[1fr_2rem] items-center gap-3">
+                  <span className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                    <span className={`block h-full rounded-full ${barClass}`} style={{ width: `${((value - 1) / 6) * 100}%` }} />
+                  </span>
+                  <span className="text-right font-semibold tabular-nums">{value}</span>
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {a?.response_state === "not_applicable" ? t("scarfStateNotApplicable") : t("scarfStateSkipped")}
+                </span>
+              )}
               {a?.comment && (
-                <span className="mt-1 block whitespace-pre-line text-xs text-muted-foreground italic">
+                <span className="block whitespace-pre-line text-xs text-muted-foreground italic">
                   {t("commentLabel")}: {a.comment}
                 </span>
               )}
             </li>
-          );
-        })}
-      </ul>
-    </details>
-  );
-}
-
-function WrittenReflection({ submissionId, domains }: { submissionId: number; domains: string[] }) {
-  const { t } = useTranslation();
-  const [text, setText] = useState<ReflectionText>({});
-  const [saved, setSaved] = useState(false);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    getReflectionText(submissionId).then(setText).catch(() => undefined);
-  }, [submissionId]);
-
-  function update(domain: string, prompt: string, value: string) {
-    setSaved(false);
-    setText((prev) => ({
-      ...prev,
-      [domain]: { ...(prev[domain] ?? { situation: "", exception: "", missing: "" }), [prompt]: value },
-    }));
-  }
-
-  async function save() {
-    setError(false);
-    try {
-      setText(await saveReflectionText(submissionId, text));
-      setSaved(true);
-    } catch {
-      setError(true);
-    }
+          ))}
+        </ul>
+      </div>
+    );
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <h2 className="text-base font-semibold">{t("scarfReflectionHeading")}</h2>
-      <p className="text-sm text-muted-foreground">{t("scarfReflectionIntro")}</p>
-      {domains.map((d) => (
-        <details key={d} className="rounded-md border p-3">
-          <summary className="cursor-pointer text-sm font-medium">{t(domainTitleKey(d))}</summary>
-          <div className="mt-3 flex flex-col gap-3">
-            {PROMPTS.map(([key, label]) => {
-              const id = `reflection-${d}-${key}`;
-              return (
-                <div key={key} className="flex flex-col gap-1">
-                  <label htmlFor={id} className="text-sm">{t(label)}</label>
-                  <Textarea
-                    id={id}
-                    value={text[d]?.[key] ?? ""}
-                    maxLength={5000}
-                    onChange={(e) => update(d, key, e.target.value)}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        </details>
-      ))}
-      <div className="flex items-center gap-3">
-        <Button variant="outline" size="sm" onClick={save}>{t("scarfReflectionSave")}</Button>
-        <span aria-live="polite" className="text-xs text-muted-foreground">
-          {error ? t("submitError") : saved ? t("scarfReflectionSaved") : ""}
-        </span>
+    <details className="rounded-md border p-3 sm:p-4">
+      <summary className="cursor-pointer text-sm font-medium">
+        {t(domainTitleKey(domain))}
+        {cell && (
+          <span className="mt-0.5 block text-xs font-normal text-muted-foreground tabular-nums">
+            {t("scarfReceiveHeading")} {cell.experience.mean?.toFixed(1) ?? "—"} · {t("scarfGiveHeading")}{" "}
+            {cell.contribution.mean?.toFixed(1) ?? "—"}
+          </span>
+        )}
+      </summary>
+      <div className="mt-4 flex flex-col gap-6">
+        {group("experience", t("scarfReceiveHeading"), "bg-primary")}
+        <div className="border-t" />
+        {group("contribution", t("scarfGiveHeading"), "bg-foreground/60")}
+        <div className="flex flex-col gap-1 border-t pt-4">
+          <label htmlFor={commentId} className="text-sm font-medium">
+            {t("scarfDomainComment")}
+          </label>
+          <Textarea id={commentId} value={comment} maxLength={5000} onChange={(e) => onComment(e.target.value)} className="min-h-20" />
+          <span className="h-4 text-xs text-muted-foreground" aria-live="polite">
+            {saveState === "saving" ? t("savingIndicator") : saveState === "saved" ? t("savedIndicator") : ""}
+          </span>
+        </div>
       </div>
-    </section>
+    </details>
   );
 }

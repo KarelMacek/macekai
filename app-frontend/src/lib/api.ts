@@ -35,7 +35,18 @@ const client = axios.create({
   withCredentials: true,
 });
 
+// The app's language (LangContext), sent as ?lang= on every request so
+// server-resolved text (option labels, question text) matches the UI.
+// Without it the server falls back to the browser's Accept-Language, which
+// showed English answer labels ("5: Often") inside the Czech UI.
+let apiLang: string | null = null;
+
+export function setApiLang(lang: string) {
+  apiLang = lang;
+}
+
 client.interceptors.request.use((config) => {
+  if (apiLang) config.params = { lang: apiLang, ...config.params };
   if (config.method && config.method.toLowerCase() !== "get") {
     config.headers["X-CSRFToken"] = getCsrfToken();
   }

@@ -225,10 +225,12 @@ class TestSubmissionReadSerializer(serializers.ModelSerializer):
 
 
 class ReflectionTextSerializer(serializers.Serializer):
-    """The optional written reflection: domain key -> three optional prompts.
+    """The optional written reflection: domain key -> optional texts. The
+    results page now offers one free comment per domain ("comment"); the
+    three original prompts stay accepted so earlier entries round-trip.
     Unknown domains are rejected so the blob can't grow arbitrary keys."""
 
-    PROMPTS = ("situation", "exception", "missing")
+    PROMPTS = ("comment", "situation", "exception", "missing")
 
     def to_internal_value(self, data):
         if not isinstance(data, dict):

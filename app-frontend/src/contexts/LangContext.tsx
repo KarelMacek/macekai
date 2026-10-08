@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 
+import { setApiLang } from "@/lib/api";
+
 export type Lang = "en" | "cs";
 
 interface LangContextType {
@@ -30,6 +32,9 @@ const LangContext = createContext<LangContextType>({
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLang] = useState<Lang>(detectDefaultLang);
+  // Set during render, not in an effect: children's mount effects (which
+  // fire before this provider's) already fetch with the current language.
+  setApiLang(lang);
   return <LangContext.Provider value={{ lang, setLang }}>{children}</LangContext.Provider>;
 }
 

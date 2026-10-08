@@ -107,8 +107,9 @@ export interface ReflectionCell {
 
 export type ReflectionResult = Record<string, { experience: ReflectionCell; contribution: ReflectionCell }>;
 
-// domain key -> the three optional prompts of the written reflection.
-export type ReflectionText = Record<string, { situation: string; exception: string; missing: string }>;
+// domain key -> the per-domain comment (plus the original three prompts,
+// kept so older entries round-trip).
+export type ReflectionText = Record<string, { comment?: string; situation?: string; exception?: string; missing?: string }>;
 
 export interface ComputedResult {
   categories?: Record<string, number>;

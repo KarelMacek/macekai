@@ -222,7 +222,15 @@ def test_written_reflection_roundtrip_and_validation(api_client, diagnostics, te
     body = {"S": {"situation": "We argued about plans.", "exception": "", "missing": "Tone."}}
     resp = api_client.put(url, body, format="json")
     assert resp.status_code == 200
-    assert api_client.get(url).json() == {"S": {"situation": "We argued about plans.", "exception": "", "missing": "Tone."}}
+    assert api_client.get(url).json() == {
+        "S": {"comment": "", "situation": "We argued about plans.", "exception": "", "missing": "Tone."}
+    }
+
+    # The results page's single per-domain comment.
+    api_client.put(url, {"A": {"comment": "Mostly about weekends."}}, format="json")
+    assert api_client.get(url).json() == {
+        "A": {"comment": "Mostly about weekends.", "situation": "", "exception": "", "missing": ""}
+    }
 
     # Empty entries are dropped; unknown domains are rejected.
     api_client.put(url, {"S": {"situation": " ", "exception": "", "missing": ""}}, format="json")

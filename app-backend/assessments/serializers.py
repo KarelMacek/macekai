@@ -331,6 +331,7 @@ class JourneyStatusSerializer(serializers.Serializer):
     steps = JourneyStepStatusSerializer(many=True)
     all_tests_done = serializers.BooleanField()
     feedback_request_submitted = serializers.BooleanField(required=False)
+    requires_feedback = serializers.BooleanField()
 
 
 class DiagnosticsSummarySerializer(serializers.Serializer):

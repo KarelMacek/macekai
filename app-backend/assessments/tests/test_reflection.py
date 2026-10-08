@@ -193,6 +193,11 @@ def test_reflection_journey_is_complete_and_editable_after_submit(api_client, di
     assert diagnostics_status(diagnostics) == "completed"
     # No coach-feedback stage, so the answers stay editable.
     assert api_client.get(f"/api/assessments/tests/{test.slug}/draft/").status_code == 200
+    # ...and the UI is told not to offer a feedback request, which the API
+    # would refuse anyway.
+    journey = api_client.get("/api/assessments/journey/").json()
+    assert journey["all_tests_done"] is True and journey["requires_feedback"] is False
+    assert api_client.post("/api/assessments/feedback-request/", {"linkedin_url": "https://x.example"}).status_code == 403
 
 
 def test_edit_draft_is_seeded_with_response_states(diagnostics, test, user):

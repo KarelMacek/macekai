@@ -144,6 +144,7 @@ export interface JourneyStatus {
   steps: JourneyStepStatus[];
   all_tests_done: boolean;
   feedback_request_submitted?: boolean;
+  requires_feedback: boolean;
 }
 
 export type DiagnosticsStatus =

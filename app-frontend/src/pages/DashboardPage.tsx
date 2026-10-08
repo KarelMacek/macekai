@@ -66,7 +66,7 @@ export function DashboardPage() {
         </Card>
       ))}
 
-      {journey.all_tests_done && <RequestFeedbackCta journey={journey} />}
+      {journey.all_tests_done && journey.requires_feedback && <RequestFeedbackCta journey={journey} />}
 
       {pastDiagnostics.length > 0 && (
         <div className="mt-4 flex flex-col gap-3">

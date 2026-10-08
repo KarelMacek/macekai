@@ -104,8 +104,10 @@ export function TestPage() {
               dashboard. journey?.all_tests_done guards the brief render
               before getJourney() resolves, where nextStep is also
               momentarily undefined. */}
-          {!wasEditing && !nextStep && journey?.all_tests_done && <RequestFeedbackCta journey={journey} />}
-          {(wasEditing || (!nextStep && !journey?.all_tests_done)) && (
+          {!wasEditing && !nextStep && journey?.all_tests_done && journey.requires_feedback && (
+            <RequestFeedbackCta journey={journey} />
+          )}
+          {(wasEditing || (!nextStep && !(journey?.all_tests_done && journey.requires_feedback))) && (
             <Link href="/">
               <Button variant="outline" size="sm">
                 {t("continueButton")}

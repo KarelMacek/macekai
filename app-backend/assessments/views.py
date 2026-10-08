@@ -148,7 +148,13 @@ class JourneyView(APIView):
         diagnostics = current_diagnostics(request.user)
         if not diagnostics:
             return Response(
-                {"journey_slug": None, "diagnostics_id": None, "steps": [], "all_tests_done": False}
+                {
+                    "journey_slug": None,
+                    "diagnostics_id": None,
+                    "steps": [],
+                    "all_tests_done": False,
+                    "requires_feedback": False,
+                }
             )
 
         lang = get_lang(request)
@@ -164,6 +170,10 @@ class JourneyView(APIView):
                 "steps": steps,
                 "all_tests_done": all_tests_done,
                 "feedback_request_submitted": feedback_request_submitted,
+                # False for self-contained journeys (e.g. SCARF): no feedback
+                # request step, so the UI must not offer one (the POST would
+                # be refused as already completed).
+                "requires_feedback": diagnostics.journey.requires_feedback,
             }
         )
 

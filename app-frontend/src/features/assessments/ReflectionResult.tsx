@@ -122,6 +122,11 @@ function DomainAnswers({ domain, test, submission }: { domain: string; test: Tes
               </span>
               <span className="block">{q.text}</span>
               <span className="block text-muted-foreground">{value}</span>
+              {a?.comment && (
+                <span className="mt-1 block whitespace-pre-line text-xs text-muted-foreground italic">
+                  {t("commentLabel")}: {a.comment}
+                </span>
+              )}
             </li>
           );
         })}

@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { getDraft, patchDraft, submitTest } from "@/lib/api";
 import { useTranslation, type TranslationKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,9 @@ type Phase = "loading" | "intro" | "form";
 // An answer is either a chosen option, an explicit N/A, or absent (not yet
 // answered / cleared). "Absent" is recorded as "skipped" on the server.
 type Choice = { kind: "option"; optionId: number } | { kind: "na" };
+
+// Typing a comment autosaves once the user pauses, not on every keystroke.
+const COMMENT_SAVE_DELAY_MS = 600;
 
 interface Props {
   test: TestDetail;
@@ -36,6 +40,8 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
   const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("loading");
   const [choices, setChoices] = useState<Record<number, Choice>>({});
+  const [comments, setComments] = useState<Record<number, string>>({});
+  const commentTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
   const [autosaveState, setAutosaveState] = useState<AutosaveState>("idle");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,12 +64,15 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
     getDraft(test.slug).then((draft) => {
       if (cancelled) return;
       const loaded: Record<number, Choice> = {};
+      const loadedComments: Record<number, string> = {};
       for (const a of draft.answers) {
+        if (a.comment) loadedComments[a.question_id] = a.comment;
         if (a.response_state === "not_applicable") loaded[a.question_id] = { kind: "na" };
         else if (a.response_state === "answered" && a.selected_option_id !== null)
           loaded[a.question_id] = { kind: "option", optionId: a.selected_option_id };
       }
       setChoices(loaded);
+      setComments(loadedComments);
       setPhase(draft.answers.length > 0 ? "form" : "intro");
     });
     return () => {
@@ -71,10 +80,24 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
     };
   }, [test.slug]);
 
-  function toInput(questionId: number, choice: Choice | undefined): AnswerInput {
-    if (!choice) return { question_id: questionId, response_state: "skipped" };
-    if (choice.kind === "na") return { question_id: questionId, response_state: "not_applicable" };
-    return { question_id: questionId, option_id: choice.optionId };
+  useEffect(() => {
+    const timers = commentTimers.current;
+    return () => Object.values(timers).forEach(clearTimeout);
+  }, []);
+
+  // The server overwrites the whole answer row on every save, so the choice
+  // and the comment always travel together.
+  function toInput(questionId: number, choice: Choice | undefined, comment = ""): AnswerInput {
+    if (!choice) return { question_id: questionId, response_state: "skipped", comment };
+    if (choice.kind === "na") return { question_id: questionId, response_state: "not_applicable", comment };
+    return { question_id: questionId, option_id: choice.optionId, comment };
+  }
+
+  function save(input: AnswerInput) {
+    setAutosaveState("saving");
+    patchDraft(test.slug, [input])
+      .then(() => setAutosaveState("saved"))
+      .catch(() => setAutosaveState("idle"));
   }
 
   function choose(questionId: number, choice: Choice | undefined) {
@@ -84,17 +107,26 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
       else delete next[questionId];
       return next;
     });
-    setAutosaveState("saving");
-    patchDraft(test.slug, [toInput(questionId, choice)])
-      .then(() => setAutosaveState("saved"))
-      .catch(() => setAutosaveState("idle"));
+    clearTimeout(commentTimers.current[questionId]);
+    save(toInput(questionId, choice, comments[questionId]));
+  }
+
+  function editComment(questionId: number, comment: string) {
+    setComments((prev) => ({ ...prev, [questionId]: comment }));
+    clearTimeout(commentTimers.current[questionId]);
+    const choice = choices[questionId];
+    commentTimers.current[questionId] = setTimeout(
+      () => save(toInput(questionId, choice, comment)),
+      COMMENT_SAVE_DELAY_MS,
+    );
   }
 
   async function handleSubmit() {
     setSubmitting(true);
     setError(null);
+    Object.values(commentTimers.current).forEach(clearTimeout);
     try {
-      const answers = test.questions.map((q) => toInput(q.id, choices[q.id]));
+      const answers = test.questions.map((q) => toInput(q.id, choices[q.id], comments[q.id]));
       onComplete(await submitTest(test.slug, answers));
     } catch {
       setError(t("submitError"));
@@ -165,7 +197,7 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
           </div>
 
           {Array.from(grouped.get(domain)!.entries()).map(([pair, items]) => (
-            <div key={pair} className="flex flex-col gap-5 rounded-lg border p-4">
+            <div key={pair} className="flex flex-col gap-6 rounded-lg border p-3 sm:p-4">
               {(["experience", "contribution"] as const).map((role) => {
                 const q = items[role];
                 return q ? (
@@ -175,6 +207,8 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
                     perspective={t(role === "experience" ? "scarfExperience" : "scarfContribution")}
                     choice={choices[q.id]}
                     onChoose={(c) => choose(q.id, c)}
+                    comment={comments[q.id] ?? ""}
+                    onComment={(text) => editComment(q.id, text)}
                   />
                 ) : null;
               })}
@@ -203,34 +237,40 @@ interface RatingItemProps {
   perspective: string;
   choice: Choice | undefined;
   onChoose: (choice: Choice | undefined) => void;
+  comment: string;
+  onComment: (comment: string) => void;
 }
 
 // A native radio group per statement: arrow keys, Tab and Space work for
 // free, and nothing is preselected. The perspective label is part of the
-// legend so it is announced and visible on every screen width.
-function RatingItem({ question, perspective, choice, onChoose }: RatingItemProps) {
+// legend so it is announced and visible on every screen width. The 1-7
+// scale is a fixed 7-column grid so it stays one row down to ~320px
+// phones; N/A sits on its own row since it isn't a point on the scale.
+function RatingItem({ question, perspective, choice, onChoose, comment, onComment }: RatingItemProps) {
   const { t } = useTranslation();
+  const [commentOpen, setCommentOpen] = useState(false);
   const name = `q-${question.id}`;
+  const options = question.options;
   const selectedLabel =
-    choice?.kind === "option" ? question.options.find((o) => o.id === choice.optionId)?.label : undefined;
+    choice?.kind === "option" ? options.find((o) => o.id === choice.optionId)?.label : undefined;
 
   function pillClass(selected: boolean) {
     return cn(
-      "flex h-10 min-w-10 cursor-pointer items-center justify-center rounded-md border px-3 text-sm tabular-nums transition-colors",
+      "flex h-11 cursor-pointer items-center justify-center rounded-md border text-sm tabular-nums transition-colors select-none",
       "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2",
       selected ? "border-primary bg-primary text-primary-foreground" : "hover:bg-muted",
     );
   }
 
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset className="flex min-w-0 flex-col gap-2">
       <legend className="mb-1 text-sm">
         <span className="section-label mb-1 block">{perspective}</span>
         <span className="font-medium">{question.text}</span>
       </legend>
 
-      <div className="flex flex-wrap gap-2">
-        {question.options.map((o) => {
+      <div className="grid grid-cols-7 gap-1 sm:gap-2">
+        {options.map((o) => {
           const selected = choice?.kind === "option" && choice.optionId === o.id;
           return (
             <div key={o.id} className="relative">
@@ -249,7 +289,17 @@ function RatingItem({ question, perspective, choice, onChoose }: RatingItemProps
             </div>
           );
         })}
-        <div className="relative">
+      </div>
+
+      {options.length > 1 && (
+        <div className="flex justify-between gap-4 text-[11px] leading-tight text-muted-foreground" aria-hidden="true">
+          <span className="max-w-[45%]">{options[0].label}</span>
+          <span className="max-w-[45%] text-right">{options[options.length - 1].label}</span>
+        </div>
+      )}
+
+      <div className="mt-1 flex items-center gap-3">
+        <div className="relative shrink-0">
           <input
             type="radio"
             id={`${name}-na`}
@@ -258,25 +308,47 @@ function RatingItem({ question, perspective, choice, onChoose }: RatingItemProps
             checked={choice?.kind === "na"}
             onChange={() => onChoose({ kind: "na" })}
           />
-          <label htmlFor={`${name}-na`} className={pillClass(choice?.kind === "na")} title={t("scarfNotApplicableLong")}>
+          <label
+            htmlFor={`${name}-na`}
+            className={cn(pillClass(choice?.kind === "na"), "h-9 px-3 text-xs")}
+            title={t("scarfNotApplicableLong")}
+          >
             <span aria-hidden="true">{t("scarfNotApplicable")}</span>
             <span className="sr-only">{`${t("scarfNotApplicable")}: ${t("scarfNotApplicableLong")}`}</span>
           </label>
         </div>
-      </div>
-
-      <div className="flex min-h-6 items-center justify-between gap-3 text-xs text-muted-foreground" aria-live="polite">
-        <span>{selectedLabel ?? (choice?.kind === "na" ? t("scarfNotApplicableLong") : "")}</span>
+        <span className="min-w-0 flex-1 text-xs text-muted-foreground" aria-live="polite">
+          {selectedLabel ?? (choice?.kind === "na" ? t("scarfNotApplicableLong") : "")}
+        </span>
         {choice && (
           <button
             type="button"
-            className="underline underline-offset-2 hover:text-foreground"
+            className="shrink-0 py-2 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
             onClick={() => onChoose(undefined)}
           >
             {t("scarfClear")}
           </button>
         )}
       </div>
+
+      {question.allow_comment &&
+        (commentOpen || comment ? (
+          <Textarea
+            value={comment}
+            onChange={(e) => onComment(e.target.value)}
+            autoFocus={commentOpen && !comment}
+            aria-label={`${t("commentLabel")}: ${question.text}`}
+            className="min-h-16"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setCommentOpen(true)}
+            className="self-start py-1 text-xs text-muted-foreground transition-colors duration-150 hover:text-gold"
+          >
+            + {t("addComment")}
+          </button>
+        ))}
     </fieldset>
   );
 }

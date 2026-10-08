@@ -77,7 +77,8 @@ class Question(models.Model):
     text = models.JSONField(default=dict, blank=True)
     help_text = models.JSONField(default=dict, blank=True)
     order = models.PositiveIntegerField(default=0)
-    # Snapshot-only: lets a Likert question also collect a free-text comment.
+    # Lets a Likert question also collect a free-text comment (Snapshot and
+    # Reflection tests honor it).
     allow_comment = models.BooleanField(default=False)
     # Escape hatch for future question types' type-specific config, without a
     # schema migration for every new type's quirks.

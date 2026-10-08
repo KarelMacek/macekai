@@ -143,6 +143,21 @@ def test_answer_states_are_distinct_and_validated(api_client, diagnostics, test)
     assert patch([{"question_id": q1.id}]).status_code == 400
 
 
+
+def test_every_item_takes_a_comment_in_any_state(api_client, diagnostics, test):
+    assert all(q.allow_comment for q in test.questions.all())
+    q1, q2, q3 = list(test.questions.all())[:3]
+    answers = [
+        {"question_id": q1.id, "option_id": q1.options.get(value=3).id, "comment": "Mostly at work."},
+        {"question_id": q2.id, "response_state": "not_applicable", "comment": "We live apart."},
+        {"question_id": q3.id, "response_state": "skipped", "comment": "Not sure yet."},
+    ]
+    resp = api_client.post(f"/api/assessments/tests/{test.slug}/submit/", {"answers": answers}, format="json")
+    assert resp.status_code == 201
+    comments = {a["question_id"]: a["comment"] for a in resp.json()["answers"] if a["comment"]}
+    assert comments == {q1.id: "Mostly at work.", q2.id: "We live apart.", q3.id: "Not sure yet."}
+
+
 def test_submit_with_partial_answers_marks_rest_skipped(api_client, diagnostics, test):
     q1 = test.questions.first()
     resp = api_client.post(

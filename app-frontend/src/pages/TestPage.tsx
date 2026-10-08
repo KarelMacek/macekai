@@ -148,7 +148,7 @@ export function TestPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="px-4 py-6 sm:p-8">
       {test.test_type === "snapshot" ? (
         <SnapshotTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
       ) : test.test_type === "reflection" ? (

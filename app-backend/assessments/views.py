@@ -18,6 +18,7 @@ from .gdpr import delete_identity, export_identity, resolve_identity, summarize_
 from .i18n import get_lang, resolve_locale
 from .models import (
     AdminFeedback,
+    Answer,
     Diagnostics,
     FeedbackRequest,
     FileBlob,
@@ -40,6 +41,7 @@ from .serializers import (
     FeedbackRequestSerializer,
     JourneyStatusSerializer,
     MyDataExportSerializer,
+    ReflectionTextSerializer,
     TestDetailSerializer,
     TestSubmissionInputSerializer,
     TestSubmissionReadSerializer,
@@ -183,7 +185,9 @@ def _guard_open_diagnostics(request):
     diagnostics = current_diagnostics(request.user)
     if diagnostics is None:
         return None, Response({"detail": "No open diagnostics."}, status=status.HTTP_403_FORBIDDEN)
-    if diagnostics_status(diagnostics) == STATUS_COMPLETED:
+    # Journeys without a feedback stage are "completed" on submit but stay
+    # editable — there is no coach review that a later edit would invalidate.
+    if diagnostics.journey.requires_feedback and diagnostics_status(diagnostics) == STATUS_COMPLETED:
         return None, Response(
             {"detail": "This diagnostics is already completed."}, status=status.HTTP_403_FORBIDDEN
         )
@@ -249,6 +253,16 @@ class TestSubmitView(APIView):
 
         answered_ids = set(draft.answers.values_list("question_id", flat=True))
         all_ids = set(test.questions.values_list("id", flat=True))
+        if test.test_type == Test.TYPE_REFLECTION:
+            # Skipping is allowed: any item never touched is recorded as an
+            # explicit "skipped" answer so the history shows it was seen.
+            Answer.objects.bulk_create(
+                [
+                    Answer(submission=draft, question_id=qid, response_state=Answer.STATE_SKIPPED)
+                    for qid in sorted(all_ids - answered_ids)
+                ]
+            )
+            answered_ids = all_ids
         if answered_ids != all_ids:
             return Response(
                 {
@@ -261,6 +275,35 @@ class TestSubmitView(APIView):
         submission = finalize_draft(draft, test)
         read_serializer = TestSubmissionReadSerializer(submission, context={"request": request})
         return Response(read_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class SubmissionReflectionView(APIView):
+    """The optional written reflection on a reflection-type submission.
+    Owner-only and deliberately outside the open-diagnostics guard: it is
+    written after results are shown. Never exposed to anyone else."""
+
+    def _get_submission(self, request, pk):
+        return get_object_or_404(
+            TestSubmission.objects.select_related("test"),
+            pk=pk,
+            user=request.user,
+            status=TestSubmission.STATUS_SUBMITTED,
+            test__test_type=Test.TYPE_REFLECTION,
+        )
+
+    @extend_schema(responses=OpenApiTypes.OBJECT)
+    def get(self, request, pk):
+        return Response(self._get_submission(request, pk).reflection)
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+    def put(self, request, pk):
+        submission = self._get_submission(request, pk)
+        domains = submission.test.categories.values_list("key", flat=True)
+        serializer = ReflectionTextSerializer(data=request.data, context={"domains": list(domains)})
+        serializer.is_valid(raise_exception=True)
+        submission.reflection = serializer.validated_data
+        submission.save(update_fields=["reflection"])
+        return Response(submission.reflection)
 
 
 class SubmissionListView(APIView):

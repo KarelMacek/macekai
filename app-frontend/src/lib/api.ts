@@ -18,6 +18,7 @@ import type {
   GrantAccessResult,
   JourneyStatus,
   TestDetail,
+  ReflectionText,
   TestSubmission,
   WhoAmI,
 } from "@/types/api";
@@ -92,6 +93,19 @@ export async function patchDraft(slug: string, answers: AnswerInput[]): Promise<
   const { data } = await client.patch<TestSubmission>(`/api/assessments/tests/${slug}/draft/`, {
     answers,
   });
+  return data;
+}
+
+export async function getReflectionText(submissionId: number): Promise<ReflectionText> {
+  const { data } = await client.get<ReflectionText>(`/api/assessments/submissions/${submissionId}/reflection/`);
+  return data;
+}
+
+export async function saveReflectionText(submissionId: number, text: ReflectionText): Promise<ReflectionText> {
+  const { data } = await client.put<ReflectionText>(
+    `/api/assessments/submissions/${submissionId}/reflection/`,
+    text,
+  );
   return data;
 }
 

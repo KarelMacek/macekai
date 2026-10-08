@@ -27,7 +27,8 @@ export interface ConsentRecord extends ConsentPayload {
   recorded_at: string;
 }
 
-export type TestType = "snapshot" | "mapping";
+export type TestType = "snapshot" | "mapping" | "reflection";
+export type ResponseState = "answered" | "not_applicable" | "skipped";
 export type QuestionType = "likert" | "open_text";
 export type StepStatus = "completed" | "current" | "in_progress" | "upcoming";
 
@@ -46,6 +47,8 @@ export interface Question {
   order: number;
   allow_comment: boolean;
   category_key: string | null;
+  // Type-specific settings; reflection items carry {domain, pair, role, item_id}.
+  config: { domain?: string; pair?: string; role?: "experience" | "contribution"; item_id?: string };
   options: LikertOption[];
 }
 
@@ -82,6 +85,7 @@ export interface AnswerInput {
   option_id?: number | null;
   text_value?: string;
   comment?: string;
+  response_state?: ResponseState;
 }
 
 export interface AnswerRead {
@@ -91,11 +95,25 @@ export interface AnswerRead {
   selected_option_label: string | null;
   text_value: string;
   comment: string;
+  response_state: ResponseState;
 }
+
+export interface ReflectionCell {
+  // null when fewer than 2 of the 3 items have numerical answers.
+  mean: number | null;
+  rated: number;
+  total: number;
+}
+
+export type ReflectionResult = Record<string, { experience: ReflectionCell; contribution: ReflectionCell }>;
+
+// domain key -> the three optional prompts of the written reflection.
+export type ReflectionText = Record<string, { situation: string; exception: string; missing: string }>;
 
 export interface ComputedResult {
   categories?: Record<string, number>;
   matched_thresholds?: Record<string, number>;
+  reflection?: ReflectionResult;
 }
 
 export type TestSubmissionStatus = "draft" | "submitted";

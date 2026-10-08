@@ -186,12 +186,14 @@ def _export_submission(s) -> dict:
         "created_at": s.created_at.isoformat(),
         "submitted_at": s.submitted_at.isoformat() if s.submitted_at else None,
         "computed_result": s.computed_result,
+        "reflection": s.reflection,
         "answers": [
             {
                 "question_id": a.question_id,
                 "selected_option_id": a.selected_option_id,
                 "text_value": a.text_value,
                 "comment": a.comment,
+                "response_state": a.response_state,
             }
             for a in s.answers.all()
         ],

@@ -5,6 +5,8 @@ import { RequestFeedbackCta } from "@/components/RequestFeedbackCta";
 import { SubmissionAnswers } from "@/components/SubmissionAnswers";
 import { Button } from "@/components/ui/button";
 import { MappingTest } from "@/features/assessments/MappingTest";
+import { ReflectionResult } from "@/features/assessments/ReflectionResult";
+import { ReflectionTest } from "@/features/assessments/ReflectionTest";
 import { SnapshotResult } from "@/features/assessments/SnapshotResult";
 import { SnapshotTest } from "@/features/assessments/SnapshotTest";
 import { getJourney, getSubmissions, getTest } from "@/lib/api";
@@ -21,6 +23,7 @@ function countChangedAnswers(before: TestSubmission, after: TestSubmission): num
     if (
       !prior ||
       prior.selected_option_id !== answer.selected_option_id ||
+      prior.response_state !== answer.response_state ||
       prior.text_value !== answer.text_value
     ) {
       changed += 1;
@@ -71,6 +74,8 @@ export function TestPage() {
         )}
         {test.test_type === "snapshot" ? (
           <SnapshotResult categories={test.categories} submission={submission} />
+        ) : test.test_type === "reflection" ? (
+          <ReflectionResult test={test} submission={submission} />
         ) : (
           <p className="mx-auto max-w-xl text-sm text-muted-foreground">{t("answersSavedConfirmation")}</p>
         )}
@@ -115,9 +120,11 @@ export function TestPage() {
   if (existingSubmission && !retaking) {
     return (
       <div className="mx-auto flex w-full max-w-xl flex-col gap-6 p-8">
-        <h1 className="text-xl font-semibold">{test.title}</h1>
+        {test.test_type !== "reflection" && <h1 className="text-xl font-semibold">{test.title}</h1>}
         {test.test_type === "snapshot" ? (
           <SnapshotResult categories={test.categories} submission={existingSubmission} />
+        ) : test.test_type === "reflection" ? (
+          <ReflectionResult test={test} submission={existingSubmission} />
         ) : (
           <SubmissionAnswers submission={existingSubmission} />
         )}
@@ -144,6 +151,8 @@ export function TestPage() {
     <div className="p-8">
       {test.test_type === "snapshot" ? (
         <SnapshotTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
+      ) : test.test_type === "reflection" ? (
+        <ReflectionTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
       ) : (
         <MappingTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
       )}

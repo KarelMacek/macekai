@@ -20,7 +20,7 @@ interface Props {
 }
 
 // Deliberately neutral: no colour judgments, no ranking, no totals. Each
-// domain/perspective cell is shown on its own, with how many items backed it.
+// domain/perspective cell is shown on its own, plus their difference.
 export function ReflectionResult({ test, submission }: Props) {
   const { t } = useTranslation();
   const cells = submission.computed_result.reflection ?? {};
@@ -34,18 +34,25 @@ export function ReflectionResult({ test, submission }: Props) {
         <table className="w-full text-sm">
           <caption className="sr-only">{test.title}</caption>
           <thead>
-            <tr className="border-b text-left text-xs text-muted-foreground">
-              <th scope="col" className="py-2 pr-3 font-medium">{t("scarfColDomain")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">{t("scarfColExperience")}</th>
-              <th scope="col" className="px-3 py-2 text-right font-medium">{t("scarfColContribution")}</th>
+            <tr className="border-b text-left align-bottom text-xs text-muted-foreground">
+              <th scope="col" className="py-2 pr-2 font-medium sm:pr-3">{t("scarfColDomain")}</th>
+              <th scope="col" className="px-2 py-2 text-right font-medium sm:px-3">{t("scarfColExperience")}</th>
+              <th scope="col" className="px-2 py-2 text-right font-medium sm:px-3">{t("scarfColContribution")}</th>
+              <th scope="col" className="py-2 pl-2 text-right font-medium sm:pl-3">
+                {t("scarfColDifference")}
+                <span className="block text-[11px] font-normal">{t("scarfColDifferenceHint")}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             {domains.map((d) => (
               <tr key={d} className="border-b align-top">
-                <th scope="row" className="py-3 pr-3 text-left font-medium">{t(domainTitleKey(d)).split(":")[0]}</th>
-                <td className="px-3 py-3 text-right"><Cell cell={cells[d].experience} /></td>
-                <td className="px-3 py-3 text-right"><Cell cell={cells[d].contribution} /></td>
+                <th scope="row" className="py-3 pr-2 text-left font-medium sm:pr-3">{t(domainTitleKey(d)).split(":")[0]}</th>
+                <td className="px-2 py-3 text-right sm:px-3"><Cell cell={cells[d].experience} /></td>
+                <td className="px-2 py-3 text-right sm:px-3"><Cell cell={cells[d].contribution} /></td>
+                <td className="py-3 pl-2 text-right sm:pl-3">
+                  <Difference experience={cells[d].experience} contribution={cells[d].contribution} />
+                </td>
               </tr>
             ))}
           </tbody>
@@ -84,17 +91,23 @@ export function ReflectionResult({ test, submission }: Props) {
   );
 }
 
+// Computed from the displayed (rounded) means so each row adds up visually.
+// Shown only when both cells have a mean; no colour, it is not a verdict.
+function Difference({ experience, contribution }: { experience: ReflectionCell; contribution: ReflectionCell }) {
+  if (experience.mean === null || contribution.mean === null) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  const diff = Math.round((contribution.mean - experience.mean) * 10) / 10;
+  const sign = diff > 0 ? "+" : diff < 0 ? "−" : "";
+  return <span className="text-base font-semibold tabular-nums">{`${sign}${Math.abs(diff).toFixed(1)}`}</span>;
+}
+
 function Cell({ cell }: { cell: ReflectionCell }) {
   const { t } = useTranslation();
-  return (
-    <div className="flex flex-col items-end gap-0.5">
-      {cell.mean === null ? (
-        <span className="text-muted-foreground">{t("scarfNotEnoughInfo")}</span>
-      ) : (
-        <span className="text-base font-semibold tabular-nums">{cell.mean.toFixed(1)}</span>
-      )}
-      <span className="text-xs text-muted-foreground">{t("scarfRatedCount", { n: cell.rated })}</span>
-    </div>
+  return cell.mean === null ? (
+    <span className="text-xs text-muted-foreground">{t("scarfNotEnoughInfo")}</span>
+  ) : (
+    <span className="text-base font-semibold tabular-nums">{cell.mean.toFixed(1)}</span>
   );
 }
 

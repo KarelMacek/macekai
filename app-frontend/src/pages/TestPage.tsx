@@ -66,7 +66,7 @@ export function TestPage() {
     const nextStep = journey?.steps.find((s) => s.status === "current" || s.status === "in_progress");
 
     return (
-      <div className="p-8">
+      <div className="px-4 py-6 sm:p-8">
         {changedCount !== null && (
           <p className="mx-auto mb-6 w-full max-w-xl text-sm text-muted-foreground">
             {changedCount > 0 ? t("editSummary", { count: changedCount }) : t("editSummaryNone")}
@@ -119,7 +119,7 @@ export function TestPage() {
 
   if (existingSubmission && !retaking) {
     return (
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-6 p-8">
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:p-8">
         {test.test_type !== "reflection" && <h1 className="text-xl font-semibold">{test.title}</h1>}
         {test.test_type === "snapshot" ? (
           <SnapshotResult categories={test.categories} submission={existingSubmission} />

@@ -15,7 +15,7 @@ import { SaveExitControl, type AutosaveState } from "./SaveExitControl";
 
 // One statement per screen with a progress bar, following SnapshotTest's
 // flow (auto-advance, brief input lock, milestones, resume banner). What
-// differs: every item can be N/A or skipped outright, the last item never
+// differs: every item can be skipped outright, the last item never
 // auto-submits (submitting with gaps is allowed, so it's an explicit
 // button), and an open comment box pauses auto-advance so the user isn't
 // whisked away mid-thought.
@@ -27,7 +27,9 @@ const COMMENT_SAVE_DELAY_MS = 600;
 type Phase = "loading" | "intro" | "question" | "milestone";
 
 // An answer is either a chosen option, an explicit N/A, or absent (not yet
-// answered / cleared). "Absent" is recorded as "skipped" on the server.
+// answered / cleared). "Absent" is recorded as "skipped" on the server. The
+// form no longer offers N/A (skipping covers it); "na" only survives so
+// drafts and edits of older submissions that used it keep their state.
 type Choice = { kind: "option"; optionId: number } | { kind: "na" };
 
 interface Props {
@@ -252,10 +254,6 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
                 <span className="text-muted-foreground">{o.label}</span>
               </li>
             ))}
-            <li className="flex gap-3">
-              <span className="w-5 shrink-0 font-medium">{t("scarfNotApplicable")}</span>
-              <span className="text-muted-foreground">{t("scarfNotApplicableLong")}</span>
-            </li>
           </ul>
           <p className="mt-3 text-xs text-muted-foreground">{t("scarfSkipHint")}</p>
         </section>
@@ -349,19 +347,7 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
           </div>
         )}
 
-        <div className="mt-2 flex items-center gap-3">
-          <button
-            type="button"
-            aria-pressed={choice?.kind === "na"}
-            aria-label={`${t("scarfNotApplicable")}: ${t("scarfNotApplicableLong")}`}
-            title={t("scarfNotApplicableLong")}
-            onClick={() => choose({ kind: "na" })}
-            disabled={inputLocked}
-            style={{ borderRadius: "2px" }}
-            className={cn(pillClass(choice?.kind === "na"), "h-10 shrink-0 px-4 text-xs")}
-          >
-            {t("scarfNotApplicable")}
-          </button>
+        <div className="mt-2 flex min-h-9 items-center gap-3">
           <span className="min-w-0 flex-1 text-xs text-muted-foreground" aria-live="polite">
             {selectedLabel ?? (choice?.kind === "na" ? t("scarfNotApplicableLong") : "")}
           </span>

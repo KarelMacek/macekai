@@ -19,8 +19,9 @@ interface Props {
   submission: TestSubmission;
 }
 
-// Deliberately neutral: no colour judgments, no ranking, no totals. Each
-// domain/perspective cell is shown on its own, plus their difference.
+// Deliberately neutral: no colour judgments and no totals. "Receive"
+// (experience) and "give" (contribution) are shown as separate bar charts,
+// each sorted highest first, plus their per-domain difference.
 export function ReflectionResult({ test, submission }: Props) {
   const { t } = useTranslation();
   const cells = submission.computed_result.reflection ?? {};
@@ -30,34 +31,25 @@ export function ReflectionResult({ test, submission }: Props) {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8">
       <h1 className="text-xl font-semibold">{t("scarfResultsTitle")}</h1>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <caption className="sr-only">{test.title}</caption>
-          <thead>
-            <tr className="border-b text-left align-bottom text-xs text-muted-foreground">
-              <th scope="col" className="py-2 pr-2 font-medium sm:pr-3">{t("scarfColDomain")}</th>
-              <th scope="col" className="px-2 py-2 text-right font-medium sm:px-3">{t("scarfColExperience")}</th>
-              <th scope="col" className="px-2 py-2 text-right font-medium sm:px-3">{t("scarfColContribution")}</th>
-              <th scope="col" className="py-2 pl-2 text-right font-medium sm:pl-3">
-                {t("scarfColDifference")}
-                <span className="block text-[11px] font-normal">{t("scarfColDifferenceHint")}</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {domains.map((d) => (
-              <tr key={d} className="border-b align-top">
-                <th scope="row" className="py-3 pr-2 text-left font-medium sm:pr-3">{t(domainTitleKey(d)).split(":")[0]}</th>
-                <td className="px-2 py-3 text-right sm:px-3"><Cell cell={cells[d].experience} /></td>
-                <td className="px-2 py-3 text-right sm:px-3"><Cell cell={cells[d].contribution} /></td>
-                <td className="py-3 pl-2 text-right sm:pl-3">
-                  <Difference experience={cells[d].experience} contribution={cells[d].contribution} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <PerspectiveBars
+        heading={t("scarfReceiveHeading")}
+        sub={t("scarfReceiveSub")}
+        barClass="bg-primary"
+        rows={domains.map((d) => ({ domain: d, value: cells[d].experience.mean }))}
+      />
+      <PerspectiveBars
+        heading={t("scarfGiveHeading")}
+        sub={t("scarfGiveSub")}
+        barClass="bg-foreground/60"
+        rows={domains.map((d) => ({ domain: d, value: cells[d].contribution.mean }))}
+      />
+      <DifferenceBars
+        rows={domains.map((d) => ({
+          domain: d,
+          value: difference(cells[d].experience, cells[d].contribution),
+        }))}
+      />
+      <p className="-mt-4 text-xs text-muted-foreground">{t("scarfNotEnoughInfoShort")}</p>
 
       <section className="flex flex-col gap-2 text-sm text-muted-foreground">
         <h2 className="text-base font-semibold text-foreground">{t("scarfExplainHeading")}</h2>
@@ -91,23 +83,98 @@ export function ReflectionResult({ test, submission }: Props) {
   );
 }
 
-// Computed from the displayed (rounded) means so each row adds up visually.
-// Shown only when both cells have a mean; no colour, it is not a verdict.
-function Difference({ experience, contribution }: { experience: ReflectionCell; contribution: ReflectionCell }) {
-  if (experience.mean === null || contribution.mean === null) {
-    return <span className="text-muted-foreground">—</span>;
-  }
-  const diff = Math.round((contribution.mean - experience.mean) * 10) / 10;
-  const sign = diff > 0 ? "+" : diff < 0 ? "−" : "";
-  return <span className="text-base font-semibold tabular-nums">{`${sign}${Math.abs(diff).toFixed(1)}`}</span>;
+type Row = { domain: string; value: number | null };
+
+// Highest first; domains without enough answers go last, in S-C-A-R-F order.
+function sortRows(rows: Row[]): Row[] {
+  return [...rows].sort((a, b) => (b.value ?? -Infinity) - (a.value ?? -Infinity));
 }
 
-function Cell({ cell }: { cell: ReflectionCell }) {
+function domainName(t: ReturnType<typeof useTranslation>["t"], domain: string): string {
+  return t(domainTitleKey(domain)).split(":")[0];
+}
+
+function formatSigned(value: number): string {
+  const sign = value > 0 ? "+" : value < 0 ? "−" : "";
+  return `${sign}${Math.abs(value).toFixed(1)}`;
+}
+
+// Computed from the displayed (rounded) means so the numbers add up visually.
+function difference(experience: ReflectionCell, contribution: ReflectionCell): number | null {
+  if (experience.mean === null || contribution.mean === null) return null;
+  return Math.round((contribution.mean - experience.mean) * 10) / 10;
+}
+
+// One card per perspective ("receive" vs. "give") so the two never blur
+// into one table. Bars run along the 1-7 scale, highest first.
+function PerspectiveBars({ heading, sub, barClass, rows }: { heading: string; sub: string; barClass: string; rows: Row[] }) {
   const { t } = useTranslation();
-  return cell.mean === null ? (
-    <span className="text-xs text-muted-foreground">{t("scarfNotEnoughInfo")}</span>
-  ) : (
-    <span className="text-base font-semibold tabular-nums">{cell.mean.toFixed(1)}</span>
+  return (
+    <section className="rounded-lg border p-4">
+      <h2 className="text-base font-semibold">{heading}</h2>
+      <p className="mb-4 text-xs text-muted-foreground">{sub}</p>
+      <ul className="flex flex-col gap-3">
+        {sortRows(rows).map(({ domain, value }) => (
+          <li key={domain} className="grid grid-cols-[6.5rem_1fr_2.25rem] items-center gap-3 text-sm">
+            <span className="truncate">{domainName(t, domain)}</span>
+            <span className="h-2.5 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+              {value !== null && (
+                <span className={`block h-full rounded-full ${barClass}`} style={{ width: `${((value - 1) / 6) * 100}%` }} />
+              )}
+            </span>
+            <span className="text-right font-semibold tabular-nums">{value === null ? "—" : value.toFixed(1)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 grid grid-cols-[6.5rem_1fr_2.25rem] gap-3 text-[11px] text-muted-foreground" aria-hidden="true">
+        <span />
+        <span className="flex justify-between">
+          <span>1</span>
+          <span>7</span>
+        </span>
+        <span />
+      </div>
+    </section>
+  );
+}
+
+// Diverging bars around zero: right = I give more than I receive, left =
+// I receive more than I give. Largest first. Neutral colour on purpose.
+function DifferenceBars({ rows }: { rows: Row[] }) {
+  const { t } = useTranslation();
+  return (
+    <section className="rounded-lg border p-4">
+      <h2 className="text-base font-semibold">{t("scarfDiffHeading")}</h2>
+      <p className="mb-4 text-xs text-muted-foreground">{t("scarfDiffSub")}</p>
+      <ul className="flex flex-col gap-3">
+        {sortRows(rows).map(({ domain, value }) => (
+          <li key={domain} className="grid grid-cols-[6.5rem_1fr_2.75rem] items-center gap-3 text-sm">
+            <span className="truncate">{domainName(t, domain)}</span>
+            <span className="relative h-2.5 rounded-full bg-muted" aria-hidden="true">
+              <span className="absolute inset-y-[-3px] left-1/2 w-px bg-muted-foreground/60" />
+              {value !== null && value !== 0 && (
+                <span
+                  className="absolute inset-y-0 rounded-full bg-foreground/60"
+                  style={
+                    value > 0
+                      ? { left: "50%", width: `${(value / 6) * 50}%` }
+                      : { right: "50%", width: `${(-value / 6) * 50}%` }
+                  }
+                />
+              )}
+            </span>
+            <span className="text-right font-semibold tabular-nums">{value === null ? "—" : formatSigned(value)}</span>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-2 grid grid-cols-[6.5rem_1fr] gap-3 text-[11px] text-muted-foreground" aria-hidden="true">
+        <span />
+        <span className="flex justify-between gap-2 whitespace-nowrap">
+          <span>← {t("scarfDiffLeft")}</span>
+          <span>{t("scarfDiffRight")} →</span>
+        </span>
+      </div>
+    </section>
   );
 }
 

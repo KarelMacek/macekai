@@ -2,13 +2,19 @@ import { useEffect, useRef, useState } from "react";
 
 import { Textarea } from "@/components/ui/textarea";
 import { getReflectionText, saveReflectionText } from "@/lib/api";
-import { useTranslation } from "@/lib/i18n";
+import { useTranslation, type TranslationKey } from "@/lib/i18n";
 import type { ReflectionCell, ReflectionText, TestDetail, TestSubmission } from "@/types/api";
 
 import { DOMAIN_KEYS, domainTitleKey } from "./ReflectionTest";
 import type { AutosaveState } from "./SaveExitControl";
 
 const COMMENT_SAVE_DELAY_MS = 800;
+
+// Clarifying notes shown under a domain's explanation (see issue #24).
+const DOMAIN_NOTES: Record<string, TranslationKey> = {
+  A: "scarfDomainANote",
+  F: "scarfDomainFNote",
+};
 
 interface Props {
   test: TestDetail;
@@ -76,14 +82,6 @@ export function ReflectionResult({ test, submission }: Props) {
         }))}
       />
 
-      <section className="flex flex-col gap-2 text-sm text-muted-foreground">
-        <h2 className="text-base font-semibold text-foreground">{t("scarfExplainHeading")}</h2>
-        <p>{t("scarfExplain1")}</p>
-        <p>{t("scarfExplain2")}</p>
-        <p>{t("scarfExplain3")}</p>
-        <p>{t("scarfExplain4")}</p>
-      </section>
-
       <section className="flex flex-col gap-3">
         <h2 className="text-base font-semibold">{t("scarfYourAnswers")}</h2>
         {domains.map((d) => (
@@ -99,17 +97,7 @@ export function ReflectionResult({ test, submission }: Props) {
         ))}
       </section>
 
-      <section className="flex flex-col gap-2 text-sm text-muted-foreground">
-        <h2 className="text-base font-semibold text-foreground">{t("scarfDifferencesHeading")}</h2>
-        <p>{t("scarfDifferences1")}</p>
-        <p>{t("scarfDifferences2")}</p>
-        <p>{t("scarfDifferences3")}</p>
-      </section>
-
-      <section className="flex flex-col gap-2 border-t pt-4 text-xs text-muted-foreground">
-        <p>{t("scarfPrivacy")}</p>
-        <p>{t("scarfLimitations")}</p>
-      </section>
+      <p className="border-t pt-4 text-xs text-muted-foreground">{t("scarfLimitations")}</p>
     </div>
   );
 }
@@ -220,8 +208,9 @@ interface DomainAnswersProps {
 
 // One domain's statements, split into "what I receive" (experience) and
 // "what I give" (contribution), each sorted highest first with a 1-7 bar.
-// Skipped / N/A items go last. A single free comment on the whole domain
-// sits right under its statements.
+// Skipped / N/A items go last. The domain's meaning is explained up top and
+// a single free comment on the whole domain sits right under its statements.
+// Always expanded so that comment is directly visible.
 function DomainAnswers({ domain, test, submission, comment, onComment, saveState }: DomainAnswersProps) {
   const { t } = useTranslation();
   const byQuestion = new Map(submission.answers.map((a) => [a.question_id, a]));
@@ -273,16 +262,12 @@ function DomainAnswers({ domain, test, submission, comment, onComment, saveState
   }
 
   return (
-    <details className="rounded-md border p-3 sm:p-4">
-      <summary className="cursor-pointer text-sm font-medium">
+    <section aria-labelledby={`domain-${domain}`} className="rounded-md border p-4">
+      <h3 id={`domain-${domain}`} className="text-base font-semibold">
         {t(domainTitleKey(domain))}
-        {cell && (
-          <span className="mt-0.5 block text-xs font-normal text-muted-foreground tabular-nums">
-            {t("scarfReceiveHeading")} {cell.experience.mean?.toFixed(1) ?? "—"} · {t("scarfGiveHeading")}{" "}
-            {cell.contribution.mean?.toFixed(1) ?? "—"}
-          </span>
-        )}
-      </summary>
+      </h3>
+      <p className="mt-1 text-sm text-muted-foreground">{t(`${domainTitleKey(domain)}Desc` as TranslationKey)}</p>
+      {DOMAIN_NOTES[domain] && <p className="mt-1 text-xs text-muted-foreground">{t(DOMAIN_NOTES[domain])}</p>}
       <div className="mt-4 flex flex-col gap-6">
         {group("experience", t("scarfReceiveHeading"), "bg-primary")}
         <div className="border-t" />
@@ -297,6 +282,6 @@ function DomainAnswers({ domain, test, submission, comment, onComment, saveState
           </span>
         </div>
       </div>
-    </details>
+    </section>
   );
 }

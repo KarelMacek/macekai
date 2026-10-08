@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import type { AnswerInput, TestDetail, TestSubmission } from "@/types/api";
 
 import { AmbientMilestoneBanner } from "./AmbientMilestoneBanner";
-import { CategoryBadge } from "./CategoryBadge";
 import { MilestoneInterstitial } from "./MilestoneInterstitial";
 import { ResumeBanner } from "./ResumeBanner";
 import { SaveExitControl, type AutosaveState } from "./SaveExitControl";
@@ -43,12 +42,6 @@ export function domainTitleKey(domain: string): TranslationKey {
   return `scarfDomain${domain}` as TranslationKey;
 }
 
-// Domains with a clarifying note under their description (see issue #24).
-const DOMAIN_NOTES: Record<string, TranslationKey> = {
-  A: "scarfDomainANote",
-  F: "scarfDomainFNote",
-};
-
 function fractionIndex(total: number, fraction: number): number {
   return Math.round(total * fraction) - 1;
 }
@@ -56,7 +49,8 @@ function fractionIndex(total: number, fraction: number): number {
 export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
   const { t } = useTranslation();
   const headingId = useId();
-  // The server orders questions domain -> pair -> experience/contribution.
+  // The server returns questions in a deliberately interleaved order (see
+  // migration 0014), so the form shows no domain or perspective "chapters".
   const questions = useMemo(
     () => test.questions.filter((q) => q.config.domain && q.config.role),
     [test.questions],
@@ -283,7 +277,6 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
     return <MilestoneInterstitial message={pendingMilestoneMessage} onContinue={handleMilestoneContinue} />;
   }
 
-  const domain = question.config.domain!;
   const choice = choices[question.id];
   const comment = comments[question.id] ?? "";
   const options = question.options;
@@ -315,17 +308,10 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
       </div>
       <Progress value={((currentIndex + 1) / questions.length) * 100} className="mb-8" />
 
-      <CategoryBadge label={t(domainTitleKey(domain))} />
-      <p className="text-xs text-muted-foreground">{t(`${domainTitleKey(domain)}Desc` as TranslationKey)}</p>
-      {DOMAIN_NOTES[domain] && <p className="mt-1 text-xs text-muted-foreground">{t(DOMAIN_NOTES[domain])}</p>}
-
       {/* Fixed-height wrapper so the scale lands at the same vertical
           position however many lines the statement wraps to (as in
           SnapshotTest). */}
-      <div className="mt-6 mb-6 flex min-h-28 flex-col justify-center sm:min-h-32">
-        <span className="section-label mb-2 block text-gold">
-          {t(question.config.role === "experience" ? "scarfExperience" : "scarfContribution")}
-        </span>
+      <div className="mb-6 flex min-h-28 items-center sm:min-h-32">
         <h2 id={headingId} className="text-xl font-semibold sm:text-2xl">
           {question.text}
         </h2>

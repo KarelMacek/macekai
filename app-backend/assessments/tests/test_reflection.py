@@ -120,6 +120,19 @@ def test_seeded_content(test):
     assert test.title["cs"]
 
 
+
+def test_items_are_interleaved_not_grouped(test):
+    items = [(q.config["domain"], q.config["role"], q.config["pair"]) for q in test.questions.all()]
+    assert items[0] == ("S", "experience", "S1")
+    for i in range(len(items)):
+        assert items[i][0] not in {d for d, _, _ in items[max(0, i - 2) : i]}
+        if i >= 2:
+            assert len({r for _, r, _ in items[i - 2 : i + 1]}) == 2
+    positions = {(p, r): i for i, (_, r, p) in enumerate(items)}
+    for pair in {p for _, _, p in items}:
+        assert abs(positions[(pair, "experience")] - positions[(pair, "contribution")]) >= 8
+
+
 def test_answer_states_are_distinct_and_validated(api_client, diagnostics, test):
     q1, q2, q3 = list(test.questions.all())[:3]
     option = q1.options.get(value=5)

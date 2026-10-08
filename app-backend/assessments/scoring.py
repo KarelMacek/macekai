@@ -68,11 +68,10 @@ def compute_reflection_result(test: Test, answers) -> dict:
         if domain and role:
             values[(domain, role)].append(answer.selected_option.value)
 
-    domains = {}
-    for question in test.questions.all():
-        config = question.config or {}
-        if config.get("domain") and config.get("role"):
-            domains.setdefault(config["domain"], {})[config["role"]] = None
+    # Domains follow the categories' own order (S, C, A, R, F), not the
+    # question order, which is deliberately shuffled for presentation.
+    present = {(q.config or {}).get("domain") for q in test.questions.all() if (q.config or {}).get("role")}
+    domains = {c.key: {} for c in test.categories.order_by("order") if c.key in present}
 
     for domain, roles in domains.items():
         for role in ("experience", "contribution"):

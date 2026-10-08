@@ -101,7 +101,15 @@ function Cell({ cell }: { cell: ReflectionCell }) {
 function DomainAnswers({ domain, test, submission }: { domain: string; test: TestDetail; submission: TestSubmission }) {
   const { t } = useTranslation();
   const byQuestion = new Map(submission.answers.map((a) => [a.question_id, a]));
-  const questions = test.questions.filter((q) => q.config.domain === domain);
+  // The form order is shuffled (migration 0014); results regroup each
+  // domain's items by pair, experience before contribution.
+  const questions = test.questions
+    .filter((q) => q.config.domain === domain)
+    .sort(
+      (a, b) =>
+        (a.config.pair ?? "").localeCompare(b.config.pair ?? "") ||
+        Number(b.config.role === "experience") - Number(a.config.role === "experience"),
+    );
 
   return (
     <details className="rounded-md border p-3">

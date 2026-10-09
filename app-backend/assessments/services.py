@@ -57,9 +57,10 @@ def diagnostics_funnel_counts(diagnostics_qs=None) -> dict:
     today's volumes with no issue."""
     if diagnostics_qs is None:
         diagnostics_qs = Diagnostics.objects.all()
-    # Self-contained instruments (no coach feedback stage) aren't part of the
-    # entry-diagnostic funnel this view exists to measure.
-    diagnostics_qs = diagnostics_qs.filter(journey__requires_feedback=True)
+    # The entry diagnostic is the CV/LinkedIn review journey. Other products
+    # (e.g. the SCARF reflection, which also gets coach feedback but without a
+    # CV) aren't part of the funnel this view exists to measure.
+    diagnostics_qs = diagnostics_qs.filter(journey__requires_feedback=True, journey__feedback_needs_cv=True)
 
     paid_count = diagnostics_qs.count()
     started_count = diagnostics_qs.filter(submissions__isnull=False).distinct().count()

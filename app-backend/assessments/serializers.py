@@ -275,6 +275,10 @@ class FeedbackRequestSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
+        diagnostics = self.context.get("diagnostics")
+        if diagnostics is not None and not diagnostics.journey.feedback_needs_cv:
+            # E.g. SCARF: the request is just "send me my answers" - no CV.
+            return data
         cv_file = data.get("cv_file") or getattr(self.instance, "cv_file", None)
         linkedin_url = data.get("linkedin_url") or getattr(self.instance, "linkedin_url", "")
         if not cv_file and not linkedin_url:
@@ -332,6 +336,7 @@ class JourneyStatusSerializer(serializers.Serializer):
     all_tests_done = serializers.BooleanField()
     feedback_request_submitted = serializers.BooleanField(required=False)
     requires_feedback = serializers.BooleanField()
+    feedback_needs_cv = serializers.BooleanField()
 
 
 class DiagnosticsSummarySerializer(serializers.Serializer):

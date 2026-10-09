@@ -241,10 +241,14 @@ class Journey(models.Model):
     slug = models.SlugField(unique=True)
     name = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
-    # False for self-contained instruments (e.g. the SCARF reflection) that
-    # have no coach-written feedback stage: the diagnostics is complete as
-    # soon as every step is submitted, and stays editable.
+    # False for self-contained instruments that have no coach-written feedback
+    # stage: the diagnostics is complete as soon as every step is submitted,
+    # and stays editable.
     requires_feedback = models.BooleanField(default=True)
+    # Whether asking for that feedback needs a CV and/or LinkedIn link. False
+    # for journeys (e.g. the SCARF reflection) where the person simply sends
+    # their answers to the coach: the request is then one button, no files.
+    feedback_needs_cv = models.BooleanField(default=True)
     simpleshop_product_id_cs = models.CharField(max_length=64, blank=True, default="")
     simpleshop_product_id_en = models.CharField(max_length=64, blank=True, default="")
 

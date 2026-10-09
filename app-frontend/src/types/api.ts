@@ -128,6 +128,9 @@ export interface TestSubmission {
   submitted_at: string | null;
   computed_result: ComputedResult;
   answers: AnswerRead[];
+  // Per-area comments of a reflection; only sent to the admin once the person
+  // has sent their answers in for feedback.
+  reflection?: ReflectionText;
 }
 
 export interface JourneyStepStatus {
@@ -145,6 +148,8 @@ export interface JourneyStatus {
   all_tests_done: boolean;
   feedback_request_submitted?: boolean;
   requires_feedback: boolean;
+  // False when asking for feedback is a single "send my answers" button (SCARF).
+  feedback_needs_cv: boolean;
 }
 
 export type DiagnosticsStatus =

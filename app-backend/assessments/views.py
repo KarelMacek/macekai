@@ -97,6 +97,17 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
             ai_consent = consent.ai_processing_consent
             research_consent = consent.research_consent
 
+    submissions_data = list(
+        TestSubmissionReadSerializer(submissions, many=True, context={"request": request}).data
+    )
+    if feedback_request is not None:
+        # The per-area comments of a reflection travel with the answers once
+        # the person has sent them in for feedback - not before.
+        reflections = {s.id: s.reflection for s in submissions if s.reflection}
+        for item in submissions_data:
+            if item["id"] in reflections:
+                item["reflection"] = reflections[item["id"]]
+
     return {
         "id": diagnostics.id,
         "email": diagnostics.email,
@@ -106,9 +117,7 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
         "language": diagnostics.language,
         "all_tests_done": all_tests_done,
         "steps": steps,
-        "submissions": TestSubmissionReadSerializer(
-            submissions, many=True, context={"request": request}
-        ).data,
+        "submissions": submissions_data,
         "feedback_request": (
             FeedbackRequestSerializer(feedback_request, context={"request": request}).data
             if feedback_request
@@ -154,6 +163,7 @@ class JourneyView(APIView):
                     "steps": [],
                     "all_tests_done": False,
                     "requires_feedback": False,
+                    "feedback_needs_cv": True,
                 }
             )
 
@@ -174,6 +184,7 @@ class JourneyView(APIView):
                 # request step, so the UI must not offer one (the POST would
                 # be refused as already completed).
                 "requires_feedback": diagnostics.journey.requires_feedback,
+                "feedback_needs_cv": diagnostics.journey.feedback_needs_cv,
             }
         )
 
@@ -367,7 +378,7 @@ class FeedbackRequestView(APIView):
 
         instance = FeedbackRequest.objects.filter(diagnostics=diagnostics).first()
         serializer = FeedbackRequestSerializer(
-            instance=instance, data=request.data, context={"request": request}
+            instance=instance, data=request.data, context={"request": request, "diagnostics": diagnostics}
         )
         serializer.is_valid(raise_exception=True)
         feedback_request = serializer.save(diagnostics=diagnostics)

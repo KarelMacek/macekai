@@ -64,6 +64,11 @@ _COPY = {
         "en": "Finally, you'll upload your CV and/or add a link to your LinkedIn profile.",
     },
 
+    "next_feedback_request_no_cv": {
+        "cs": "Nakonec mi své odpovědi můžete odeslat.",
+        "en": "Finally, you can send me your answers.",
+    },
+
     "next_review": {
         "cs": "Vše si projdu a připravím vám písemnou zpětnou vazbu a krátké video. "
             "Jakmile budou hotové, dám vám vědět.",
@@ -143,7 +148,7 @@ def send_purchase_instructions_email(diagnostics: Diagnostics) -> None:
         "<ul>"
         f"<li>{_copy('next_consent', lang)}</li>"
         f"<li>{_copy('next_tests', lang, step_names=_step_names(diagnostics, lang))}</li>"
-        f"<li>{_copy('next_feedback_request', lang)}</li>"
+        f"<li>{_copy('next_feedback_request' if diagnostics.journey.feedback_needs_cv else 'next_feedback_request_no_cv', lang)}</li>"
         f"<li>{_copy('next_review', lang)}</li>"
         "</ul>",
         f"<p>{_copy('support', lang)}</p>",
@@ -236,8 +241,9 @@ def send_feedback_requested_notification(feedback_request: FeedbackRequest) -> N
     journey_name = resolve_locale(diagnostics.journey.name, lang) or diagnostics.journey.slug
     subject = _copy("feedback_requested_subject", lang, email=diagnostics.email, journey_name=journey_name)
     link = f"{_app_url()}admin/diagnostics/{diagnostics.id}"
+    what = "their CV/LinkedIn" if diagnostics.journey.feedback_needs_cv else "their answers"
     body = (
-        f"<p>{diagnostics.email} just submitted their CV/LinkedIn for "
+        f"<p>{diagnostics.email} just submitted {what} for "
         f"“{journey_name}” — ready for your review.</p>"
         f'<p><a href="{link}">{link}</a></p>'
     )

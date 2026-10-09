@@ -193,18 +193,23 @@ def test_submit_requires_every_item_answered(api_client, diagnostics, test):
     assert api_client.post(url, {"answers": _all_answered(test)}, format="json").status_code == 201
 
 
-def test_reflection_journey_is_complete_and_editable_after_submit(api_client, diagnostics, test, user):
-    assert diagnostics_status(diagnostics) != "completed"
+def test_reflection_journey_goes_through_feedback_without_a_cv(api_client, diagnostics, test, user):
     submit = f"/api/assessments/tests/{test.slug}/submit/"
+    assert diagnostics_status(diagnostics) != "completed"
     assert api_client.post(submit, {"answers": _all_answered(test)}, format="json").status_code == 201
-    assert diagnostics_status(diagnostics) == "completed"
-    # No coach-feedback stage, so the answers stay editable.
-    assert api_client.get(f"/api/assessments/tests/{test.slug}/draft/").status_code == 200
-    # ...and the UI is told not to offer a feedback request, which the API
-    # would refuse anyway.
+    assert diagnostics_status(diagnostics) == "awaiting_feedback_request"
+
     journey = api_client.get("/api/assessments/journey/").json()
-    assert journey["all_tests_done"] is True and journey["requires_feedback"] is False
-    assert api_client.post("/api/assessments/feedback-request/", {"linkedin_url": "https://x.example"}).status_code == 403
+    assert journey["all_tests_done"] is True
+    assert journey["requires_feedback"] is True and journey["feedback_needs_cv"] is False
+
+    # Sending the answers is one empty request - no CV / LinkedIn needed.
+    url = "/api/assessments/feedback-request/"
+    assert api_client.post(url, {}, format="multipart").status_code == 201
+    assert diagnostics_status(diagnostics) == "awaiting_admin_review"
+    assert api_client.get("/api/assessments/journey/").json()["feedback_request_submitted"] is True
+    # Answers stay editable until the feedback is published.
+    assert api_client.get(f"/api/assessments/tests/{test.slug}/draft/").status_code == 200
 
 
 def test_edit_draft_is_seeded_with_response_states(diagnostics, test, user):
@@ -216,9 +221,41 @@ def test_edit_draft_is_seeded_with_response_states(diagnostics, test, user):
     assert new_draft.answers.get(question=q).response_state == Answer.STATE_NOT_APPLICABLE
 
 
-def test_standard_journeys_still_require_feedback(db):
-    assert Journey.objects.get(slug="default").requires_feedback is True
-    assert Journey.objects.get(slug="scarf-reflection").requires_feedback is False
+def test_standard_journeys_still_require_a_cv_for_feedback(db):
+    default = Journey.objects.get(slug="default")
+    assert default.requires_feedback is True and default.feedback_needs_cv is True
+    scarf = Journey.objects.get(slug="scarf-reflection")
+    assert scarf.requires_feedback is True and scarf.feedback_needs_cv is False
+
+
+def test_empty_feedback_request_still_rejected_when_a_cv_is_needed(db, user):
+    from assessments.serializers import FeedbackRequestSerializer
+
+    diagnostics = open_diagnostics(email=user.email, journey=Journey.objects.get(slug="default"))
+    serializer = FeedbackRequestSerializer(data={}, context={"diagnostics": diagnostics})
+    assert not serializer.is_valid()
+    assert FeedbackRequestSerializer(data={}, context={}).is_valid() is False
+
+
+def test_scarf_stays_out_of_the_entry_diagnostic_funnel(api_client, diagnostics, test):
+    from assessments.services import diagnostics_funnel_counts
+
+    api_client.post(f"/api/assessments/tests/{test.slug}/submit/", {"answers": _all_answered(test)}, format="json")
+    assert diagnostics_funnel_counts() == {"paid_count": 0, "started_count": 0, "completed_count": 0}
+
+
+def test_admin_sees_area_comments_only_after_the_answers_are_sent(api_client, diagnostics, test, user):
+    sid = _submitted(api_client, test)
+    api_client.put(f"/api/assessments/submissions/{sid}/reflection/", {"S": {"comment": "Mostly calm."}}, format="json")
+
+    admin = get_user_model().objects.create(username="karel", email="karel@example.com", is_staff=True)
+    staff = APIClient()
+    staff.force_authenticate(user=admin)
+    url = f"/api/assessments/admin/diagnostics/{diagnostics.id}/"
+    assert "reflection" not in staff.get(url).json()["submissions"][0]
+
+    assert api_client.post("/api/assessments/feedback-request/", {}, format="multipart").status_code == 201
+    assert staff.get(url).json()["submissions"][0]["reflection"]["S"]["comment"] == "Mostly calm."
 
 
 def _submitted(api_client, test):

@@ -53,16 +53,24 @@ export function TestPage() {
     setJourney(null);
     if (!slug) return;
     getTest(slug, lang).then(setTest);
+    // Needed up front (not only after finishing) so the results shown on a
+    // later visit can offer "send to Karel" for journeys with a feedback stage.
+    getJourney(lang).then(setJourney);
     getSubmissions().then((subs) => setExistingSubmission(subs.find((s) => s.test_slug === slug) ?? null));
   }, [slug, lang]);
 
   if (!test || existingSubmission === undefined) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
   const wasEditing = retaking && existingSubmission !== null;
-  // A reflection is a self-contained instrument: nothing follows its results,
-  // so there is no "Continue" to the dashboard (it only dumped people on a
-  // list of diagnostics).
+  // A reflection is a self-contained instrument: its results are the end of
+  // the road except for sending them in for feedback, so there is no
+  // "Continue" to the dashboard (it only dumped people on the diagnostics
+  // list) and the send button is offered on every view of the results.
   const selfContained = test.test_type === "reflection";
+  const sendCta =
+    selfContained && journey?.all_tests_done && journey.requires_feedback ? (
+      <RequestFeedbackCta journey={journey} />
+    ) : null;
 
   if (submission) {
     const changedCount =
@@ -108,9 +116,12 @@ export function TestPage() {
               dashboard. journey?.all_tests_done guards the brief render
               before getJourney() resolves, where nextStep is also
               momentarily undefined. */}
-          {!wasEditing && !nextStep && journey?.all_tests_done && journey.requires_feedback && (
-            <RequestFeedbackCta journey={journey} />
-          )}
+          {selfContained
+            ? sendCta
+            : !wasEditing &&
+              !nextStep &&
+              journey?.all_tests_done &&
+              journey.requires_feedback && <RequestFeedbackCta journey={journey} />}
           {!selfContained && (wasEditing || (!nextStep && !(journey?.all_tests_done && journey.requires_feedback))) && (
             <Link href="/">
               <Button variant="outline" size="sm">
@@ -134,6 +145,7 @@ export function TestPage() {
         ) : (
           <SubmissionAnswers submission={existingSubmission} />
         )}
+        {sendCta}
         <div className="flex gap-3">
           {!selfContained && (
             <Link href="/">

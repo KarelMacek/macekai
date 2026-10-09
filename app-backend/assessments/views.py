@@ -261,18 +261,12 @@ class TestSubmitView(APIView):
         draft = get_or_create_draft(test=test, diagnostics=diagnostics, user=request.user)
         upsert_draft_answers(draft, serializer.validated_data["answers"])
 
-        answered_ids = set(draft.answers.values_list("question_id", flat=True))
+        # A "skipped" row (e.g. a comment saved before choosing a value) is
+        # not an answer: every question needs a real one, reflection included.
+        answered_ids = set(
+            draft.answers.exclude(response_state=Answer.STATE_SKIPPED).values_list("question_id", flat=True)
+        )
         all_ids = set(test.questions.values_list("id", flat=True))
-        if test.test_type == Test.TYPE_REFLECTION:
-            # Skipping is allowed: any item never touched is recorded as an
-            # explicit "skipped" answer so the history shows it was seen.
-            Answer.objects.bulk_create(
-                [
-                    Answer(submission=draft, question_id=qid, response_state=Answer.STATE_SKIPPED)
-                    for qid in sorted(all_ids - answered_ids)
-                ]
-            )
-            answered_ids = all_ids
         if answered_ids != all_ids:
             return Response(
                 {

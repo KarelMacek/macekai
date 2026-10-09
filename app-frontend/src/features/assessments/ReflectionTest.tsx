@@ -15,10 +15,10 @@ import { SaveExitControl, type AutosaveState } from "./SaveExitControl";
 
 // One statement per screen with a progress bar, following SnapshotTest's
 // flow (auto-advance, brief input lock, milestones, resume banner). What
-// differs: every item can be skipped outright, the last item never
-// auto-submits (submitting with gaps is allowed, so it's an explicit
-// button), and an open comment box pauses auto-advance so the user isn't
-// whisked away mid-thought.
+// differs: the last item never auto-submits (so its optional comment can
+// still be written; submitting is an explicit button), and an open comment
+// box pauses auto-advance so the user isn't whisked away mid-thought. Every
+// item must be answered - there is no skip; only comments are optional.
 const ANSWER_ADVANCE_DELAY_MS = 350;
 const INPUT_LOCK_MS = 200;
 // Typing a comment autosaves once the user pauses, not on every keystroke.
@@ -26,10 +26,10 @@ const COMMENT_SAVE_DELAY_MS = 600;
 
 type Phase = "loading" | "intro" | "question" | "milestone";
 
-// An answer is either a chosen option, an explicit N/A, or absent (not yet
-// answered / cleared). "Absent" is recorded as "skipped" on the server. The
-// form no longer offers N/A (skipping covers it); "na" only survives so
-// drafts and edits of older submissions that used it keep their state.
+// An answer is either a chosen option or an explicit N/A. The form no longer
+// offers N/A (or skipping); "na" only survives so drafts and edits of older
+// submissions that used it keep their state. A comment typed before
+// answering is saved with the row marked "skipped" until a value is chosen.
 type Choice = { kind: "option"; optionId: number } | { kind: "na" };
 
 interface Props {
@@ -95,13 +95,12 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
       setChoices(loaded);
       setComments(loadedComments);
 
-      // Any saved row (even a cleared/skipped one) means the item was seen,
-      // so resume at the first item never touched.
-      const seen = new Set(draft.answers.map((a) => a.question_id));
-      const firstUnseenIndex = questions.findIndex((q) => !seen.has(q.id));
+      // Every item must be answered, so resume at the first one without an
+      // answer (a comment alone doesn't count).
+      const firstUnansweredIndex = questions.findIndex((q) => !loaded[q.id]);
       const hasAnyAnswers = draft.answers.length > 0;
-      setCurrentIndex(firstUnseenIndex === -1 ? 0 : firstUnseenIndex);
-      setShowResumeBanner(hasAnyAnswers && firstUnseenIndex !== -1 && !isEditing);
+      setCurrentIndex(firstUnansweredIndex === -1 ? 0 : firstUnansweredIndex);
+      setShowResumeBanner(hasAnyAnswers && firstUnansweredIndex !== -1 && !isEditing);
       setPhase(hasAnyAnswers ? "question" : "intro");
     });
     return () => {
@@ -165,20 +164,15 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
     lockInputBriefly();
   }
 
-  function choose(choice: Choice | undefined) {
+  function choose(choice: Choice) {
     if (inputLocked) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     const questionId = question.id;
-    setChoices((prev) => {
-      const next = { ...prev };
-      if (choice) next[questionId] = choice;
-      else delete next[questionId];
-      return next;
-    });
+    setChoices((prev) => ({ ...prev, [questionId]: choice }));
     clearTimeout(commentTimers.current[questionId]);
     save(toInput(questionId, choice, comments[questionId]));
 
-    if (choice && !openComments.has(questionId) && !comments[questionId]) {
+    if (!openComments.has(questionId) && !comments[questionId]) {
       const fromIndex = currentIndex;
       timerRef.current = setTimeout(() => goNext(fromIndex), ANSWER_ADVANCE_DELAY_MS);
     }
@@ -207,8 +201,6 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
 
   function handleForward() {
     if (timerRef.current) clearTimeout(timerRef.current);
-    // Record a deliberate skip so resuming lands past it, not back on it.
-    if (!choices[question.id] && !comments[question.id]) save(toInput(question.id, undefined));
     goNext(currentIndex);
   }
 
@@ -238,32 +230,11 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
 
   if (phase === "intro") {
     return (
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
         <h1 className="text-xl font-semibold">{test.title}</h1>
         <p className="whitespace-pre-line text-sm text-muted-foreground">{test.description}</p>
         <p className="whitespace-pre-line text-sm text-muted-foreground">{test.instructions}</p>
-
-        <section aria-labelledby="scarf-scale">
-          <h2 id="scarf-scale" className="mb-2 text-sm font-semibold">
-            {t("scarfScaleHeading")}
-          </h2>
-          <ul className="flex flex-col gap-1 text-sm">
-            {test.questions[0]?.options.map((o) => (
-              <li key={o.id} className="flex gap-3">
-                <span className="w-5 shrink-0 font-medium tabular-nums">{o.value}</span>
-                <span className="text-muted-foreground">{o.label}</span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-muted-foreground">{t("scarfSkipHint")}</p>
-        </section>
-
-        <section className="rounded-md border p-4">
-          <h2 className="mb-1 text-sm font-semibold">{t("scarfPrivacyHeading")}</h2>
-          <p className="text-sm text-muted-foreground">{t("scarfPrivacy")}</p>
-        </section>
-
-        <p className="section-label">{t("introTimeEstimateReflection")}</p>
+        <p className="section-label mt-2">{t("introTimeEstimateReflection")}</p>
         <Button onClick={() => setPhase("question")} className="self-start">
           {t("startTest")}
         </Button>
@@ -276,6 +247,8 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
   }
 
   const choice = choices[question.id];
+  // Only reachable for drafts that predate mandatory answers (older skips).
+  const firstUnansweredIndex = questions.findIndex((q) => !choices[q.id]);
   const comment = comments[question.id] ?? "";
   const options = question.options;
   const selectedLabel = choice?.kind === "option" ? options.find((o) => o.id === choice.optionId)?.label : undefined;
@@ -314,9 +287,6 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
           {question.text}
         </h2>
       </div>
-      {currentIndex === 0 && !showResumeBanner && (
-        <p className="mb-4 text-xs text-muted-foreground italic">{t("scarfSkipHint")}</p>
-      )}
 
       <div role="group" aria-labelledby={headingId} className="flex flex-col gap-2">
         <div className="grid grid-cols-7 gap-1 sm:gap-2">
@@ -347,20 +317,9 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
           </div>
         )}
 
-        <div className="mt-2 flex min-h-9 items-center gap-3">
-          <span className="min-w-0 flex-1 text-xs text-muted-foreground" aria-live="polite">
-            {selectedLabel ?? (choice?.kind === "na" ? t("scarfNotApplicableLong") : "")}
-          </span>
-          {choice && (
-            <button
-              type="button"
-              className="shrink-0 py-2 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-              onClick={() => choose(undefined)}
-            >
-              {t("scarfClear")}
-            </button>
-          )}
-        </div>
+        <p className="mt-2 min-h-5 text-xs text-muted-foreground" aria-live="polite">
+          {selectedLabel ?? (choice?.kind === "na" ? t("scarfNotApplicableLong") : "")}
+        </p>
       </div>
 
       {question.allow_comment && (
@@ -385,12 +344,22 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
         </div>
       )}
 
-      {isLastQuestion && (
+      {isLastQuestion && choice && (
         <div className="mb-6 flex flex-col gap-2 border-t pt-6">
-          <p className="text-xs text-muted-foreground">{t("scarfSubmitHint")}</p>
-          <Button onClick={handleSubmit} disabled={submitting} className="self-start">
-            {isEditing ? t("saveChanges") : t("scarfSubmit")}
-          </Button>
+          {firstUnansweredIndex !== -1 ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                {t("scarfAnswerMissing", { n: firstUnansweredIndex + 1 })}
+              </p>
+              <Button variant="outline" onClick={() => setCurrentIndex(firstUnansweredIndex)} className="self-start">
+                {t("scarfGoToQuestion", { n: firstUnansweredIndex + 1 })}
+              </Button>
+            </>
+          ) : (
+            <Button onClick={handleSubmit} disabled={submitting} className="self-start">
+              {isEditing ? t("saveChanges") : t("scarfSubmit")}
+            </Button>
+          )}
         </div>
       )}
 
@@ -406,13 +375,13 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
             </button>
           )}
         </span>
-        {!isLastQuestion && (
+        {!isLastQuestion && choice && (
           <button
             type="button"
             onClick={handleForward}
             className="py-1 text-xs text-muted-foreground transition-colors duration-150 hover:text-gold"
           >
-            {choice || comment ? t("nextButton") : t("scarfSkipQuestion")} →
+            {t("nextButton")} →
           </button>
         )}
       </div>

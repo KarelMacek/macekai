@@ -157,39 +157,46 @@ def test_answer_states_are_distinct_and_validated(api_client, diagnostics, test)
 
 
 
-def test_every_item_takes_a_comment_in_any_state(api_client, diagnostics, test):
-    assert all(q.allow_comment for q in test.questions.all())
-    q1, q2, q3 = list(test.questions.all())[:3]
-    answers = [
-        {"question_id": q1.id, "option_id": q1.options.get(value=3).id, "comment": "Mostly at work."},
-        {"question_id": q2.id, "response_state": "not_applicable", "comment": "We live apart."},
-        {"question_id": q3.id, "response_state": "skipped", "comment": "Not sure yet."},
+def _all_answered(test, value=5, overrides=None):
+    """Every question answered with `value`; overrides maps question_id ->
+    extra/replacement fields for that answer."""
+    overrides = overrides or {}
+    return [
+        {"question_id": q.id, "option_id": q.options.get(value=value).id, **overrides.get(q.id, {})}
+        for q in test.questions.all()
     ]
+
+
+def test_every_item_takes_an_optional_comment(api_client, diagnostics, test):
+    assert all(q.allow_comment for q in test.questions.all())
+    q1, q2 = list(test.questions.all())[:2]
+    answers = _all_answered(test, overrides={q1.id: {"comment": "Mostly at work."}, q2.id: {"comment": "Hard to say."}})
     resp = api_client.post(f"/api/assessments/tests/{test.slug}/submit/", {"answers": answers}, format="json")
     assert resp.status_code == 201
     comments = {a["question_id"]: a["comment"] for a in resp.json()["answers"] if a["comment"]}
-    assert comments == {q1.id: "Mostly at work.", q2.id: "We live apart.", q3.id: "Not sure yet."}
+    assert comments == {q1.id: "Mostly at work.", q2.id: "Hard to say."}
 
 
-def test_submit_with_partial_answers_marks_rest_skipped(api_client, diagnostics, test):
+def test_submit_requires_every_item_answered(api_client, diagnostics, test):
+    url = f"/api/assessments/tests/{test.slug}/submit/"
     q1 = test.questions.first()
-    resp = api_client.post(
-        f"/api/assessments/tests/{test.slug}/submit/",
-        {"answers": [{"question_id": q1.id, "option_id": q1.options.get(value=6).id}]},
-        format="json",
-    )
-    assert resp.status_code == 201
-    answers = resp.json()["answers"]
-    assert len(answers) == 30
-    assert sum(a["response_state"] == "skipped" for a in answers) == 29
-    cells = resp.json()["computed_result"]["reflection"]
-    assert cells["S"]["experience"] == {"mean": None, "rated": 1, "total": 3}
+    resp = api_client.post(url, {"answers": [{"question_id": q1.id, "option_id": q1.options.get(value=6).id}]}, format="json")
+    assert resp.status_code == 400
+    assert len(resp.json()["missing_question_ids"]) == 29
+
+    # A comment saved before choosing a value (a "skipped" row) is not an answer.
+    answers = _all_answered(test, overrides={q1.id: {"option_id": None, "response_state": "skipped", "comment": "x"}})
+    resp = api_client.post(url, {"answers": answers}, format="json")
+    assert resp.status_code == 400
+    assert resp.json()["missing_question_ids"] == [q1.id]
+
+    assert api_client.post(url, {"answers": _all_answered(test)}, format="json").status_code == 201
 
 
 def test_reflection_journey_is_complete_and_editable_after_submit(api_client, diagnostics, test, user):
     assert diagnostics_status(diagnostics) != "completed"
     submit = f"/api/assessments/tests/{test.slug}/submit/"
-    assert api_client.post(submit, {"answers": []}, format="json").status_code == 201
+    assert api_client.post(submit, {"answers": _all_answered(test)}, format="json").status_code == 201
     assert diagnostics_status(diagnostics) == "completed"
     # No coach-feedback stage, so the answers stay editable.
     assert api_client.get(f"/api/assessments/tests/{test.slug}/draft/").status_code == 200
@@ -215,7 +222,7 @@ def test_standard_journeys_still_require_feedback(db):
 
 
 def _submitted(api_client, test):
-    resp = api_client.post(f"/api/assessments/tests/{test.slug}/submit/", {"answers": []}, format="json")
+    resp = api_client.post(f"/api/assessments/tests/{test.slug}/submit/", {"answers": _all_answered(test)}, format="json")
     return resp.json()["id"]
 
 
@@ -262,4 +269,4 @@ def test_written_reflection_included_in_data_export(api_client, diagnostics, tes
     exported = export_identity(user=user)
     submission = exported["diagnostics"][0]["submissions"][0]
     assert submission["reflection"]["F"]["situation"] == "dishes"
-    assert {a["response_state"] for a in submission["answers"]} == {"skipped"}
+    assert {a["response_state"] for a in submission["answers"]} == {"answered"}

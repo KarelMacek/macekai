@@ -65,9 +65,9 @@ function SignedInApp() {
 
   return (
     <div className="min-h-screen">
-      <header className="flex items-center justify-between border-b px-8 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b px-4 py-4 sm:px-8">
         <h1 className="text-lg font-semibold text-gold">{t("appTitle")}</h1>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
           {user?.is_staff && <ViewModeToggle viewMode={viewMode} setMode={setMode} />}
           <a
             href="/api/assessments/export/"
@@ -75,7 +75,7 @@ function SignedInApp() {
           >
             {t("downloadMyDataButton")}
           </a>
-          <span>{user?.email}</span>
+          <span className="hidden sm:inline">{user?.email}</span>
           <a href="/logout/" className="transition-colors duration-150 hover:text-gold">
             {t("signOut")}
           </a>

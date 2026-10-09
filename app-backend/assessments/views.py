@@ -18,6 +18,7 @@ from .gdpr import delete_identity, export_identity, resolve_identity, summarize_
 from .i18n import get_lang, resolve_locale
 from .models import (
     AdminFeedback,
+    Answer,
     Diagnostics,
     FeedbackRequest,
     FileBlob,
@@ -40,6 +41,7 @@ from .serializers import (
     FeedbackRequestSerializer,
     JourneyStatusSerializer,
     MyDataExportSerializer,
+    ReflectionTextSerializer,
     TestDetailSerializer,
     TestSubmissionInputSerializer,
     TestSubmissionReadSerializer,
@@ -95,6 +97,17 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
             ai_consent = consent.ai_processing_consent
             research_consent = consent.research_consent
 
+    submissions_data = list(
+        TestSubmissionReadSerializer(submissions, many=True, context={"request": request}).data
+    )
+    if feedback_request is not None:
+        # The per-area comments of a reflection travel with the answers once
+        # the person has sent them in for feedback - not before.
+        reflections = {s.id: s.reflection for s in submissions if s.reflection}
+        for item in submissions_data:
+            if item["id"] in reflections:
+                item["reflection"] = reflections[item["id"]]
+
     return {
         "id": diagnostics.id,
         "email": diagnostics.email,
@@ -104,9 +117,7 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
         "language": diagnostics.language,
         "all_tests_done": all_tests_done,
         "steps": steps,
-        "submissions": TestSubmissionReadSerializer(
-            submissions, many=True, context={"request": request}
-        ).data,
+        "submissions": submissions_data,
         "feedback_request": (
             FeedbackRequestSerializer(feedback_request, context={"request": request}).data
             if feedback_request
@@ -146,7 +157,14 @@ class JourneyView(APIView):
         diagnostics = current_diagnostics(request.user)
         if not diagnostics:
             return Response(
-                {"journey_slug": None, "diagnostics_id": None, "steps": [], "all_tests_done": False}
+                {
+                    "journey_slug": None,
+                    "diagnostics_id": None,
+                    "steps": [],
+                    "all_tests_done": False,
+                    "requires_feedback": False,
+                    "feedback_needs_cv": True,
+                }
             )
 
         lang = get_lang(request)
@@ -162,6 +180,11 @@ class JourneyView(APIView):
                 "steps": steps,
                 "all_tests_done": all_tests_done,
                 "feedback_request_submitted": feedback_request_submitted,
+                # False for self-contained journeys (e.g. SCARF): no feedback
+                # request step, so the UI must not offer one (the POST would
+                # be refused as already completed).
+                "requires_feedback": diagnostics.journey.requires_feedback,
+                "feedback_needs_cv": diagnostics.journey.feedback_needs_cv,
             }
         )
 
@@ -183,7 +206,9 @@ def _guard_open_diagnostics(request):
     diagnostics = current_diagnostics(request.user)
     if diagnostics is None:
         return None, Response({"detail": "No open diagnostics."}, status=status.HTTP_403_FORBIDDEN)
-    if diagnostics_status(diagnostics) == STATUS_COMPLETED:
+    # Journeys without a feedback stage are "completed" on submit but stay
+    # editable — there is no coach review that a later edit would invalidate.
+    if diagnostics.journey.requires_feedback and diagnostics_status(diagnostics) == STATUS_COMPLETED:
         return None, Response(
             {"detail": "This diagnostics is already completed."}, status=status.HTTP_403_FORBIDDEN
         )
@@ -247,7 +272,11 @@ class TestSubmitView(APIView):
         draft = get_or_create_draft(test=test, diagnostics=diagnostics, user=request.user)
         upsert_draft_answers(draft, serializer.validated_data["answers"])
 
-        answered_ids = set(draft.answers.values_list("question_id", flat=True))
+        # A "skipped" row (e.g. a comment saved before choosing a value) is
+        # not an answer: every question needs a real one, reflection included.
+        answered_ids = set(
+            draft.answers.exclude(response_state=Answer.STATE_SKIPPED).values_list("question_id", flat=True)
+        )
         all_ids = set(test.questions.values_list("id", flat=True))
         if answered_ids != all_ids:
             return Response(
@@ -261,6 +290,35 @@ class TestSubmitView(APIView):
         submission = finalize_draft(draft, test)
         read_serializer = TestSubmissionReadSerializer(submission, context={"request": request})
         return Response(read_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class SubmissionReflectionView(APIView):
+    """The optional written reflection on a reflection-type submission.
+    Owner-only and deliberately outside the open-diagnostics guard: it is
+    written after results are shown. Never exposed to anyone else."""
+
+    def _get_submission(self, request, pk):
+        return get_object_or_404(
+            TestSubmission.objects.select_related("test"),
+            pk=pk,
+            user=request.user,
+            status=TestSubmission.STATUS_SUBMITTED,
+            test__test_type=Test.TYPE_REFLECTION,
+        )
+
+    @extend_schema(responses=OpenApiTypes.OBJECT)
+    def get(self, request, pk):
+        return Response(self._get_submission(request, pk).reflection)
+
+    @extend_schema(request=OpenApiTypes.OBJECT, responses=OpenApiTypes.OBJECT)
+    def put(self, request, pk):
+        submission = self._get_submission(request, pk)
+        domains = submission.test.categories.values_list("key", flat=True)
+        serializer = ReflectionTextSerializer(data=request.data, context={"domains": list(domains)})
+        serializer.is_valid(raise_exception=True)
+        submission.reflection = serializer.validated_data
+        submission.save(update_fields=["reflection"])
+        return Response(submission.reflection)
 
 
 class SubmissionListView(APIView):
@@ -320,7 +378,7 @@ class FeedbackRequestView(APIView):
 
         instance = FeedbackRequest.objects.filter(diagnostics=diagnostics).first()
         serializer = FeedbackRequestSerializer(
-            instance=instance, data=request.data, context={"request": request}
+            instance=instance, data=request.data, context={"request": request, "diagnostics": diagnostics}
         )
         serializer.is_valid(raise_exception=True)
         feedback_request = serializer.save(diagnostics=diagnostics)

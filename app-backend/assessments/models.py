@@ -11,9 +11,11 @@ class Test(models.Model):
 
     TYPE_SNAPSHOT = "snapshot"
     TYPE_MAPPING = "mapping"
+    TYPE_REFLECTION = "reflection"
     TYPE_CHOICES = [
         (TYPE_SNAPSHOT, "Snapshot (Likert scale, aggregated)"),
         (TYPE_MAPPING, "Mapping (open-ended, no aggregation)"),
+        (TYPE_REFLECTION, "Reflection (paired 1-7 ratings with N/A and skip, per-domain means)"),
     ]
 
     slug = models.SlugField()
@@ -75,7 +77,8 @@ class Question(models.Model):
     text = models.JSONField(default=dict, blank=True)
     help_text = models.JSONField(default=dict, blank=True)
     order = models.PositiveIntegerField(default=0)
-    # Snapshot-only: lets a Likert question also collect a free-text comment.
+    # Lets a Likert question also collect a free-text comment (Snapshot and
+    # Reflection tests honor it).
     allow_comment = models.BooleanField(default=False)
     # Escape hatch for future question types' type-specific config, without a
     # schema migration for every new type's quirks.
@@ -164,6 +167,10 @@ class TestSubmission(models.Model):
     # silently rewrite historical results. Empty for mapping-type tests and
     # for any row still in draft status.
     computed_result = models.JSONField(default=dict, blank=True)
+    # Reflection-type tests only: the optional written reflection, keyed by
+    # domain -> {situation, exception, missing}. Free text the user chooses
+    # to write after seeing results; never required, never shared.
+    reflection = models.JSONField(default=dict, blank=True)
 
     class Meta:
         # created_at, not submitted_at: a live draft has submitted_at=None,
@@ -188,6 +195,18 @@ class TestSubmission(models.Model):
 
 
 class Answer(models.Model):
+    # Reflection-type tests distinguish "this didn't apply / not enough
+    # information" from "I chose not to answer". Both leave selected_option
+    # empty and both are excluded from scoring.
+    STATE_ANSWERED = "answered"
+    STATE_NOT_APPLICABLE = "not_applicable"
+    STATE_SKIPPED = "skipped"
+    STATE_CHOICES = [
+        (STATE_ANSWERED, "Answered"),
+        (STATE_NOT_APPLICABLE, "Not applicable"),
+        (STATE_SKIPPED, "Skipped"),
+    ]
+
     submission = models.ForeignKey(TestSubmission, on_delete=models.CASCADE, related_name="answers")
     question = models.ForeignKey(Question, on_delete=models.PROTECT, related_name="answers")
     # Exactly one of selected_option/text_value is meaningfully populated,
@@ -198,6 +217,7 @@ class Answer(models.Model):
     )
     text_value = models.TextField(blank=True, default="")
     comment = models.TextField(blank=True, default="")
+    response_state = models.CharField(max_length=16, choices=STATE_CHOICES, default=STATE_ANSWERED)
 
     class Meta:
         constraints = [
@@ -221,6 +241,14 @@ class Journey(models.Model):
     slug = models.SlugField(unique=True)
     name = models.JSONField(default=dict, blank=True)
     is_active = models.BooleanField(default=True)
+    # False for self-contained instruments that have no coach-written feedback
+    # stage: the diagnostics is complete as soon as every step is submitted,
+    # and stays editable.
+    requires_feedback = models.BooleanField(default=True)
+    # Whether asking for that feedback needs a CV and/or LinkedIn link. False
+    # for journeys (e.g. the SCARF reflection) where the person simply sends
+    # their answers to the coach: the request is then one button, no files.
+    feedback_needs_cv = models.BooleanField(default=True)
     simpleshop_product_id_cs = models.CharField(max_length=64, blank=True, default="")
     simpleshop_product_id_en = models.CharField(max_length=64, blank=True, default="")
 

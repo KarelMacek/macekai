@@ -13,6 +13,11 @@ urlpatterns = [
         views.SubmissionDetailView.as_view(),
         name="assessments-submission-detail",
     ),
+    path(
+        "submissions/<int:pk>/reflection/",
+        views.SubmissionReflectionView.as_view(),
+        name="assessments-submission-reflection",
+    ),
     path("consent/", views.ConsentView.as_view(), name="assessments-consent"),
     path("export/", views.MyDataExportView.as_view(), name="assessments-export"),
     path(

@@ -5,6 +5,8 @@ import { RequestFeedbackCta } from "@/components/RequestFeedbackCta";
 import { SubmissionAnswers } from "@/components/SubmissionAnswers";
 import { Button } from "@/components/ui/button";
 import { MappingTest } from "@/features/assessments/MappingTest";
+import { ReflectionResult } from "@/features/assessments/ReflectionResult";
+import { ReflectionTest } from "@/features/assessments/ReflectionTest";
 import { SnapshotResult } from "@/features/assessments/SnapshotResult";
 import { SnapshotTest } from "@/features/assessments/SnapshotTest";
 import { getJourney, getSubmissions, getTest } from "@/lib/api";
@@ -21,6 +23,7 @@ function countChangedAnswers(before: TestSubmission, after: TestSubmission): num
     if (
       !prior ||
       prior.selected_option_id !== answer.selected_option_id ||
+      prior.response_state !== answer.response_state ||
       prior.text_value !== answer.text_value
     ) {
       changed += 1;
@@ -50,12 +53,24 @@ export function TestPage() {
     setJourney(null);
     if (!slug) return;
     getTest(slug, lang).then(setTest);
+    // Needed up front (not only after finishing) so the results shown on a
+    // later visit can offer "send to Karel" for journeys with a feedback stage.
+    getJourney(lang).then(setJourney);
     getSubmissions().then((subs) => setExistingSubmission(subs.find((s) => s.test_slug === slug) ?? null));
   }, [slug, lang]);
 
   if (!test || existingSubmission === undefined) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
   const wasEditing = retaking && existingSubmission !== null;
+  // A reflection is a self-contained instrument: its results are the end of
+  // the road except for sending them in for feedback, so there is no
+  // "Continue" to the dashboard (it only dumped people on the diagnostics
+  // list) and the send button is offered on every view of the results.
+  const selfContained = test.test_type === "reflection";
+  const sendCta =
+    selfContained && journey?.all_tests_done && journey.requires_feedback ? (
+      <RequestFeedbackCta journey={journey} />
+    ) : null;
 
   if (submission) {
     const changedCount =
@@ -63,7 +78,7 @@ export function TestPage() {
     const nextStep = journey?.steps.find((s) => s.status === "current" || s.status === "in_progress");
 
     return (
-      <div className="p-8">
+      <div className="px-4 py-6 sm:p-8">
         {changedCount !== null && (
           <p className="mx-auto mb-6 w-full max-w-xl text-sm text-muted-foreground">
             {changedCount > 0 ? t("editSummary", { count: changedCount }) : t("editSummaryNone")}
@@ -71,6 +86,8 @@ export function TestPage() {
         )}
         {test.test_type === "snapshot" ? (
           <SnapshotResult categories={test.categories} submission={submission} />
+        ) : test.test_type === "reflection" ? (
+          <ReflectionResult test={test} submission={submission} />
         ) : (
           <p className="mx-auto max-w-xl text-sm text-muted-foreground">{t("answersSavedConfirmation")}</p>
         )}
@@ -99,8 +116,13 @@ export function TestPage() {
               dashboard. journey?.all_tests_done guards the brief render
               before getJourney() resolves, where nextStep is also
               momentarily undefined. */}
-          {!wasEditing && !nextStep && journey?.all_tests_done && <RequestFeedbackCta journey={journey} />}
-          {(wasEditing || (!nextStep && !journey?.all_tests_done)) && (
+          {selfContained
+            ? sendCta
+            : !wasEditing &&
+              !nextStep &&
+              journey?.all_tests_done &&
+              journey.requires_feedback && <RequestFeedbackCta journey={journey} />}
+          {!selfContained && (wasEditing || (!nextStep && !(journey?.all_tests_done && journey.requires_feedback))) && (
             <Link href="/">
               <Button variant="outline" size="sm">
                 {t("continueButton")}
@@ -114,19 +136,24 @@ export function TestPage() {
 
   if (existingSubmission && !retaking) {
     return (
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-6 p-8">
-        <h1 className="text-xl font-semibold">{test.title}</h1>
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:p-8">
+        {test.test_type !== "reflection" && <h1 className="text-xl font-semibold">{test.title}</h1>}
         {test.test_type === "snapshot" ? (
           <SnapshotResult categories={test.categories} submission={existingSubmission} />
+        ) : test.test_type === "reflection" ? (
+          <ReflectionResult test={test} submission={existingSubmission} />
         ) : (
           <SubmissionAnswers submission={existingSubmission} />
         )}
+        {sendCta}
         <div className="flex gap-3">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              {t("continueButton")}
-            </Button>
-          </Link>
+          {!selfContained && (
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                {t("continueButton")}
+              </Button>
+            </Link>
+          )}
           <Button variant="outline" size="sm" onClick={() => setRetaking(true)}>
             {t("editAnswers")}
           </Button>
@@ -141,9 +168,11 @@ export function TestPage() {
   }
 
   return (
-    <div className="p-8">
+    <div className="px-4 py-6 sm:p-8">
       {test.test_type === "snapshot" ? (
         <SnapshotTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
+      ) : test.test_type === "reflection" ? (
+        <ReflectionTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
       ) : (
         <MappingTest test={test} onComplete={handleComplete} isEditing={wasEditing} />
       )}

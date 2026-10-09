@@ -52,6 +52,7 @@ class QuestionSerializer(LocaleResolvingMixin, serializers.ModelSerializer):
             "order",
             "allow_comment",
             "category_key",
+            "config",
             "options",
         ]
 
@@ -128,6 +129,9 @@ class AnswerInputSerializer(serializers.Serializer):
     option_id = serializers.IntegerField(required=False, allow_null=True)
     text_value = serializers.CharField(required=False, allow_blank=True, default="")
     comment = serializers.CharField(required=False, allow_blank=True, default="")
+    response_state = serializers.ChoiceField(
+        choices=[c for c, _ in Answer.STATE_CHOICES], required=False, default=Answer.STATE_ANSWERED
+    )
 
 
 class TestSubmissionInputSerializer(serializers.Serializer):
@@ -154,6 +158,19 @@ class TestSubmissionInputSerializer(serializers.Serializer):
 
         for answer in data["answers"]:
             question = questions[answer["question_id"]]
+            if answer["response_state"] != Answer.STATE_ANSWERED:
+                # N/A and skipped are explicit non-answers: only Likert
+                # questions can carry them, and they never carry a value.
+                if question.question_type != Question.QUESTION_TYPE_LIKERT:
+                    raise serializers.ValidationError(
+                        f"Question {question.id} cannot be marked {answer['response_state']}."
+                    )
+                if answer.get("option_id") is not None:
+                    raise serializers.ValidationError(
+                        f"Question {question.id}: option_id must be empty when "
+                        f"response_state is {answer['response_state']}."
+                    )
+                continue
             if question.question_type == Question.QUESTION_TYPE_LIKERT:
                 option_ids = {o.id for o in question.options.all()}
                 if answer.get("option_id") not in option_ids:
@@ -181,6 +198,7 @@ class AnswerReadSerializer(LocaleResolvingMixin, serializers.ModelSerializer):
             "selected_option_label",
             "text_value",
             "comment",
+            "response_state",
         ]
 
     def get_question_text(self, obj) -> str:
@@ -204,6 +222,33 @@ class TestSubmissionReadSerializer(serializers.ModelSerializer):
         # order, so the UI can list them straight through without a lookup.
         answers = obj.answers.select_related("question", "selected_option").order_by("question__order")
         return AnswerReadSerializer(answers, many=True, context=self.context).data
+
+
+class ReflectionTextSerializer(serializers.Serializer):
+    """The optional written reflection: domain key -> optional texts. The
+    results page now offers one free comment per domain ("comment"); the
+    three original prompts stay accepted so earlier entries round-trip.
+    Unknown domains are rejected so the blob can't grow arbitrary keys."""
+
+    PROMPTS = ("comment", "situation", "exception", "missing")
+
+    def to_internal_value(self, data):
+        if not isinstance(data, dict):
+            raise serializers.ValidationError({"detail": "Expected an object keyed by domain."})
+        domains = set(self.context["domains"])
+        cleaned = {}
+        for domain, prompts in data.items():
+            if domain not in domains or not isinstance(prompts, dict):
+                raise serializers.ValidationError({"detail": f"Unknown domain {domain!r}."})
+            entry = {}
+            for key in self.PROMPTS:
+                value = prompts.get(key, "")
+                if not isinstance(value, str) or len(value) > 5000:
+                    raise serializers.ValidationError({"detail": f"Invalid text for {domain}.{key}."})
+                entry[key] = value
+            if any(v.strip() for v in entry.values()):
+                cleaned[domain] = entry
+        return cleaned
 
 
 class ConsentSerializer(serializers.ModelSerializer):
@@ -230,6 +275,10 @@ class FeedbackRequestSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
+        diagnostics = self.context.get("diagnostics")
+        if diagnostics is not None and not diagnostics.journey.feedback_needs_cv:
+            # E.g. SCARF: the request is just "send me my answers" - no CV.
+            return data
         cv_file = data.get("cv_file") or getattr(self.instance, "cv_file", None)
         linkedin_url = data.get("linkedin_url") or getattr(self.instance, "linkedin_url", "")
         if not cv_file and not linkedin_url:
@@ -286,6 +335,8 @@ class JourneyStatusSerializer(serializers.Serializer):
     steps = JourneyStepStatusSerializer(many=True)
     all_tests_done = serializers.BooleanField()
     feedback_request_submitted = serializers.BooleanField(required=False)
+    requires_feedback = serializers.BooleanField()
+    feedback_needs_cv = serializers.BooleanField()
 
 
 class DiagnosticsSummarySerializer(serializers.Serializer):

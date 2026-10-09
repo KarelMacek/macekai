@@ -171,11 +171,35 @@ matches each category's score against its `ResultThreshold` rows to find
 which one applies. The result — `{"categories": {...}, "matched_thresholds":
 {...}}` — is what gets frozen into `TestSubmission.computed_result`.
 
-Adding a third test type later means adding one function and one branch in
-`compute_result` — nothing about `TestSubmission`, `Answer`, or the
-submission view needs to change, since answers are already handled
-generically per `question_type` and `computed_result` is an untyped JSON
-field.
+Adding a test type means a branch in `compute_result`, but that is only
+sufficient if answers fit the existing shape (one option per Likert
+question, every question answered). The `reflection` type (SCARF
+Relationship Reflection, issue #24) did not, and needed more:
+
+- `Answer.response_state` (`answered` / `not_applicable` / `skipped`) so
+  N/A and skipped are stored distinctly and both excluded from scoring.
+  N/A and skipped answers carry no option; the input serializer enforces it.
+- `compute_reflection_result` returns one cell per domain and perspective,
+  `{"mean", "rated", "total"}`, with `mean` null unless at least 2 of the 3
+  items are numerical (a reporting convention, not a validated threshold).
+  Questions declare their cell in `Question.config`
+  (`{domain, pair, role, item_id}`). There is deliberately no total score.
+- On submit, a reflection test records any untouched question as `skipped`
+  instead of rejecting the submission for incompleteness.
+- `Journey.requires_feedback = False` for self-contained instruments: the
+  diagnostics is `completed` once every step is submitted, stays editable,
+  and is left out of the entry-diagnostic funnel counts.
+- `TestSubmission.reflection` holds the optional written reflection
+  (`domain -> {situation, exception, missing}`), written through
+  `PUT /api/assessments/submissions/<id>/reflection/`. Owner-only, included
+  in the GDPR export, never shown to admins or shared.
+- Seeded by `0012_seed_scarf_reflection` as journey/test slug
+  `scarf-reflection`. Open it for a user with
+  `manage.py open_diagnostics <email> --journey scarf-reflection`.
+
+Caveat: `current_diagnostics()` is "the latest diagnostics opened", so
+opening a SCARF reflection for a user who is mid-way through another
+journey makes the reflection the one the dashboard shows.
 
 ## File storage (in Postgres)
 

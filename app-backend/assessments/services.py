@@ -32,6 +32,9 @@ def diagnostics_status(diagnostics: Diagnostics) -> str:
     if set(journey_test_ids) - completed_test_ids:
         return STATUS_TESTS_IN_PROGRESS
 
+    if not diagnostics.journey.requires_feedback:
+        return STATUS_COMPLETED
+
     feedback_request = FeedbackRequest.objects.filter(diagnostics=diagnostics).first()
     if not feedback_request:
         return STATUS_AWAITING_FEEDBACK_REQUEST
@@ -54,6 +57,10 @@ def diagnostics_funnel_counts(diagnostics_qs=None) -> dict:
     today's volumes with no issue."""
     if diagnostics_qs is None:
         diagnostics_qs = Diagnostics.objects.all()
+    # The entry diagnostic is the CV/LinkedIn review journey. Other products
+    # (e.g. the SCARF reflection, which also gets coach feedback but without a
+    # CV) aren't part of the funnel this view exists to measure.
+    diagnostics_qs = diagnostics_qs.filter(journey__requires_feedback=True, journey__feedback_needs_cv=True)
 
     paid_count = diagnostics_qs.count()
     started_count = diagnostics_qs.filter(submissions__isnull=False).distinct().count()
@@ -254,6 +261,7 @@ def get_or_create_draft(*, test, diagnostics, user) -> TestSubmission:
                         selected_option_id=answer.selected_option_id,
                         text_value=answer.text_value,
                         comment=answer.comment,
+                        response_state=answer.response_state,
                     )
                     for answer in latest_submitted.answers.all()
                 ]
@@ -272,6 +280,7 @@ def upsert_draft_answers(draft: TestSubmission, answers: list[dict]) -> None:
                 "selected_option_id": answer.get("option_id"),
                 "text_value": answer.get("text_value", ""),
                 "comment": answer.get("comment", ""),
+                "response_state": answer.get("response_state", Answer.STATE_ANSWERED),
             },
         )
 

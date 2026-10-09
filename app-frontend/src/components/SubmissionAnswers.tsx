@@ -1,3 +1,4 @@
+import { domainTitleKey } from "@/features/assessments/ReflectionTest";
 import { useTranslation } from "@/lib/i18n";
 import type { TestSubmission } from "@/types/api";
 
@@ -19,11 +20,36 @@ export function SubmissionAnswers({ submission }: { submission: TestSubmission }
         </div>
       )}
 
+      {submission.reflection && (
+        <div className="flex flex-col gap-3">
+          {Object.entries(submission.reflection).map(([domain, text]) => {
+            const entries = [text.comment, text.situation, text.exception, text.missing].filter(Boolean);
+            if (entries.length === 0) return null;
+            return (
+              <div key={domain} className="flex flex-col gap-1 rounded-md border p-3 text-sm">
+                <p className="font-medium">{t(domainTitleKey(domain))}</p>
+                {entries.map((entry, i) => (
+                  <p key={i} className="whitespace-pre-line text-muted-foreground">
+                    {entry}
+                  </p>
+                ))}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       <div className="flex flex-col gap-3">
         {submission.answers.map((answer, i) => (
           <div key={i} className="flex flex-col gap-1 border-b pb-3 text-sm last:border-0">
             <p className="font-medium">{answer.question_text}</p>
-            <p className="text-muted-foreground">{answer.selected_option_label ?? answer.text_value}</p>
+            <p className="text-muted-foreground">
+              {answer.response_state === "not_applicable"
+                ? t("scarfStateNotApplicable")
+                : answer.response_state === "skipped"
+                  ? t("scarfStateSkipped")
+                  : (answer.selected_option_label ?? answer.text_value)}
+            </p>
             {answer.comment && (
               <p className="text-xs text-muted-foreground italic">
                 {t("commentLabel")}: {answer.comment}

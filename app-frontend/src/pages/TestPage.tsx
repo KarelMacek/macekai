@@ -59,6 +59,10 @@ export function TestPage() {
   if (!test || existingSubmission === undefined) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;
 
   const wasEditing = retaking && existingSubmission !== null;
+  // A reflection is a self-contained instrument: nothing follows its results,
+  // so there is no "Continue" to the dashboard (it only dumped people on a
+  // list of diagnostics).
+  const selfContained = test.test_type === "reflection";
 
   if (submission) {
     const changedCount =
@@ -107,7 +111,7 @@ export function TestPage() {
           {!wasEditing && !nextStep && journey?.all_tests_done && journey.requires_feedback && (
             <RequestFeedbackCta journey={journey} />
           )}
-          {(wasEditing || (!nextStep && !(journey?.all_tests_done && journey.requires_feedback))) && (
+          {!selfContained && (wasEditing || (!nextStep && !(journey?.all_tests_done && journey.requires_feedback))) && (
             <Link href="/">
               <Button variant="outline" size="sm">
                 {t("continueButton")}
@@ -131,11 +135,13 @@ export function TestPage() {
           <SubmissionAnswers submission={existingSubmission} />
         )}
         <div className="flex gap-3">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              {t("continueButton")}
-            </Button>
-          </Link>
+          {!selfContained && (
+            <Link href="/">
+              <Button variant="outline" size="sm">
+                {t("continueButton")}
+              </Button>
+            </Link>
+          )}
           <Button variant="outline" size="sm" onClick={() => setRetaking(true)}>
             {t("editAnswers")}
           </Button>

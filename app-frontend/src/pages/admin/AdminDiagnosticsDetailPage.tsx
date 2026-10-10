@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 
-import { SubmissionAnswers } from "@/components/SubmissionAnswers";
+import { SubmissionDetail } from "@/components/SubmissionDetail";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -97,7 +97,7 @@ export function AdminDiagnosticsDetailPage() {
       </div>
 
       {diagnostics.submissions.map((submission) => (
-        <SubmissionAnswers key={submission.id} submission={submission} />
+        <SubmissionDetail key={submission.id} submission={submission} lang={diagnostics.language || "en"} />
       ))}
 
       {!diagnostics.feedback_request ? (

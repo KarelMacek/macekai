@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 
-import { SubmissionAnswers } from "@/components/SubmissionAnswers";
+import { SubmissionDetail } from "@/components/SubmissionDetail";
 import { getDiagnosticsDetail } from "@/lib/api";
 import { useTranslation } from "@/lib/i18n";
 import type { DiagnosticsDetail } from "@/types/api";
@@ -22,7 +22,7 @@ export function DiagnosticsHistoryPage() {
       <h1 className="text-lg font-semibold">{diagnostics.journey_slug}</h1>
 
       {diagnostics.submissions.map((submission) => (
-        <SubmissionAnswers key={submission.id} submission={submission} />
+        <SubmissionDetail key={submission.id} submission={submission} lang={lang} />
       ))}
 
       {diagnostics.feedback && (

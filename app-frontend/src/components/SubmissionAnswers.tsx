@@ -1,4 +1,3 @@
-import { domainTitleKey } from "@/features/assessments/ReflectionTest";
 import { useTranslation } from "@/lib/i18n";
 import type { TestSubmission } from "@/types/api";
 
@@ -17,26 +16,6 @@ export function SubmissionAnswers({ submission }: { submission: TestSubmission }
               <span className="tabular-nums">{Math.round(score * 100)}%</span>
             </div>
           ))}
-        </div>
-      )}
-
-      {submission.reflection && Object.values(submission.reflection).some((text) => Object.values(text).some(Boolean)) && (
-        <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold">{t("scarfAreaCommentsHeading")}</h3>
-          {Object.entries(submission.reflection).map(([domain, text]) => {
-            const entries = [text.comment, text.situation, text.exception, text.missing].filter(Boolean);
-            if (entries.length === 0) return null;
-            return (
-              <div key={domain} className="flex flex-col gap-1 rounded-md border p-3 text-sm">
-                <p className="font-medium">{t(domainTitleKey(domain))}</p>
-                {entries.map((entry, i) => (
-                  <p key={i} className="whitespace-pre-line text-muted-foreground">
-                    {entry}
-                  </p>
-                ))}
-              </div>
-            );
-          })}
         </div>
       )}
 

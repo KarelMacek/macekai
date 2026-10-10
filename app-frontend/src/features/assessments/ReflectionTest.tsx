@@ -74,6 +74,9 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lockTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const commentTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  // Comment saves still waiting on their debounce, run on the spot if the
+  // person leaves (e.g. "Save & finish later") instead of being dropped.
+  const pendingCommentSaves = useRef<Record<number, () => void>>({});
   const seenMilestonesRef = useRef<Set<number>>(new Set());
 
   const thirtyPercentIndex = fractionIndex(questions.length, 0.3);
@@ -111,10 +114,12 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
 
   useEffect(() => {
     const timers = commentTimers.current;
+    const pending = pendingCommentSaves.current;
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
       Object.values(timers).forEach(clearTimeout);
+      Object.values(pending).forEach((run) => run());
     };
   }, []);
 
@@ -170,6 +175,7 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
     const questionId = question.id;
     setChoices((prev) => ({ ...prev, [questionId]: choice }));
     clearTimeout(commentTimers.current[questionId]);
+    delete pendingCommentSaves.current[questionId];
     save(toInput(questionId, choice, comments[questionId]));
 
     if (!openComments.has(questionId) && !comments[questionId]) {
@@ -183,10 +189,12 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
     const choice = choices[questionId];
     setComments((prev) => ({ ...prev, [questionId]: value }));
     clearTimeout(commentTimers.current[questionId]);
-    commentTimers.current[questionId] = setTimeout(
-      () => save(toInput(questionId, choice, value)),
-      COMMENT_SAVE_DELAY_MS,
-    );
+    const run = () => {
+      delete pendingCommentSaves.current[questionId];
+      save(toInput(questionId, choice, value));
+    };
+    pendingCommentSaves.current[questionId] = run;
+    commentTimers.current[questionId] = setTimeout(run, COMMENT_SAVE_DELAY_MS);
   }
 
   function openComment() {
@@ -214,6 +222,8 @@ export function ReflectionTest({ test, onComplete, isEditing = false }: Props) {
   async function handleSubmit() {
     if (timerRef.current) clearTimeout(timerRef.current);
     Object.values(commentTimers.current).forEach(clearTimeout);
+    // Submitting sends every comment anyway.
+    Object.keys(pendingCommentSaves.current).forEach((key) => delete pendingCommentSaves.current[Number(key)]);
     setSubmitting(true);
     setError(null);
     try {

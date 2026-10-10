@@ -100,13 +100,13 @@ def _build_diagnostics_detail(diagnostics, request, *, include_unpublished_feedb
     submissions_data = list(
         TestSubmissionReadSerializer(submissions, many=True, context={"request": request}).data
     )
-    if feedback_request is not None:
-        # The per-area comments of a reflection travel with the answers once
-        # the person has sent them in for feedback - not before.
-        reflections = {s.id: s.reflection for s in submissions if s.reflection}
-        for item in submissions_data:
-            if item["id"] in reflections:
-                item["reflection"] = reflections[item["id"]]
+    # A reflection's per-area comments belong with its answers: shown to the
+    # admin (and the owner) wherever the answers are, not gated on the
+    # "send to coach" step.
+    reflections = {s.id: s.reflection for s in submissions if s.reflection}
+    for item in submissions_data:
+        if item["id"] in reflections:
+            item["reflection"] = reflections[item["id"]]
 
     return {
         "id": diagnostics.id,

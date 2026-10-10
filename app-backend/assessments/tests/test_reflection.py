@@ -244,7 +244,7 @@ def test_scarf_stays_out_of_the_entry_diagnostic_funnel(api_client, diagnostics,
     assert diagnostics_funnel_counts() == {"paid_count": 0, "started_count": 0, "completed_count": 0}
 
 
-def test_admin_sees_area_comments_only_after_the_answers_are_sent(api_client, diagnostics, test, user):
+def test_admin_sees_area_comments_with_the_answers(api_client, diagnostics, test, user):
     sid = _submitted(api_client, test)
     api_client.put(f"/api/assessments/submissions/{sid}/reflection/", {"S": {"comment": "Mostly calm."}}, format="json")
 
@@ -252,7 +252,8 @@ def test_admin_sees_area_comments_only_after_the_answers_are_sent(api_client, di
     staff = APIClient()
     staff.force_authenticate(user=admin)
     url = f"/api/assessments/admin/diagnostics/{diagnostics.id}/"
-    assert "reflection" not in staff.get(url).json()["submissions"][0]
+    # Visible straight away, whether or not the person has sent anything in.
+    assert staff.get(url).json()["submissions"][0]["reflection"]["S"]["comment"] == "Mostly calm."
 
     assert api_client.post("/api/assessments/feedback-request/", {}, format="multipart").status_code == 201
     assert staff.get(url).json()["submissions"][0]["reflection"]["S"]["comment"] == "Mostly calm."

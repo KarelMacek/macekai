@@ -20,8 +20,9 @@ export function SubmissionAnswers({ submission }: { submission: TestSubmission }
         </div>
       )}
 
-      {submission.reflection && (
+      {submission.reflection && Object.values(submission.reflection).some((text) => Object.values(text).some(Boolean)) && (
         <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold">{t("scarfAreaCommentsHeading")}</h3>
           {Object.entries(submission.reflection).map(([domain, text]) => {
             const entries = [text.comment, text.situation, text.exception, text.missing].filter(Boolean);
             if (entries.length === 0) return null;

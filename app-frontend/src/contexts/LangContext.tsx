@@ -38,6 +38,15 @@ export function LangProvider({ children }: { children: ReactNode }) {
   return <LangContext.Provider value={{ lang, setLang }}>{children}</LangContext.Provider>;
 }
 
+// Renders its children in a fixed language, whatever the signed-in user's own
+// is - e.g. the reviewer reading a Czech client's results: the app language
+// follows the viewer's own diagnostics, which left the labels around the
+// client's (correctly Czech) answers in English. Deliberately does not touch
+// the language sent with API requests.
+export function LangOverride({ lang, children }: { lang: Lang; children: ReactNode }) {
+  return <LangContext.Provider value={{ lang, setLang: () => {} }}>{children}</LangContext.Provider>;
+}
+
 export function useLang() {
   return useContext(LangContext);
 }

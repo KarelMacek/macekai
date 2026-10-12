@@ -52,11 +52,20 @@ export function TestPage() {
     setRetaking(false);
     setJourney(null);
     if (!slug) return;
-    getTest(slug, lang).then(setTest);
+    // The app language can flip right after load (browser guess -> language
+    // of the order); a slower earlier response must not overwrite the newer
+    // one, which left the test text in the wrong language.
+    let cancelled = false;
+    getTest(slug, lang).then((loaded) => !cancelled && setTest(loaded));
     // Needed up front (not only after finishing) so the results shown on a
     // later visit can offer "send to Karel" for journeys with a feedback stage.
-    getJourney(lang).then(setJourney);
-    getSubmissions().then((subs) => setExistingSubmission(subs.find((s) => s.test_slug === slug) ?? null));
+    getJourney(lang).then((loaded) => !cancelled && setJourney(loaded));
+    getSubmissions().then(
+      (subs) => !cancelled && setExistingSubmission(subs.find((s) => s.test_slug === slug) ?? null),
+    );
+    return () => {
+      cancelled = true;
+    };
   }, [slug, lang]);
 
   if (!test || existingSubmission === undefined) return <p className="p-8 text-sm text-muted-foreground">{t("loading")}</p>;

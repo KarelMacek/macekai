@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { LangOverride, type Lang } from "@/contexts/LangContext";
 import { ReflectionResult } from "@/features/assessments/ReflectionResult";
 import { getTest } from "@/lib/api";
 import type { TestDetail, TestSubmission } from "@/types/api";
@@ -15,10 +16,22 @@ export function SubmissionDetail({ submission, lang }: { submission: TestSubmiss
   const isReflection = submission.test_type === "reflection";
 
   useEffect(() => {
-    if (isReflection) getTest(submission.test_slug, lang).then(setTest).catch(() => undefined);
+    if (!isReflection) return;
+    let cancelled = false;
+    getTest(submission.test_slug, lang)
+      .then((loaded) => !cancelled && setTest(loaded))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, [isReflection, submission.test_slug, lang]);
 
   if (!isReflection) return <SubmissionAnswers submission={submission} />;
   if (!test) return null;
-  return <ReflectionResult test={test} submission={submission} readOnly />;
+  // The whole block (labels included) reads in the client's language.
+  return (
+    <LangOverride lang={(lang === "cs" ? "cs" : "en") as Lang}>
+      <ReflectionResult test={test} submission={submission} readOnly />
+    </LangOverride>
+  );
 }

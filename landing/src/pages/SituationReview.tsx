@@ -179,7 +179,6 @@ function Bullets({ items }: { items: readonly string[] }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function SituationReview() {
   const { lang, setLang } = useLang();
-  const [sampleOpen, setSampleOpen] = useState(false);
   const campaign = useRef(
     readCampaignParams(typeof window === "undefined" ? "" : window.location.search)
   ).current;
@@ -232,7 +231,6 @@ export default function SituationReview() {
     return <NotFound />;
   }
 
-  const sample = c.sample.paragraphs[lang];
   const testimonial = t.testimonials.cases[lang][0];
 
   return (
@@ -296,7 +294,9 @@ export default function SituationReview() {
               className="mb-6 text-4xl font-bold leading-tight text-[oklch(0.93_0.02_80)] sm:text-5xl"
               style={serif}
             >
-              {tx(c.hero.h1, lang)}
+              <span className="block">{tx(c.hero.h1a, lang)}</span>
+              {/* Small gap on narrow screens, where each sentence wraps on its own. */}
+              <span className="mt-2 block sm:mt-0">{tx(c.hero.h1b, lang)}</span>
             </h1>
             <p
               className="mb-8 text-lg leading-relaxed text-[oklch(0.70_0.02_72)]"
@@ -403,70 +403,6 @@ export default function SituationReview() {
                 </li>
               ))}
             </ol>
-          </div>
-        </section>
-
-        {/* 6. Illustrative sample */}
-        <section aria-labelledby="sr-sample" className="py-16">
-          <div className="container max-w-3xl">
-            <SectionHeading id="sr-sample">
-              {tx(c.sample.h2, lang)}
-            </SectionHeading>
-            <p
-              className="mb-2 inline-block border px-3 py-1.5 text-xs font-semibold uppercase text-gold"
-              style={{ borderColor: "var(--gold)", borderRadius: "2px", ...mono }}
-            >
-              {tx(c.sample.label, lang)}
-            </p>
-            <figure
-              className="mt-4 border p-6 sm:p-8"
-              style={{
-                background: "var(--card)",
-                borderColor: "var(--border)",
-                borderRadius: "2px",
-              }}
-            >
-              <figcaption
-                className="mb-4 text-xl font-bold text-[oklch(0.93_0.02_80)]"
-                style={serif}
-              >
-                {tx(c.sample.title, lang)}
-              </figcaption>
-              <div
-                className="space-y-4 leading-relaxed text-[oklch(0.74_0.02_72)]"
-                style={bodyFont}
-              >
-                <p>{sample[0]}</p>
-                <div id="sr-sample-more" hidden={!sampleOpen} className="space-y-4">
-                  {sample.slice(1).map(p => (
-                    <p key={p}>{p}</p>
-                  ))}
-                </div>
-              </div>
-              <button
-                type="button"
-                aria-expanded={sampleOpen}
-                aria-controls="sr-sample-more"
-                onClick={() => {
-                  if (!sampleOpen) {
-                    trackEvent(lang, "situation_review_sample_expand", {
-                      product: SITUATION_REVIEW_PRODUCT_ID,
-                    });
-                  }
-                  setSampleOpen(o => !o);
-                }}
-                className="mt-5 min-h-[44px] text-sm text-gold underline decoration-dotted underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-                style={{ outlineColor: "var(--gold)", fontFamily: "'DM Sans', sans-serif" }}
-              >
-                {sampleOpen ? tx(c.sample.hide, lang) : tx(c.sample.show, lang)}
-              </button>
-            </figure>
-            <p
-              className="mt-3 text-xs leading-relaxed text-muted-foreground"
-              style={bodyFont}
-            >
-              {tx(c.sample.note, lang)}
-            </p>
           </div>
         </section>
 

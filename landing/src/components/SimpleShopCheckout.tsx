@@ -228,12 +228,15 @@ function CheckoutFrame({
         src={src}
         scrolling="no"
         width="100%"
+        allowTransparency
         className="block w-full overflow-hidden border-0"
         style={{
           height: height ?? 400,
           // Hidden (not unmounted) while failed so a late load can recover.
           display: failed && height === null ? "none" : "block",
-          background: "#fff",
+          // Transparent: the form is styled in SimpleShop's admin to match
+          // this site's dark theme.
+          background: "transparent",
           borderRadius: "2px",
         }}
       />

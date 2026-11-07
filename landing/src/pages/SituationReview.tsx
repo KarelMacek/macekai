@@ -609,15 +609,20 @@ export default function SituationReview() {
             <div className="mb-8">
               <PriceBlock />
             </div>
-            <h3
+            {/* Jump/focus target for the hero CTA. Heading is visually hidden
+                because the embedded form shows its own. */}
+            <div
               id={CHECKOUT_ID}
               tabIndex={-1}
-              className="mb-4 scroll-mt-6 text-lg font-semibold text-[oklch(0.93_0.02_80)] outline-none"
-              style={serif}
+              aria-labelledby="sr-checkout"
+              role="region"
+              className="scroll-mt-6 outline-none"
             >
-              {tx(c.checkout.h3, lang)}
-            </h3>
-            <SimpleShopCheckout campaign={campaign} />
+              <h3 id="sr-checkout" className="sr-only">
+                {tx(c.checkout.h3, lang)}
+              </h3>
+              <SimpleShopCheckout campaign={campaign} />
+            </div>
           </div>
         </section>
       </main>

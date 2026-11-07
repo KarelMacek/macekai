@@ -8,6 +8,7 @@ import { LangProvider } from "./contexts/LangContext";
 import { FunnelDeclinedProvider } from "./contexts/FunnelDeclinedContext";
 import Home from "./pages/Home";
 import Privacy from "./pages/Privacy";
+import SituationReview from "./pages/SituationReview";
 import CookieConsentBanner from "./components/CookieConsentBanner";
 
 function Router() {
@@ -15,6 +16,9 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/privacy"} component={Privacy} />
+      {/* One route for both language paths so switching CS/EN keeps the page
+          mounted (no remount, no duplicate view event). */}
+      <Route path={"/situation-review/:variant?"} component={SituationReview} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

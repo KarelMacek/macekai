@@ -6,6 +6,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Link } from "wouter";
 import { useLang } from "@/contexts/LangContext";
 import {
   SITUATION_REVIEW_DISCOUNT,
@@ -27,7 +28,6 @@ import {
   type Answers,
   type ResultKey,
 } from "@/components/QuickReflectionModal";
-import { DiagnosticsInfoModal } from "@/components/DiagnosticsInfoModal";
 import { CollaborationInfoModal } from "@/components/CollaborationInfoModal";
 import Footer from "@/components/Footer";
 
@@ -1393,7 +1393,6 @@ function Pricing({
   quickReflectionOpen,
   step1Answer,
   onStep1AnswerChange,
-  onDiagnosticsInfoClick,
   onCollaborationInfoClick,
 }: {
   onQuickCheckClick: () => void;
@@ -1401,7 +1400,6 @@ function Pricing({
   quickReflectionOpen: boolean;
   step1Answer: "yes" | "no" | null;
   onStep1AnswerChange: (answer: "yes" | "no") => void;
-  onDiagnosticsInfoClick: () => void;
   onCollaborationInfoClick: () => void;
 }) {
   const { lang } = useLang();
@@ -1594,9 +1592,6 @@ function Pricing({
                   onAnswerChange={
                     s.num === "01" ? onStep1AnswerChange : undefined
                   }
-                  onDiagnosticsInfoClick={
-                    s.num === "03" ? onDiagnosticsInfoClick : undefined
-                  }
                   onCollaborationInfoClick={
                     s.num === "05" ? onCollaborationInfoClick : undefined
                   }
@@ -1688,9 +1683,6 @@ function Pricing({
                 onAnswerChange={
                   s.num === "01" ? onStep1AnswerChange : undefined
                 }
-                onDiagnosticsInfoClick={
-                  s.num === "03" ? onDiagnosticsInfoClick : undefined
-                }
                 onCollaborationInfoClick={
                   s.num === "05" ? onCollaborationInfoClick : undefined
                 }
@@ -1724,7 +1716,6 @@ function FunnelStepCard({
   highlightCta,
   muted,
   onAnswerChange,
-  onDiagnosticsInfoClick,
   onCollaborationInfoClick,
 }: {
   step: PricingStep;
@@ -1741,13 +1732,12 @@ function FunnelStepCard({
   highlightCta?: boolean;
   muted?: boolean;
   onAnswerChange?: (answer: "yes" | "no") => void;
-  onDiagnosticsInfoClick?: () => void;
   onCollaborationInfoClick?: () => void;
 }) {
   const ref = useFadeUp(delay);
   const [yesNoAnswer, setYesNoAnswer] = useState<"yes" | "no" | null>(null);
-  // Step "03" no longer lives here — it opens DiagnosticsInfoModal instead
-  // of linking straight out, so its CTA is handled as its own button below.
+  // Step "03" links to the dedicated /situation-review offer page (its own
+  // Link below) instead of linking straight out to checkout.
   const ctaMeta: Record<string, { event: string; url?: { cs: string; en: string } }> = {
     "04": {
       event: "consult_click",
@@ -1950,13 +1940,13 @@ function FunnelStepCard({
           </button>
         )}
         {step.cta && step.num === "03" && (
-          <button
-            type="button"
+          <Link
+            href="/situation-review?from=home"
             onClick={() => {
-              trackEvent(lang, "diagnostics_info_click", {
+              trackEvent(lang, "situation_review_home_click", {
+                product: "situation_review",
                 location: "pricing",
               });
-              onDiagnosticsInfoClick?.();
             }}
             className={`inline-flex items-center justify-center px-6 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${step.price ? "mt-2" : "mt-auto"} ${highlightCta ? "invite-glow" : ""}`}
             style={{
@@ -1967,7 +1957,7 @@ function FunnelStepCard({
             }}
           >
             {step.cta}
-          </button>
+          </Link>
         )}
         {step.cta && step.num !== "02" && step.num !== "03" && step.num !== "05" && (
           <a
@@ -2163,7 +2153,6 @@ export default function Home() {
   useScrollDepthTracking(lang);
   const [showReflection, setShowReflection] = useState(false);
   const [savedReflection, setSavedReflection] = useState(loadSavedReflection);
-  const [showDiagnosticsInfo, setShowDiagnosticsInfo] = useState(false);
   const [showCollaborationInfo, setShowCollaborationInfo] = useState(false);
   const [step1Answer, setStep1Answer] = useState<"yes" | "no" | null>(null);
   const declined = step1Answer === "no";
@@ -2171,6 +2160,18 @@ export default function Home() {
   useEffect(() => {
     setDeclined(declined);
   }, [declined, setDeclined]);
+
+  // Arriving via a client-side route change with a hash (e.g. "/#o-mne" from
+  // /situation-review) doesn't scroll on its own — the browser only does that
+  // on a full page load, and the section doesn't exist until this mounts.
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (!id) return;
+    const frame = requestAnimationFrame(() =>
+      document.getElementById(id)?.scrollIntoView()
+    );
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // No dedicated "next step" page exists yet, so growth/change results scroll
   // the visitor to the pricing funnel (steps 03/04) rather than a hardcoded URL.
@@ -2208,7 +2209,6 @@ export default function Home() {
         quickReflectionOpen={showReflection}
         step1Answer={step1Answer}
         onStep1AnswerChange={setStep1Answer}
-        onDiagnosticsInfoClick={() => setShowDiagnosticsInfo(true)}
         onCollaborationInfoClick={() => setShowCollaborationInfo(true)}
       />
       <div className={restOfSiteClass}>
@@ -2233,10 +2233,6 @@ export default function Home() {
           setSavedReflection(null);
           window.localStorage.removeItem(QUICK_REFLECTION_DONE_KEY);
         }}
-      />
-      <DiagnosticsInfoModal
-        isOpen={showDiagnosticsInfo}
-        onClose={() => setShowDiagnosticsInfo(false)}
       />
       <CollaborationInfoModal
         isOpen={showCollaborationInfo}

@@ -43,6 +43,15 @@ const situationReviewPrice = situationReviewDiscountActive()
   ? SITUATION_REVIEW_DISCOUNT.price
   : PRICES.situationReview;
 
+// Localized price currently charged for Situation review — discount-aware,
+// evaluated at call time. Used by the dedicated /situation-review page so it
+// never carries its own copy of the figure.
+export function situationReviewPriceFor(lang: Lang, now: Date = new Date()): string {
+  return situationReviewDiscountActive(now)
+    ? SITUATION_REVIEW_DISCOUNT.price[lang]
+    : PRICES.situationReview[lang];
+}
+
 export const t = {
   // ── Nav ──────────────────────────────────────────────────────────────────
   nav: {

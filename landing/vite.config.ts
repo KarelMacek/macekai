@@ -5,6 +5,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import {
+  SITUATION_REVIEW_CANONICALS,
+  situationReviewCopy,
+} from "./src/lib/situationReview";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -209,11 +213,76 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
+// Emits prerendered copies of the built index.html for the offer page:
+//   dist/public/situation-review/index.html     (Czech metadata)
+//   dist/public/situation-review/en/index.html  (English metadata)
+// so crawlers and link-preview bots that don't run JS get the right title,
+// description, canonical, og:* and hreflang for each language. The same JS
+// bundle loads and wouter routes by path. Static hosting can't vary HTML by
+// query string, which is why the English preview needs its own path rather
+// than relying on ?lang=en. Copy comes from the page's own source of truth.
+function situationReviewPrerender(): Plugin {
+  const esc = (v: string) =>
+    v.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  return {
+    name: "situation-review-prerender",
+    apply: "build",
+    closeBundle() {
+      const outDir = path.resolve(import.meta.dirname, "dist/public");
+      const src = path.join(outDir, "index.html");
+      if (!fs.existsSync(src)) return;
+      const base = fs.readFileSync(src, "utf-8");
+      const alternates = [
+        `<link rel="alternate" hreflang="cs" href="${SITUATION_REVIEW_CANONICALS.cs}" />`,
+        `<link rel="alternate" hreflang="en" href="${SITUATION_REVIEW_CANONICALS.en}" />`,
+        `<link rel="alternate" hreflang="x-default" href="${SITUATION_REVIEW_CANONICALS.cs}" />`,
+      ].join("\n    ");
+
+      for (const lang of ["cs", "en"] as const) {
+        const title = esc(situationReviewCopy.meta.title[lang]);
+        const description = esc(situationReviewCopy.meta.description[lang]);
+        const url = SITUATION_REVIEW_CANONICALS[lang];
+        let html = base;
+        const swap = (re: RegExp, to: string) => {
+          if (!re.test(html)) throw new Error(`prerender: pattern not found ${re}`);
+          html = html.replace(re, to);
+        };
+        swap(/<html lang="[^"]*">/, `<html lang="${lang}">`);
+        swap(/<title>[\s\S]*?<\/title>/, `<title>${title}</title>`);
+        swap(/(<meta\s+name="description"\s+content=")[^"]*(")/, `$1${description}$2`);
+        swap(
+          /<link rel="canonical" href="[^"]*" \/>/,
+          `<link rel="canonical" href="${url}" />\n    ${alternates}`
+        );
+        swap(/(<meta\s+property="og:title"\s+content=")[^"]*(")/, `$1${title}$2`);
+        swap(
+          /(<meta\s+property="og:description"\s+content=")[^"]*(")/,
+          `$1${description}$2`
+        );
+        swap(/(<meta property="og:url" content=")[^"]*(")/, `$1${url}$2`);
+        swap(
+          /<meta property="og:type" content="website" \/>/,
+          `<meta property="og:type" content="website" />\n    <meta property="og:locale" content="${lang === "cs" ? "cs_CZ" : "en_US"}" />`
+        );
+        swap(/(<meta\s+name="twitter:title"\s+content=")[^"]*(")/, `$1${title}$2`);
+        swap(
+          /(<meta\s+name="twitter:description"\s+content=")[^"]*(")/,
+          `$1${description}$2`
+        );
+        const dir = path.join(outDir, "situation-review", ...(lang === "en" ? ["en"] : []));
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(path.join(dir, "index.html"), html, "utf-8");
+      }
+    },
+  };
+}
+
 const plugins = [
   react(),
   tailwindcss(),
   jsxLocPlugin(),
   vitePluginManusRuntime(),
+  situationReviewPrerender(),
   vitePluginManusDebugCollector(),
   vitePluginStorageProxy(),
 ];

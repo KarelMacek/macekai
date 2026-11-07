@@ -10,15 +10,31 @@ import type { Lang } from "@/lib/content";
 
 export const SITUATION_REVIEW_PRODUCT_ID = "situation_review";
 export const SITUATION_REVIEW_PATH = "/situation-review";
-export const SITUATION_REVIEW_CANONICAL = "https://macek.ai/situation-review";
 export const ABOUT_SECTION_ID = "o-mne";
 
 // Two distinct SimpleShop products/forms, one per language — SimpleShop has no
 // per-product language variant of its own (its checkout-page switch only
 // handles CZK vs. EUR currency, not language).
+export const SIMPLESHOP_FORM_IDS: Record<Lang, string> = {
+  cs: "zQNb5",
+  en: "eo50B",
+};
+export const SIMPLESHOP_ORIGIN = "https://form.simpleshop.cz";
+
+// Hosted (non-embedded) checkout — used by the homepage pricing modal and as
+// the offer page's fallback when the embedded form fails to load.
 export const SIMPLESHOP_BUY_URLS: Record<Lang, string> = {
-  cs: "https://form.simpleshop.cz/zQNb5/buy/",
-  en: "https://form.simpleshop.cz/eo50B/buy/",
+  cs: `${SIMPLESHOP_ORIGIN}/${SIMPLESHOP_FORM_IDS.cs}/buy/`,
+  en: `${SIMPLESHOP_ORIGIN}/${SIMPLESHOP_FORM_IDS.en}/buy/`,
+};
+
+// Path-based English variant: it has its own prerendered HTML (vite.config.ts)
+// so link previews/crawlers get English metadata. Static hosting can't vary
+// HTML by query string, so ?lang=en alone can't do that.
+export const SITUATION_REVIEW_EN_PATH = "/situation-review/en";
+export const SITUATION_REVIEW_CANONICALS: Record<Lang, string> = {
+  cs: "https://macek.ai/situation-review",
+  en: "https://macek.ai/situation-review/en",
 };
 
 export function parseLangParam(search: string): Lang | null {
@@ -293,10 +309,25 @@ export const situationReviewCopy = {
       en: "Want an outside view of your situation?",
     },
   },
-  error: {
-    offline: {
-      cs: "Nepodařilo se otevřít platbu — zdá se, že nejsi online. Zkontroluj připojení a zkus to znovu.",
-      en: "Couldn't open checkout — you seem to be offline. Check your connection and try again.",
+  checkout: {
+    h3: { cs: "Objednávka", en: "Checkout" },
+    loading: { cs: "Načítám objednávkový formulář…", en: "Loading the checkout form…" },
+    frameTitle: {
+      cs: "Objednávkový formulář SimpleShop",
+      en: "SimpleShop checkout form",
+    },
+    failed: {
+      cs: "Objednávkový formulář se nepodařilo načíst. Zkus to znovu, nebo objednávku dokonči na stránce SimpleShopu.",
+      en: "The checkout form couldn't be loaded. Try again, or complete your order on SimpleShop's page.",
+    },
+    retry: { cs: "Zkusit znovu", en: "Try again" },
+    fallback: {
+      cs: "Otevřít objednávku na SimpleShopu",
+      en: "Open checkout on SimpleShop",
+    },
+    secureNote: {
+      cs: "Platbu zpracovává SimpleShop. Po zaplacení ti přijde e-mail s odkazem do aplikace.",
+      en: "Payment is processed by SimpleShop. After payment you'll get an email with a link to the app.",
     },
   },
 } as const;

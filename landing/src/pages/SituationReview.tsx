@@ -5,20 +5,25 @@
  * lib/situationReview.ts; the price comes from lib/content.ts.
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useLang, type Lang } from "@/contexts/LangContext";
 import { situationReviewPriceFor, t, tx } from "@/lib/content";
 import { trackEvent } from "@/lib/analytics";
 import {
   ABOUT_SECTION_ID,
-  SIMPLESHOP_BUY_URLS,
-  SITUATION_REVIEW_CANONICAL,
+  SITUATION_REVIEW_CANONICALS,
+  SITUATION_REVIEW_EN_PATH,
+  SITUATION_REVIEW_PATH,
   SITUATION_REVIEW_PRODUCT_ID,
   parseLangParam,
   readCampaignParams,
   situationReviewCopy as c,
 } from "@/lib/situationReview";
 import Footer from "@/components/Footer";
+import NotFound from "@/pages/NotFound";
+import { SimpleShopCheckout } from "@/components/SimpleShopCheckout";
+
+const CHECKOUT_ID = "objednavka";
 
 const bodyFont: CSSProperties = {
   fontFamily: "'DM Sans', sans-serif",
@@ -77,69 +82,49 @@ function useOfferMetadata(lang: Lang) {
     document.title = title;
     document.documentElement.lang = lang;
     setMeta('meta[name="description"]', "content", description);
-    // Canonical deliberately excludes ?lang and campaign parameters.
-    setMeta('link[rel="canonical"]', "href", SITUATION_REVIEW_CANONICAL);
+    // Canonical is per language (path-based) and never carries ?lang or
+    // campaign parameters.
+    const canonical = SITUATION_REVIEW_CANONICALS[lang];
+    setMeta('link[rel="canonical"]', "href", canonical);
     setMeta('meta[property="og:title"]', "content", title);
     setMeta('meta[property="og:description"]', "content", description);
-    setMeta('meta[property="og:url"]', "content", SITUATION_REVIEW_CANONICAL);
+    setMeta('meta[property="og:url"]', "content", canonical);
     setMeta('meta[name="twitter:title"]', "content", title);
     setMeta('meta[name="twitter:description"]', "content", description);
   }, [lang]);
 }
 
-// ── Purchase button (hero + final) ────────────────────────────────────────────
+// ── Primary CTA: jumps to the embedded checkout on this page ────────────────
 function BuyButton({
   placement,
   campaign,
 }: {
-  placement: "hero" | "final";
+  placement: "hero";
   campaign: Record<string, string>;
 }) {
   const { lang } = useLang();
-  const [error, setError] = useState(false);
-
-  function handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    // Checkout is an external hosted page, so a failed *initiation* is only
-    // observable when the browser knows it is offline. Show a clear message
-    // and let the visitor retry; nothing is tracked as a purchase either way.
-    if (typeof navigator !== "undefined" && navigator.onLine === false) {
-      e.preventDefault();
-      setError(true);
-      return;
-    }
-    setError(false);
-    // A click is interest, never a purchase.
-    trackEvent(lang, "situation_review_cta_click", {
-      product: SITUATION_REVIEW_PRODUCT_ID,
-      placement,
-      ...campaign,
-    });
-  }
-
   return (
-    <div>
-      <a
-        href={SIMPLESHOP_BUY_URLS[lang]}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={handleClick}
-        className="inline-flex min-h-[48px] items-center justify-center px-8 py-3.5 text-base font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transform-none motion-reduce:transition-none"
-        style={{
-          background: "var(--gold)",
-          color: "oklch(0.12 0.015 60)",
-          fontFamily: "'DM Sans', sans-serif",
-          borderRadius: "2px",
-          outlineColor: "var(--gold)",
-        }}
-      >
-        {tx(c.hero.cta, lang)} →
-      </a>
-      {error && (
-        <p role="alert" className="mt-3 text-sm text-red-300" style={bodyFont}>
-          {tx(c.error.offline, lang)}
-        </p>
-      )}
-    </div>
+    <a
+      href={`#${CHECKOUT_ID}`}
+      onClick={() =>
+        // A click is interest, never a purchase.
+        trackEvent(lang, "situation_review_cta_click", {
+          product: SITUATION_REVIEW_PRODUCT_ID,
+          placement,
+          ...campaign,
+        })
+      }
+      className="inline-flex min-h-[48px] items-center justify-center px-8 py-3.5 text-base font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 motion-reduce:transform-none motion-reduce:transition-none"
+      style={{
+        background: "var(--gold)",
+        color: "oklch(0.12 0.015 60)",
+        fontFamily: "'DM Sans', sans-serif",
+        borderRadius: "2px",
+        outlineColor: "var(--gold)",
+      }}
+    >
+      {tx(c.hero.cta, lang)} →
+    </a>
   );
 }
 
@@ -199,12 +184,17 @@ export default function SituationReview() {
     readCampaignParams(typeof window === "undefined" ? "" : window.location.search)
   ).current;
 
-  // An explicit, valid ?lang= wins over browser detection — on this page only.
-  // Runs before the first tracked event so views carry the right language.
+  const [location, navigate] = useLocation();
+  const pathLang: Lang | null =
+    location.replace(/\/$/, "") === SITUATION_REVIEW_EN_PATH ? "en" : null;
+
+  // Explicit language wins over browser detection — on this page only:
+  // the /en path first, then a valid ?lang=. Runs before the first tracked
+  // event so the view carries the right language.
   const [langReady, setLangReady] = useState(false);
   useEffect(() => {
-    const fromUrl = parseLangParam(window.location.search);
-    if (fromUrl && fromUrl !== lang) setLang(fromUrl);
+    const explicit = pathLang ?? parseLangParam(window.location.search);
+    if (explicit && explicit !== lang) setLang(explicit);
     setLangReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -226,10 +216,20 @@ export default function SituationReview() {
   function switchLang(next: Lang) {
     if (next === lang) return;
     setLang(next);
-    // Keep the URL shareable and deterministic; retain other (campaign) params.
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", next);
-    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    // Keep the URL shareable and deterministic: the language lives in the
+    // path (/situation-review vs /situation-review/en), so ?lang is dropped
+    // and every other (campaign) parameter is retained.
+    const params = new URLSearchParams(window.location.search);
+    params.delete("lang");
+    const qs = params.toString();
+    const path = next === "en" ? SITUATION_REVIEW_EN_PATH : SITUATION_REVIEW_PATH;
+    navigate(`${path}${qs ? `?${qs}` : ""}`, { replace: true });
+  }
+
+  // The route matches /situation-review/:variant?; only "en" is a real variant.
+  const normalized = location.replace(/\/$/, "");
+  if (normalized !== SITUATION_REVIEW_PATH && normalized !== SITUATION_REVIEW_EN_PATH) {
+    return <NotFound />;
   }
 
   const sample = c.sample.paragraphs[lang];
@@ -606,10 +606,18 @@ export default function SituationReview() {
                 <li key={line}>· {line}</li>
               ))}
             </ul>
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-10">
-              <BuyButton placement="final" campaign={campaign} />
+            <div className="mb-8">
               <PriceBlock />
             </div>
+            <h3
+              id={CHECKOUT_ID}
+              tabIndex={-1}
+              className="mb-4 scroll-mt-6 text-lg font-semibold text-[oklch(0.93_0.02_80)] outline-none"
+              style={serif}
+            >
+              {tx(c.checkout.h3, lang)}
+            </h3>
+            <SimpleShopCheckout campaign={campaign} />
           </div>
         </section>
       </main>

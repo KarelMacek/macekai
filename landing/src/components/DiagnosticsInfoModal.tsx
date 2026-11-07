@@ -8,18 +8,7 @@ import { X } from "lucide-react";
 import { useLang, type Lang } from "@/contexts/LangContext";
 import { t, tx } from "@/lib/content";
 import { trackEvent } from "@/lib/analytics";
-
-// Keyed by the page's own language — no separate in-modal choice, since
-// asking again right at the buy decision (on top of already-tiered pricing)
-// is an extra bit of friction, not a feature. Wrong guess is recoverable:
-// the consent page after payment offers its own language switch.
-// Two distinct SimpleShop products/forms, one per language — SimpleShop has
-// no per-product language variant of its own (its checkout-page switch only
-// handles CZK vs. EUR currency, not language).
-const SIMPLESHOP_BUY_URLS: Record<Lang, string> = {
-  cs: "https://form.simpleshop.cz/zQNb5/buy/",
-  en: "https://form.simpleshop.cz/eo50B/buy/",
-};
+import { SIMPLESHOP_BUY_URLS } from "@/lib/situationReview";
 
 interface DiagnosticsInfoModalProps {
   isOpen: boolean;

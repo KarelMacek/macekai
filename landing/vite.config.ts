@@ -209,11 +209,68 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
+// Emits dist/public/situation-review/index.html: a copy of the built index.html
+// with the offer page's own title/description/canonical/og tags (Czech default),
+// so crawlers and link-preview bots that don't run JS see correct share
+// metadata for /situation-review instead of the homepage's. The same JS bundle
+// loads and wouter routes by path; client-side tags still switch with ?lang=.
+// Known gap: the static preview is Czech only (a ?lang=en link still previews
+// in Czech).
+function situationReviewPrerender(): Plugin {
+  const title =
+    "Pohled na tvou situaci — osobní písemná reflexe | Karel Macek";
+  const description =
+    "Vyplníš dotazník (cca 20 minut), já se mu osobně věnuji nejméně 20 minut a do týdne od odeslání dostaneš písemnou reflexi tvé situace. Karel Macek, PhD, ACC (ICF).";
+  const url = "https://macek.ai/situation-review";
+  const esc = (v: string) => v.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
+  return {
+    name: "situation-review-prerender",
+    apply: "build",
+    closeBundle() {
+      const outDir = path.resolve(import.meta.dirname, "dist/public");
+      const src = path.join(outDir, "index.html");
+      if (!fs.existsSync(src)) return;
+      let html = fs.readFileSync(src, "utf-8");
+      const swap = (re: RegExp, to: string) => {
+        if (!re.test(html)) throw new Error(`prerender: pattern not found ${re}`);
+        html = html.replace(re, to);
+      };
+      swap(/<title>[\s\S]*?<\/title>/, `<title>${esc(title)}</title>`);
+      swap(
+        /(<meta\s+name="description"\s+content=")[^"]*(")/,
+        `$1${esc(description)}$2`
+      );
+      swap(/(<link rel="canonical" href=")[^"]*(")/, `$1${url}$2`);
+      swap(
+        /(<meta\s+property="og:title"\s+content=")[^"]*(")/,
+        `$1${esc(title)}$2`
+      );
+      swap(
+        /(<meta\s+property="og:description"\s+content=")[^"]*(")/,
+        `$1${esc(description)}$2`
+      );
+      swap(/(<meta property="og:url" content=")[^"]*(")/, `$1${url}$2`);
+      swap(
+        /(<meta\s+name="twitter:title"\s+content=")[^"]*(")/,
+        `$1${esc(title)}$2`
+      );
+      swap(
+        /(<meta\s+name="twitter:description"\s+content=")[^"]*(")/,
+        `$1${esc(description)}$2`
+      );
+      const dir = path.join(outDir, "situation-review");
+      fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(path.join(dir, "index.html"), html, "utf-8");
+    },
+  };
+}
+
 const plugins = [
   react(),
   tailwindcss(),
   jsxLocPlugin(),
   vitePluginManusRuntime(),
+  situationReviewPrerender(),
   vitePluginManusDebugCollector(),
   vitePluginStorageProxy(),
 ];

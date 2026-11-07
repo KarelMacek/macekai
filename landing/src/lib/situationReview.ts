@@ -73,9 +73,10 @@ export const situationReviewCopy = {
   },
   hero: {
     eyebrow: { cs: "Pohled na tvou situaci", en: "Situation review" },
-    // Two sentences, rendered as two separate lines.
+    // Two sentences, rendered as two separate lines. Czech copy on this page
+    // is gender-neutral toward the reader (no "vybudoval/a"-style forms).
     h1a: {
-      cs: "Vybudoval sis kariéru v technologiích.",
+      cs: "Kariéru v technologiích už máš.",
       en: "You've built a career in tech.",
     },
     h1b: {
@@ -113,7 +114,7 @@ export const situationReviewCopy = {
     items: {
       cs: [
         "Kam nasměrovat své zkušenosti a energii.",
-        "Zda se dál rozvíjet jako expert, vést lidi, nebo rozjet něco vlastního.",
+        "Zda jít víc do hloubky ve svém oboru, vést lidi, nebo rozjet něco vlastního.",
         "Co změnit, aby tě práce i život více těšily.",
       ],
       en: [

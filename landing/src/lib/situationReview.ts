@@ -63,8 +63,8 @@ export const situationReviewCopy = {
       en: "Situation review — a personal written reflection | Karel Macek",
     },
     description: {
-      cs: "Vyplníš dotazník (cca 20 minut), já se mu osobně věnuji nejméně 20 minut a do týdne od odeslání dostaneš písemnou reflexi tvé situace. Karel Macek, PhD, ACC (ICF).",
-      en: "Complete a questionnaire (around 20 minutes), I personally spend at least 20 minutes on it, and you receive a written reflection within a week of submitting. Karel Macek, PhD, ACC (ICF).",
+      cs: "Vyplníš dotazník (cca 20 minut), já se mu osobně věnuji nejméně 20 minut a do týdne od odeslání dostaneš písemnou reflexi tvé situace (1–3 strany) a video (5+ minut). Karel Macek, PhD, ACC (ICF).",
+      en: "Complete a questionnaire (around 20 minutes), I personally spend at least 20 minutes on it, and within a week of submitting you receive a written reflection (1–3 pages) and a video (5+ minutes). Karel Macek, PhD, ACC (ICF).",
     },
   },
   header: {
@@ -73,9 +73,15 @@ export const situationReviewCopy = {
   },
   hero: {
     eyebrow: { cs: "Pohled na tvou situaci", en: "Situation review" },
-    h1: {
-      cs: "Vybudoval sis kariéru v technologiích. Co chceš tvořit dál?",
-      en: "You've built a career in tech. What do you want to build next?",
+    // Two sentences, rendered as two separate lines. Czech copy on this page
+    // is gender-neutral toward the reader (no "vybudoval/a"-style forms).
+    h1a: {
+      cs: "Kariéru v technologiích už máš.",
+      en: "You've built a career in tech.",
+    },
+    h1b: {
+      cs: "Co chceš tvořit dál?",
+      en: "What do you want to build next?",
     },
     body: {
       cs: "Máš zkušenosti a schopnosti. Chceš se posunout, ale možná ještě nemáš jasno kam. Podívám se na tvou situaci zvenčí a propojím to, co se v tvých odpovědích opakuje, co si odporuje a co stojí za další pozornost.",
@@ -94,12 +100,12 @@ export const situationReviewCopy = {
       cs: [
         "Přibližně 20 minut tvého času",
         "Nejméně 20 minut mé osobní práce",
-        "Písemná reflexe do týdne od odeslání dotazníku",
+        "Reflexe na 1–3 strany a video (5+ minut) do týdne od odeslání dotazníku",
       ],
       en: [
         "Around 20 minutes of your time",
         "At least 20 minutes of my personal work",
-        "Written reflection within a week of submitting your questionnaire",
+        "A 1–3 page reflection and a 5+ minute video within a week of submitting your questionnaire",
       ],
     },
   },
@@ -108,7 +114,7 @@ export const situationReviewCopy = {
     items: {
       cs: [
         "Kam nasměrovat své zkušenosti a energii.",
-        "Zda se dál rozvíjet jako expert, vést lidi, nebo rozjet něco vlastního.",
+        "Zda jít víc do hloubky ve svém oboru, vést lidi, nebo rozjet něco vlastního.",
         "Co změnit, aby tě práce i život více těšily.",
       ],
       en: [
@@ -121,8 +127,8 @@ export const situationReviewCopy = {
   receive: {
     h2: { cs: "Co ode mě dostaneš", en: "What you'll receive" },
     intro: {
-      cs: "Osobní písemnou reflexi, která propojí tvé odpovědi do širšího obrazu.",
-      en: "A personal written reflection that connects your answers into a broader picture.",
+      cs: "Osobní písemnou reflexi na 1–3 strany, která propojí tvé odpovědi do širšího obrazu, a k ní video (5+ minut), ve kterém ti svůj pohled přiblížím.",
+      en: "A personal 1–3 page written reflection that connects your answers into a broader picture, plus a video (5+ minutes) in which I talk you through my perspective.",
     },
     items: {
       cs: [
@@ -158,8 +164,8 @@ export const situationReviewCopy = {
           body: "Nejméně 20 minut věnuji pročtení tvých odpovědí, hledání souvislostí a formulování svého pohledu.",
         },
         {
-          title: "Dostaneš písemnou reflexi.",
-          body: "Do týdne od odeslání vyplněného dotazníku. Jakmile bude připravená, přijde ti e-mail a najdeš ji po přihlášení v aplikaci.",
+          title: "Dostaneš reflexi a video.",
+          body: "Písemnou reflexi na 1–3 strany a video (5+ minut) do týdne od odeslání vyplněného dotazníku. Jakmile budou připravené, přijde ti e-mail a najdeš je po přihlášení v aplikaci.",
         },
       ],
       en: [
@@ -172,41 +178,9 @@ export const situationReviewCopy = {
           body: "I spend at least 20 minutes reading your answers, looking for connections and developing my perspective.",
         },
         {
-          title: "Receive your written reflection.",
-          body: "Within a week of submitting your completed questionnaire. You'll receive an email when it's ready and can read it after signing in to the app.",
+          title: "Receive your reflection and video.",
+          body: "A 1–3 page written reflection and a 5+ minute video, within a week of submitting your completed questionnaire. You'll receive an email when they're ready and can find them after signing in to the app.",
         },
-      ],
-    },
-  },
-  sample: {
-    h2: { cs: "Ukázka z reflexe", en: "A taste of the reflection" },
-    label: {
-      cs: "Ilustrační ukázka na fiktivním příkladu. Nejde o skutečného klienta.",
-      en: "Illustrative example based on a fictional situation. This is not a real client.",
-    },
-    note: {
-      cs: "Úryvek ilustruje přístup. Není to příslíbený úplný výstup ani reference.",
-      en: "An excerpt illustrating the approach — not a promised complete deliverable or a testimonial.",
-    },
-    show: { cs: "Zobrazit celou ukázku", en: "Show the full excerpt" },
-    hide: { cs: "Skrýt ukázku", en: "Hide the excerpt" },
-    title: {
-      cs: "Schopnost otevírá dveře. Směr pomáhá vybrat.",
-      en: "Ability opens doors. Direction helps you choose.",
-    },
-    // First paragraph is always visible; the rest sits behind the toggle.
-    paragraphs: {
-      cs: [
-        "Píšeš, že tě baví řešit složité technické problémy, ale zároveň přijímáš stále více koordinační práce. Možná se tak tvá spolehlivost stává důvodem, proč dostáváš méně prostoru na to, co tě nejvíc zajímá.",
-        "Stojí za ověření, zda teď hledáš vyšší pozici, nebo větší vliv na obsah své práce.",
-        "Otázka: Kdyby další krok nemusel vypadat jako povýšení, co bys chtěl dělat častěji?",
-        "První krok: Během příštího týdne si zaznamenej tři chvíle, kdy tě práce vtáhla, a tři, kdy ses cítil mimo svůj směr. Podívej se, co mají společného.",
-      ],
-      en: [
-        "You write that you enjoy solving complex technical problems, yet you keep taking on more coordination work. Your reliability may be leaving you with less room for the work that interests you most.",
-        "One question worth exploring is whether you want a higher position or more influence over the content of your work.",
-        "Question: If your next step did not have to look like a promotion, what would you want to do more often?",
-        "First step: Over the next week, note three moments when your work absorbed you and three when it felt out of line with your direction. Look for what they have in common.",
       ],
     },
   },
@@ -240,7 +214,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Je součástí živý hovor?",
-          a: "Ne. Tento nákup je písemná reflexe, živý hovor není zahrnutý.",
+          a: "Ne. Živý hovor není zahrnutý — dostaneš písemnou reflexi (1–3 strany) a nahrané video (5+ minut).",
         },
         {
           q: "Kdo moje odpovědi posuzuje?",
@@ -252,7 +226,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Jak se k výsledku dostanu?",
-          a: "Přijde ti e-mail, že je reflexe hotová. Pak se přihlásíš do aplikace účtem, se kterým byl nákup spojen.",
+          a: "Přijde ti e-mail, že je reflexe hotová. Pak se přihlásíš do aplikace účtem, se kterým byl nákup spojen, a najdeš tam reflexi i video.",
         },
         {
           q: "Potřebuji Google účet?",
@@ -274,7 +248,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Is there a live call?",
-          a: "No. This purchase is a written review; no live call is included.",
+          a: "No live call is included — you receive a written reflection (1–3 pages) and a recorded video (5+ minutes).",
         },
         {
           q: "Who reviews my answers?",
@@ -286,7 +260,7 @@ export const situationReviewCopy = {
         },
         {
           q: "How do I access the result?",
-          a: "You'll get an email when the reflection is ready, then sign in to the app with the account associated with your purchase.",
+          a: "You'll get an email when the reflection is ready, then sign in to the app with the account associated with your purchase to find both the reflection and the video.",
         },
         {
           q: "Do I need a Google account?",

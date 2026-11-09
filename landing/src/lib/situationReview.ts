@@ -59,12 +59,12 @@ export function readCampaignParams(search: string): Record<string, string> {
 export const situationReviewCopy = {
   meta: {
     title: {
-      cs: "Pohled na tvou situaci — osobní písemná reflexe | Karel Macek",
-      en: "Situation review — a personal written reflection | Karel Macek",
+      cs: "Pohled na tvou situaci — tvůj další krok očima zvenčí | Karel Macek",
+      en: "Situation review — an outside view of your next move | Karel Macek",
     },
     description: {
-      cs: "Vyplníš dotazník (cca 20 minut), já se mu osobně věnuji nejméně 20 minut a do týdne od odeslání dostaneš písemnou reflexi tvé situace (1–3 strany) a video (5+ minut). Karel Macek, PhD, ACC (ICF).",
-      en: "Complete a questionnaire (around 20 minutes), I personally spend at least 20 minutes on it, and within a week of submitting you receive a written reflection (1–3 pages) and a video (5+ minutes). Karel Macek, PhD, ACC (ICF).",
+      cs: "Pohled zvenčí na tvou kariéru a další krok: hutný písemný rozbor a osobní video do týdne. Jednorázově, bez prodejních hovorů. Karel Macek, PhD, bývalý CTO, ACC (ICF).",
+      en: "An outside view of your career and your next move: a dense written analysis and a personal video within a week. One-off, no sales calls. Karel Macek, PhD, ex-CTO, ACC (ICF).",
     },
   },
   header: {
@@ -80,32 +80,33 @@ export const situationReviewCopy = {
       en: "You've built a career in tech.",
     },
     h1b: {
-      cs: "Co chceš tvořit dál?",
-      en: "What do you want to build next?",
+      cs: "Co budeš tvořit dál?",
+      en: "What are you building next?",
     },
     body: {
-      cs: "Máš zkušenosti a schopnosti. Chceš se posunout, ale možná ještě nemáš jasno kam. Podívám se na tvou situaci zvenčí a propojím to, co se v tvých odpovědích opakuje, co si odporuje a co stojí za další pozornost.",
-      en: "You have experience and ability. You want to move forward, but you may not yet be sure where. I'll look at your situation from the outside, connecting recurring patterns, tensions and questions worth exploring.",
+      cs: "Máš zkušenosti, schopnosti i respekt. A možná i plató, které se ti zatím nedaří pojmenovat. Podívám se na tvou situaci zvenčí a zmapuju, co se opakuje, co si odporuje a kde je tvůj další krok.",
+      en: "You have the experience, the ability and the authority. And maybe a plateau you can't quite name yet. I'll look at your situation from the outside and map what keeps recurring, where it contradicts itself, and where your next move is.",
     },
     cta: {
       cs: "Chci pohled na svou situaci",
       en: "Get my situation review",
     },
     priceNote: {
-      cs: "Jednorázově. Bez závazku pokračovat v koučování.",
-      en: "One-off payment. No obligation to continue with coaching.",
+      cs: "Jednorázový pohled. Žádné prodejní hovory. Žádný závazek pokračovat v koučování.",
+      en: "A one-off review. No sales calls. No obligation to continue with coaching.",
     },
     commitmentsLabel: { cs: "Co je v ceně", en: "What's involved" },
     commitments: {
+      // Value, not logistics: exact time/page figures live in the FAQ.
       cs: [
-        "Přibližně 20 minut tvého času",
-        "Nejméně 20 minut mé osobní práce",
-        "Reflexe na 1–3 strany a video (5+ minut) do týdne od odeslání dotazníku",
+        "Tvoje část: strukturovaně si vypsat hlavu",
+        "Moje část: osobně přečtu, co se skrývá za tvými odpověďmi",
+        "Výsledek: písemný rozbor a nahrané video do týdne",
       ],
       en: [
-        "Around 20 minutes of your time",
-        "At least 20 minutes of my personal work",
-        "A 1–3 page reflection and a 5+ minute video within a week of submitting your questionnaire",
+        "Your part: one structured brain dump",
+        "My part: a personal read of the patterns behind your answers",
+        "The result: a written analysis and a recorded video, within a week",
       ],
     },
   },
@@ -127,21 +128,21 @@ export const situationReviewCopy = {
   receive: {
     h2: { cs: "Co ode mě dostaneš", en: "What you'll receive" },
     intro: {
-      cs: "Osobní písemnou reflexi na 1–3 strany, která propojí tvé odpovědi do širšího obrazu, a k ní video (5+ minut), ve kterém ti svůj pohled přiblížím.",
-      en: "A personal 1–3 page written reflection that connects your answers into a broader picture, plus a video (5+ minutes) in which I talk you through my perspective.",
+      cs: "Hutný písemný rozbor a nahrané video (5+ minut), ve kterém tě jím provedu. Zaměřené na to, co zevnitř není vidět.",
+      en: "A dense written analysis and a recorded video (5+ minutes) in which I walk you through it. Focused on what you can't see because you're too close to it.",
     },
     items: {
       cs: [
-        "Vzorce a souvislosti, které v tvých odpovědích vidím.",
-        "Silné stránky a napětí, která stojí za pozornost.",
-        "Otázky, které ti mohou otevřít nový úhel pohledu.",
-        "Návrh prvního praktického kroku.",
+        "Vzorce: co se opakuje a zevnitř není vidět.",
+        "Napětí: kde tvoje současná role jde proti tomu, jak skutečně funguješ.",
+        "Otázky, které stojí za to si položit.",
+        "Další krok: jeden konkrétní krok nebo omezení, které stojí za to prolomit.",
       ],
       en: [
-        "Patterns and connections I notice in your answers.",
-        "Strengths and tensions worth paying attention to.",
-        "Questions that may open up a new perspective.",
-        "A suggested first practical step.",
+        "The patterns: what keeps repeating that you're too close to see.",
+        "The tensions: where your current role pulls against how you actually operate.",
+        "The questions worth asking next.",
+        "The next move: one concrete step to take, or constraint to break.",
       ],
     },
     clarification: {
@@ -150,36 +151,36 @@ export const situationReviewCopy = {
     },
   },
   steps: {
-    h2: { cs: "Jak to funguje", en: "How it works" },
+    h2: { cs: "Co bude následovat", en: "What happens next" },
     // Order matches the real flow (app-backend/docs/post-purchase-email.md):
     // pay on SimpleShop → email with login link → Google sign-in → questionnaire.
     items: {
       cs: [
         {
-          title: "Zaplatíš a vyplníš dotazník.",
-          body: "Po zaplacení ti přijde e-mail s odkazem do aplikace, kde se přihlásíš přes Google. Dotazník zabere přibližně 20 minut: kombinuje krátké odpovědi a otevřené otázky o práci, životě a o tom, jak funguješ. Pokud chceš, přidáš CV nebo LinkedIn.",
+          title: "Vypíšeš si hlavu (tvoje část).",
+          body: "Po zaplacení ti přijde e-mail s odkazem do aplikace (přihlášení přes Google). Strukturovaný dotazník ti pomůže dát do slov napětí a nevyslovené otázky, které v hlavě nosíš. Už samotné sepsání často přinese úlevu. Pokud chceš, přidáš CV nebo LinkedIn.",
         },
         {
-          title: "Osobně se mu věnuji.",
-          body: "Nejméně 20 minut věnuji pročtení tvých odpovědí, hledání souvislostí a formulování svého pohledu.",
+          title: "Hledám strukturu (moje část).",
+          body: "Tvoje odpovědi nejen čtu, hledám architekturu za nimi: co se opakuje, co proti čemu táhne a co zevnitř není vidět.",
         },
         {
-          title: "Dostaneš reflexi a video.",
-          body: "Písemnou reflexi na 1–3 strany a video (5+ minut) do týdne od odeslání vyplněného dotazníku. Jakmile budou připravené, přijde ti e-mail a najdeš je po přihlášení v aplikaci.",
+          title: "Dostaneš rozbor a video (výsledek).",
+          body: "Do týdne od odeslání dotazníku: nahrané video (5+ minut), ve kterém tě provedu svým pohledem, a hutný písemný rozbor. Jakmile budou připravené, přijde ti e-mail a najdeš je v aplikaci.",
         },
       ],
       en: [
         {
-          title: "Pay and complete the questionnaire.",
-          body: "After payment you'll get an email with a link to the app, where you sign in with Google. The questionnaire takes around 20 minutes: it combines short responses and open questions about your work, life and how you operate. You can optionally add your CV or LinkedIn profile.",
+          title: "The brain dump (your part).",
+          body: "After payment you'll get an email with a link to the app (Google sign-in). A structured questionnaire helps you put the tensions and unasked questions you've been carrying into words. Writing them down often brings relief on its own. You can optionally add your CV or LinkedIn profile.",
         },
         {
-          title: "I personally review it.",
-          body: "I spend at least 20 minutes reading your answers, looking for connections and developing my perspective.",
+          title: "The synthesis (my part).",
+          body: "I don't just read your answers; I look for the architecture behind them: what keeps repeating, what pulls against what, and what you can't see from the inside.",
         },
         {
-          title: "Receive your reflection and video.",
-          body: "A 1–3 page written reflection and a 5+ minute video, within a week of submitting your completed questionnaire. You'll receive an email when they're ready and can find them after signing in to the app.",
+          title: "The briefing (the result).",
+          body: "Within a week of submitting: a recorded video (5+ minutes) where I walk you through my view, and a dense written analysis. You'll get an email when they're ready and can find them in the app.",
         },
       ],
     },
@@ -196,8 +197,10 @@ export const situationReviewCopy = {
     },
     moreLink: { cs: "Více o Karlovi", en: "More about Karel" },
     testimonialLabel: {
-      cs: "Zpětná vazba ke koučování (ne k tomuto produktu)",
-      en: "Feedback on coaching (not on this product)",
+      // Honest without undermining the offer: it IS feedback on Karel's
+      // coaching, just not specifically on Situation review.
+      cs: "Zpětná vazba na můj přístup ke koučování",
+      en: "Feedback on my coaching approach",
     },
   },
   faq: {
@@ -214,11 +217,15 @@ export const situationReviewCopy = {
         },
         {
           q: "Je součástí živý hovor?",
-          a: "Ne. Živý hovor není zahrnutý — dostaneš písemnou reflexi (1–3 strany) a nahrané video (5+ minut).",
+          a: "Ne, žádné hovory, ani prodejní. Dostaneš písemný rozbor a nahrané video (5+ minut).",
+        },
+        {
+          q: "Jak dlouhý je písemný rozbor?",
+          a: "Obvykle 1–3 strany. Hutně, bez vaty.",
         },
         {
           q: "Kdo moje odpovědi posuzuje?",
-          a: "Osobně Karel, nejméně 20 minut.",
+          a: "Osobně Karel.",
         },
         {
           q: "Odkdy se počítá týden?",
@@ -226,7 +233,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Jak se k výsledku dostanu?",
-          a: "Přijde ti e-mail, že je reflexe hotová. Pak se přihlásíš do aplikace účtem, se kterým byl nákup spojen, a najdeš tam reflexi i video.",
+          a: "Přijde ti e-mail, že je rozbor hotový. Pak se přihlásíš do aplikace účtem, se kterým byl nákup spojen, a najdeš tam rozbor i video.",
         },
         {
           q: "Potřebuji Google účet?",
@@ -248,11 +255,15 @@ export const situationReviewCopy = {
         },
         {
           q: "Is there a live call?",
-          a: "No live call is included — you receive a written reflection (1–3 pages) and a recorded video (5+ minutes).",
+          a: "No calls at all, including no sales calls. You receive a written analysis and a recorded video (5+ minutes).",
+        },
+        {
+          q: "How long is the written analysis?",
+          a: "Usually 1–3 pages. Dense, not padded.",
         },
         {
           q: "Who reviews my answers?",
-          a: "Karel personally, for at least 20 minutes.",
+          a: "Karel personally.",
         },
         {
           q: "When does the week start?",
@@ -260,7 +271,7 @@ export const situationReviewCopy = {
         },
         {
           q: "How do I access the result?",
-          a: "You'll get an email when the reflection is ready, then sign in to the app with the account associated with your purchase to find both the reflection and the video.",
+          a: "You'll get an email when it's ready, then sign in to the app with the account associated with your purchase to find both the analysis and the video.",
         },
         {
           q: "Do I need a Google account?",

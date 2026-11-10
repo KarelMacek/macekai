@@ -509,18 +509,6 @@ export default function SituationReview() {
                     style={bodyFont}
                   >
                     {item.a}
-                    {item.q.startsWith(lang === "cs" ? "Jak se nakládá" : "How are my") && (
-                      <>
-                        {" "}
-                        <Link
-                          href="/privacy"
-                          className="text-gold underline underline-offset-2"
-                        >
-                          {tx(c.faq.privacyLink, lang)}
-                        </Link>
-                        .
-                      </>
-                    )}
                   </p>
                 </details>
               ))}

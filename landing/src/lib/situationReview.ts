@@ -205,10 +205,6 @@ export const situationReviewCopy = {
   },
   faq: {
     h2: { cs: "Časté otázky", en: "Questions" },
-    privacyLink: {
-      cs: "Zásady ochrany osobních údajů",
-      en: "Privacy information",
-    },
     items: {
       cs: [
         {
@@ -245,7 +241,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Jak se nakládá s mými odpověďmi?",
-          a: "Podrobnosti najdeš v zásadách ochrany osobních údajů. Souhlasy, které v aplikaci udělíš nebo odmítneš, se řídí tvým výběrem.",
+          a: "Důvěrně, podle etického kodexu International Coaching Federation (ICF). Než začneš, aplikace se tě zeptá na dva nepovinné souhlasy: jestli smí tvé odpovědi zpracovat i AI (když řekneš ne, AI se jich nedotkne; když ano, jen modely, které se na tvých datech nedoučují: Microsoft Copilot, Azure OpenAI nebo lokálně běžící modely) a jestli smí být tvůj anonymizovaný záznam použit pro statistiku a výzkum strojového učení. Všechna svá data si můžeš v aplikaci kdykoli stáhnout a na požádání je trvale smažu (karel@macek.ai).",
         },
       ],
       en: [
@@ -283,7 +279,7 @@ export const situationReviewCopy = {
         },
         {
           q: "How are my answers handled?",
-          a: "See the privacy information for details. The consents you give or decline in the app follow your own choices.",
+          a: "Confidentially, under the International Coaching Federation (ICF) code of ethics. Before you start, the app asks you two optional questions: whether AI may also process your answers (if you say no, AI won't touch them; if yes, only models that don't train on your data: Microsoft Copilot, Azure OpenAI or locally-run models), and whether your anonymized record may be used for statistics and machine-learning research. You can download all your data from the app at any time, and I'll permanently delete it on request (karel@macek.ai).",
         },
       ],
     },

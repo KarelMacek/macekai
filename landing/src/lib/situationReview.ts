@@ -63,8 +63,8 @@ export const situationReviewCopy = {
       en: "Situation review — an outside view of your next move | Karel Macek",
     },
     description: {
-      cs: "Pohled zvenčí na tvou kariéru a další krok: hutný písemný rozbor a osobní video do týdne. Jednorázově, bez prodejních hovorů. Karel Macek, PhD, bývalý CTO, ACC (ICF).",
-      en: "An outside view of your career and your next move: a dense written analysis and a personal video within a week. One-off, no sales calls. Karel Macek, PhD, ex-CTO, ACC (ICF).",
+      cs: "Pohled zvenčí na tvou kariéru a další krok: hutný písemný rozbor a osobní video do týdne. Jednorázově, bez závazků k další spolupráci. Karel Macek, PhD, bývalý CTO, ACC (ICF).",
+      en: "An outside view of your career and your next move: a dense written analysis and a personal video within a week. One-off, no commitment to further work together. Karel Macek, PhD, ex-CTO, ACC (ICF).",
     },
   },
   header: {
@@ -92,8 +92,8 @@ export const situationReviewCopy = {
       en: "Get my situation review",
     },
     priceNote: {
-      cs: "Jednorázový pohled. Žádné prodejní hovory. Žádný závazek pokračovat v koučování.",
-      en: "A one-off review. No sales calls. No obligation to continue with coaching.",
+      cs: "Jednorázový pohled, bez závazků k další spolupráci.",
+      en: "A one-off review, no commitment to further work together.",
     },
     commitmentsLabel: { cs: "Co je v ceně", en: "What's involved" },
     commitments: {
@@ -213,7 +213,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Je součástí živý hovor?",
-          a: "Ne, žádné hovory, ani prodejní. Dostaneš písemný rozbor a nahrané video (5+ minut).",
+          a: "Ne. Dostaneš písemný rozbor a nahrané video (5+ minut).",
         },
         {
           q: "Jak dlouhý je písemný rozbor?",
@@ -251,7 +251,7 @@ export const situationReviewCopy = {
         },
         {
           q: "Is there a live call?",
-          a: "No calls at all, including no sales calls. You receive a written analysis and a recorded video (5+ minutes).",
+          a: "No. You receive a written analysis and a recorded video (5+ minutes).",
         },
         {
           q: "How long is the written analysis?",

@@ -63,8 +63,8 @@ export const situationReviewCopy = {
       en: "Situation review — an outside view of your next move | Karel Macek",
     },
     description: {
-      cs: "Pohled zvenčí na tvou kariéru a další krok: hutný písemný rozbor a osobní video do týdne. Jednorázově, bez závazků k další spolupráci. Karel Macek, PhD, bývalý CTO, ACC (ICF).",
-      en: "An outside view of your career and your next move: a dense written analysis and a personal video within a week. One-off, no commitment to further work together. Karel Macek, PhD, ex-CTO, ACC (ICF).",
+      cs: "Pohled zvenčí na tvou kariéru a další krok: hutný písemný rozbor a osobní video do týdne. Jednorázově a uceleně: další krok volíš ty. Karel Macek, PhD, bývalý CTO, ACC (ICF).",
+      en: "An outside view of your career and your next move: a dense written analysis and a personal video within a week. One-off and complete in itself: you choose your next step. Karel Macek, PhD, ex-CTO, ACC (ICF).",
     },
   },
   header: {
@@ -84,16 +84,16 @@ export const situationReviewCopy = {
       en: "What are you building next?",
     },
     body: {
-      cs: "Máš zkušenosti, schopnosti i respekt. A možná i plató, které se ti zatím nedaří pojmenovat. Podívám se na tvou situaci zvenčí a zmapuju, co se opakuje, co si odporuje a kde je tvůj další krok.",
-      en: "You have the experience, the ability and the authority. And maybe a plateau you can't quite name yet. I'll look at your situation from the outside and map what keeps recurring, where it contradicts itself, and where your next move is.",
+      cs: "Máš zkušenosti, schopnosti i respekt. A možná i plató, které teprve čeká na pojmenování. Podívám se na tvou situaci zvenčí a zmapuju, co se opakuje, co si odporuje a kde je tvůj další krok.",
+      en: "You have the experience, the ability and the authority. And maybe a plateau that's still waiting for a name. I'll look at your situation from the outside and map what keeps recurring, where it contradicts itself, and where your next move is.",
     },
     cta: {
       cs: "Chci pohled na svou situaci",
       en: "Get my situation review",
     },
     priceNote: {
-      cs: "Jednorázový pohled, bez závazků k další spolupráci.",
-      en: "A one-off review, no commitment to further work together.",
+      cs: "Jednorázový, ucelený pohled. Další krok volíš ty.",
+      en: "A one-off, complete review. You choose your next step.",
     },
     commitmentsLabel: { cs: "Co je v ceně", en: "What's involved" },
     commitments: {
@@ -128,18 +128,18 @@ export const situationReviewCopy = {
   receive: {
     h2: { cs: "Co ode mě dostaneš", en: "What you'll receive" },
     intro: {
-      cs: "Hutný písemný rozbor a nahrané video (5+ minut), ve kterém tě jím provedu. Zaměřené na to, co zevnitř není vidět.",
-      en: "A dense written analysis and a recorded video (5+ minutes) in which I walk you through it. Focused on what you can't see because you're too close to it.",
+      cs: "Hutný písemný rozbor a nahrané video (5+ minut), ve kterém tě jím provedu. Zaměřené na to, co je vidět jen zvenčí.",
+      en: "A dense written analysis and a recorded video (5+ minutes) in which I walk you through it. Focused on what only shows from the outside.",
     },
     items: {
       cs: [
-        "Vzorce: co se opakuje a zevnitř není vidět.",
+        "Vzorce: co se opakuje a je vidět jen zvenčí.",
         "Napětí: kde tvoje současná role jde proti tomu, jak skutečně funguješ.",
         "Otázky, které stojí za to si položit.",
         "Další krok: jeden konkrétní krok nebo omezení, které stojí za to prolomit.",
       ],
       en: [
-        "The patterns: what keeps repeating that you're too close to see.",
+        "The patterns: what keeps repeating, visible from the outside.",
         "The tensions: where your current role pulls against how you actually operate.",
         "The questions worth asking next.",
         "The next move: one concrete step to take, or constraint to break.",
@@ -158,11 +158,11 @@ export const situationReviewCopy = {
       cs: [
         {
           title: "Vypíšeš si hlavu (tvoje část).",
-          body: "Po zaplacení ti přijde e-mail s odkazem do aplikace (přihlášení přes Google). Strukturovaný dotazník ti pomůže dát do slov napětí a nevyslovené otázky, které v hlavě nosíš. Už samotné sepsání často přinese úlevu. Pokud chceš, přidáš CV nebo LinkedIn.",
+          body: "Po zaplacení ti přijde e-mail s odkazem do aplikace (přihlášení přes Google). Strukturovaný dotazník ti pomůže dát do slov napětí a otázky, které v hlavě nosíš. Už samotné sepsání často přinese úlevu. Pokud chceš, přidáš CV nebo LinkedIn.",
         },
         {
           title: "Hledám strukturu (moje část).",
-          body: "Tvoje odpovědi nejen čtu, hledám architekturu za nimi: co se opakuje, co proti čemu táhne a co zevnitř není vidět.",
+          body: "Tvoje odpovědi čtu a hledám architekturu za nimi: co se opakuje, co proti čemu táhne a co je vidět jen zvenčí.",
         },
         {
           title: "Dostaneš rozbor a video (výsledek).",
@@ -172,11 +172,11 @@ export const situationReviewCopy = {
       en: [
         {
           title: "The brain dump (your part).",
-          body: "After payment you'll get an email with a link to the app (Google sign-in). A structured questionnaire helps you put the tensions and unasked questions you've been carrying into words. Writing them down often brings relief on its own. You can optionally add your CV or LinkedIn profile.",
+          body: "After payment you'll get an email with a link to the app (Google sign-in). A structured questionnaire helps you put the tensions and questions you've been carrying into words. Writing them down often brings relief on its own. You can optionally add your CV or LinkedIn profile.",
         },
         {
           title: "The synthesis (my part).",
-          body: "I don't just read your answers; I look for the architecture behind them: what keeps repeating, what pulls against what, and what you can't see from the inside.",
+          body: "I read your answers and look for the architecture behind them: what keeps repeating, what pulls against what, and what only shows from the outside.",
         },
         {
           title: "The briefing (the result).",
@@ -209,15 +209,15 @@ export const situationReviewCopy = {
       cs: [
         {
           q: "Kolik času budu potřebovat?",
-          a: "Přibližně 20 minut. Není to limit — promyšlenější odpovědi mi dají bohatší kontext.",
+          a: "Přibližně 20 minut. Klidně si dej víc času — čím promyšlenější odpovědi, tím bohatší kontext.",
         },
         {
-          q: "Je součástí živý hovor?",
-          a: "Ne. Dostaneš písemný rozbor a nahrané video (5+ minut).",
+          q: "Jak spolu budeme komunikovat?",
+          a: "Písemně a videem: dostaneš písemný rozbor a nahrané video (5+ minut), které si pustíš, kdy se ti to hodí.",
         },
         {
           q: "Jak dlouhý je písemný rozbor?",
-          a: "Obvykle 1–3 strany. Hutně, bez vaty.",
+          a: "Obvykle 1–3 strany. Hutně a k věci.",
         },
         {
           q: "Kdo moje odpovědi posuzuje?",
@@ -236,26 +236,26 @@ export const situationReviewCopy = {
           a: "Ano, aplikace používá přihlášení přes Google.",
         },
         {
-          q: "Musím si potom koupit koučování?",
-          a: "Ne.",
+          q: "Co bude potom?",
+          a: "Rozbor je ucelený sám o sobě: zůstane ti a další krok volíš ty. Pokud se rozhodneš pokračovat, jeho cena se ti odečte od dalšího kroku.",
         },
         {
           q: "Jak se nakládá s mými odpověďmi?",
-          a: "Důvěrně, podle etického kodexu International Coaching Federation (ICF). Než začneš, aplikace se tě zeptá na dva nepovinné souhlasy: jestli smí tvé odpovědi zpracovat i AI (když řekneš ne, AI se jich nedotkne; když ano, jen modely, které se na tvých datech nedoučují: Microsoft Copilot, Azure OpenAI nebo lokálně běžící modely) a jestli smí být tvůj anonymizovaný záznam použit pro statistiku a výzkum strojového učení. Všechna svá data si můžeš v aplikaci kdykoli stáhnout a na požádání je trvale smažu (karel@macek.ai).",
+          a: "Důvěrně, podle etického kodexu International Coaching Federation (ICF). Než začneš, aplikace se tě zeptá na dva volitelné souhlasy: jestli smí tvé odpovědi zpracovat i AI (se souhlasem jen modely, které tvá data drží mimo svůj trénink: Microsoft Copilot, Azure OpenAI nebo lokálně běžící modely; jinak je čtu výhradně já) a jestli smí být tvůj anonymizovaný záznam použit pro statistiku a výzkum strojového učení. Všechna svá data si můžeš v aplikaci kdykoli stáhnout a na požádání je trvale smažu (karel@macek.ai).",
         },
       ],
       en: [
         {
           q: "How much time do I need?",
-          a: "Around 20 minutes. That's an estimate, not a limit — more thoughtful answers give me richer context.",
+          a: "Around 20 minutes. Take as long as you like — more thoughtful answers give me richer context.",
         },
         {
-          q: "Is there a live call?",
-          a: "No. You receive a written analysis and a recorded video (5+ minutes).",
+          q: "How do we communicate?",
+          a: "In writing and on video: you receive a written analysis and a recorded video (5+ minutes) to watch whenever it suits you.",
         },
         {
           q: "How long is the written analysis?",
-          a: "Usually 1–3 pages. Dense, not padded.",
+          a: "Usually 1–3 pages. Dense and to the point.",
         },
         {
           q: "Who reviews my answers?",
@@ -274,12 +274,12 @@ export const situationReviewCopy = {
           a: "Yes, the app uses Google sign-in.",
         },
         {
-          q: "Do I have to buy coaching afterwards?",
-          a: "No.",
+          q: "What happens afterwards?",
+          a: "The review is complete in itself: you keep it and choose your next step. If you decide to continue, its price is deducted from the next step.",
         },
         {
           q: "How are my answers handled?",
-          a: "Confidentially, under the International Coaching Federation (ICF) code of ethics. Before you start, the app asks you two optional questions: whether AI may also process your answers (if you say no, AI won't touch them; if yes, only models that don't train on your data: Microsoft Copilot, Azure OpenAI or locally-run models), and whether your anonymized record may be used for statistics and machine-learning research. You can download all your data from the app at any time, and I'll permanently delete it on request (karel@macek.ai).",
+          a: "Confidentially, under the International Coaching Federation (ICF) code of ethics. Before you start, the app asks you two optional questions: whether AI may also process your answers (with your consent, only models that keep your data out of their training: Microsoft Copilot, Azure OpenAI or locally-run models; otherwise I alone read them), and whether your anonymized record may be used for statistics and machine-learning research. You can download all your data from the app at any time, and I'll permanently delete it on request (karel@macek.ai).",
         },
       ],
     },

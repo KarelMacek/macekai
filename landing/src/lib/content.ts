@@ -8,7 +8,7 @@ export type Lang = "cs" | "en";
 // reads from here instead of hardcoding its own copy of the figure.
 export const PRICES = {
   quickCheck: { cs: "0 Kč", en: "0 EUR" },
-  situationReview: { cs: "590 Kč", en: "23.99 EUR" },
+  situationReview: { cs: "1 000 Kč", en: "50 EUR" },
   changeMap: { cs: "4 000 Kč", en: "165 EUR" },
   tacticalSprint: { cs: "12 000 Kč", en: "490 EUR" },
   fullProgram: { cs: "45 000 Kč", en: "1 900 EUR" },
@@ -25,7 +25,7 @@ export const PRICES = {
 // DiagnosticsInfoModal.tsx), which has its own price configured outside
 // this repo — the discounted price must also be set there manually, for
 // both products (CZ zQNb5, EN eo50B), or the site will advertise 290 Kč
-// while checkout still charges 590 Kč.
+// while checkout still charges the full price.
 export const SITUATION_REVIEW_DISCOUNT = {
   price: { cs: "290 Kč", en: "11.79 EUR" },
   until: new Date("2026-09-01T00:00:00+02:00"),
